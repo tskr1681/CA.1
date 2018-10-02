@@ -8,16 +8,18 @@ import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolImporter;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.model.ConformerPlacementStep;
+import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.model.RandomCompoundReactor;
+import nl.bioinf.cawarmerdam.compound_evolver.model.ThreeDimensionalConverter;
+import org.openbabel.OBMol;
+import org.openbabel.vectorVector3;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 /**
- *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -33,19 +35,28 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     private void evolve() {
+        PipelineStep<Molecule, Molecule[]> pipe = setupPipeline();
         try {
-            for (int i = 0; i < reactionProducts.size(); i++) {
-                Molecule reactionProduct = reactionProducts.get(i);
-                String smilesMolecule = MolExporter.exportToFormat(reactionProduct, "smiles");
-//                generateThreeDimensionalMolecule(smilesMolecule, i);
+            for (Molecule reactionProduct : reactionProducts) {
+                Molecule[] conformers = pipe.execute(reactionProduct);
+                System.out.println("conformers = " + Arrays.toString(conformers));
+                MolExporter exporter = new MolExporter("out.sdf", "sdf");
+                for (Molecule conformer : conformers) {
+                    exporter.write(conformer);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private PipelineStep<Molecule, Molecule[]> setupPipeline() {
+        return new ThreeDimensionalConverter();
+    }
+
     /**
      * main for cli
+     *
      * @param args An array of strings being the command line input
      */
     public static void main(String[] args) throws Exception {
@@ -58,6 +69,8 @@ public class CompoundEvolver {
         List<List<Molecule>> reactantLists = CompoundEvolver.loadMolecules(reactantFiles);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, maxSamples);
+        // Evolve compounds
+        compoundEvolver.evolve();
     }
 
     private static Reactor loadReaction(String filename) throws Exception {
