@@ -13,14 +13,13 @@ public class ThreeDimensionalConverter implements PipelineStep<Molecule,Molecule
         try {
             // Set parameters
             conformerPlugin.setMolecule(molecule);
-            conformerPlugin.setMaxNumberOfConformers(100);
+            conformerPlugin.setMaxNumberOfConformers(15);
             conformerPlugin.setMMFF94(true);
             // Run
             conformerPlugin.run();
         } catch (PluginException e) {
             e.printStackTrace();
         }
-//        Cleaner.clean(molecule, 3, "[ca]{15}{15}[mmff94]");
         return conformerPlugin.getConformers();
     }
 }

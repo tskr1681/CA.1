@@ -6,6 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.control;
 
 import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolImporter;
+import chemaxon.marvin.io.MolExportException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.ConformerPlacementStep;
@@ -15,6 +16,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.ThreeDimensionalConverter;
 import org.openbabel.OBMol;
 import org.openbabel.vectorVector3;
 
+import java.io.IOException;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -36,17 +38,17 @@ public class CompoundEvolver {
      */
     private void evolve() {
         PipelineStep<Molecule, Molecule[]> pipe = setupPipeline();
-        try {
-            for (Molecule reactionProduct : reactionProducts) {
+        for (Molecule reactionProduct : reactionProducts) {
+            try {
                 Molecule[] conformers = pipe.execute(reactionProduct);
                 System.out.println("conformers = " + Arrays.toString(conformers));
                 MolExporter exporter = new MolExporter("out.sdf", "sdf");
                 for (Molecule conformer : conformers) {
                     exporter.write(conformer);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
