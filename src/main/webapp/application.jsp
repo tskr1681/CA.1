@@ -70,10 +70,10 @@
                         Only an mrv file (.mrv) is accepted
                     </p>
                 </div>
-                <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#advanced">Advanced
-                    options
+                <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#operator-settings">
+                    Genetic operator settings
                 </button>
-                <div id="advanced" class="collapse">
+                <div id="operator-settings" class="collapse">
                     <div class="form-group" ng-class="{
                     'has-error':!compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted),
                     'has-success':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)}">
