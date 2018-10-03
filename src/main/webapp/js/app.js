@@ -7,7 +7,7 @@ app.run(function ($rootScope) {
 });
 
 app.controller('FormInputCtrl' , function ($scope, $rootScope) {
-    $scope.formModel = {generationSize: 12, mutationRate: 27, crossoverRate: 5};
+    $scope.formModel = {generationSize: 50, mutationRate: 0.5, crossoverRate: 0.5};
     $scope.file = {wrongExtension: false, pristine: true, hasFile: false};
     $scope.response = {hasError: false};
 

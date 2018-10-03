@@ -34,3 +34,10 @@ dependencies {
     compile group: 'com.chemaxon', name: 'jchem-main', version: '17.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
+
+task install(type: Copy) {
+    group 'build'
+    dependsOn build
+    from configurations.runtime
+    into "${project.projectDir}/build/libs/lib"
+}

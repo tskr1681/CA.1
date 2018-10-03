@@ -2,7 +2,7 @@
   Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
   All rights reserved.
 --%>
-<%--<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>--%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html lang="en" ng-app="compoundEvolver">
 <head>
@@ -73,7 +73,7 @@
                 <div class="form-group" ng-class="{
                     'has-error':!compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted),
                     'has-success':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)}">
-                    <label for="generation-size" class="control-label col-sm-3">Minimum length of probes:</label>
+                    <label for="generation-size" class="control-label col-sm-3">Generation size:</label>
                     <div class="col-sm-9">
                         <input type="number"
                                class="form-control"
@@ -81,7 +81,7 @@
                                id="generation-size"
                                name="generationSize"
                                required="required"
-                               min="1"
+                               min="2"
                                step="1">
                     </div>
                     <p class="help-block col-sm-9 pull-right"
@@ -90,13 +90,13 @@
                     </p>
                     <p class="help-block col-sm-9 pull-right"
                        ng-show="(compoundEvolverForm.generationSize.$error.number || compoundEvolverForm.generationSize.$error.step || compoundEvolverForm.generationSize.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                        An integer value between 0 and the maximum probe length is required
+                        An integer value (a whole number) above 2 is required
                     </p>
                 </div>
                 <div class="form-group" ng-class="{
                     'has-error':!compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted),
                     'has-success':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)}">
-                    <label for="mutation-rate" class="control-label col-sm-3">Maximum length of probes:</label>
+                    <label for="mutation-rate" class="control-label col-sm-3">Mutation rate:</label>
                     <div class="col-sm-9">
                         <input type="number"
                                class="form-control"
@@ -104,22 +104,22 @@
                                id="mutation-rate"
                                name="mutationRate"
                                required="required"
-                               min="1"
-                               step="1">
+                               min="0"
+                               max="1">
                     </div>
                     <p class="help-block col-sm-9 pull-right"
                        ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                         This field is required
                     </p>
                     <p class="help-block col-sm-9 pull-right"
-                       ng-show="(compoundEvolverForm.mutationRate.$error.number || compoundEvolverForm.mutationRate.$error.step || compoundEvolverForm.mutationRate.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                        An integer value above the minimum probe length is required
+                       ng-show="(compoundEvolverForm.mutationRate.$error.number || compoundEvolverForm.mutationRate.$error.min || compoundEvolverForm.mutationRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                        A fraction between 0 and 1 is required
                     </p>
                 </div>
                 <div class="form-group" ng-class="{
                     'has-error':!compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted),
                     'has-success':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)}">
-                    <label for="crossover-rate" class="control-label col-sm-3">Maximum number of probes to report:</label>
+                    <label for="crossover-rate" class="control-label col-sm-3">Crossover rate:</label>
                     <div class="col-sm-9">
                         <input type="number"
                                class="form-control"
@@ -127,16 +127,16 @@
                                id="crossover-rate"
                                name="crossoverRate"
                                required="required"
-                               min="1"
-                               step="1">
+                               min="0"
+                               max="1">
                     </div>
                     <p class="help-block col-sm-9 pull-right"
                        ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                         This field is required
                     </p>
                     <p class="help-block col-sm-9 pull-right"
-                       ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.step || compoundEvolverForm.crossoverRate.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                        An integer above 0 is required
+                       ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.min || compoundEvolverForm.crossoverRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                        A fraction between 0 and 1 is required
                     </p>
                 </div>
                 <br/>
