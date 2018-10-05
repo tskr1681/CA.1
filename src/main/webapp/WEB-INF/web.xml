@@ -4,6 +4,21 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
+    <context-param>
+        <param-name>upload.location</param-name>
+        <param-value>../uploads</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>obfit.executable</param-name>
+        <param-value>obfit</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>mol3d.executable</param-name>
+        <param-value>C:\Program files (x86)\moloc\bin\mol3d</param-value>
+    </context-param>
+
     <servlet>
         <servlet-name>ApplicationServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.ApplicationServlet</servlet-class>

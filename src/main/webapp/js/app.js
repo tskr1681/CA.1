@@ -48,6 +48,31 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
             console.log(formData);
 
+            // process the form
+            jQuery.ajax({
+                method: 'POST',
+                type: 'POST',
+                url: './evolve.do',
+                processData: false,
+                contentType: false,
+                responseType: "application/json",
+                data: formData,
+                success: function (data, textStatus, jqXHR) {
+
+                    // log data to the console so we can see
+                    console.log(data);
+                    $scope.response.hasError = false;
+                    $scope.$apply();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+
+                    // Reset form fields and output error to the page
+                    getErrorResponse(jqXHR);
+                    setPristine();
+                    $scope.response.hasError = true;
+                    $scope.$apply();
+                }
+            })
         } else {
             // Form is not valid. Keep quiet.
             console.log("Invalid Form!")

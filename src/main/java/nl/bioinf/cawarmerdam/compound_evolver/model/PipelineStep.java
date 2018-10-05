@@ -2,7 +2,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 public interface PipelineStep<I, O> {
 
-    O execute(I value);
+    O execute(I value) throws PipeLineException;
 
     default <R> PipelineStep<I, R> pipe(PipelineStep<O, R> source) {
         return value -> source.execute(execute(value));

@@ -9,14 +9,13 @@ import chemaxon.formats.MolImporter;
 import chemaxon.marvin.io.MolExportException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
-import nl.bioinf.cawarmerdam.compound_evolver.model.ConformerPlacementStep;
-import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineStep;
-import nl.bioinf.cawarmerdam.compound_evolver.model.RandomCompoundReactor;
-import nl.bioinf.cawarmerdam.compound_evolver.model.ThreeDimensionalConverter;
+import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import org.openbabel.OBMol;
 import org.openbabel.vectorVector3;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -37,23 +36,28 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     private void evolve() {
-        PipelineStep<Molecule, Molecule[]> pipe = setupPipeline();
+        executeInitialPipeline();
+
+    }
+
+    private void executeInitialPipeline() {
+        PipelineStep<Molecule, Path> pipe = setupPipeline();
         for (Molecule reactionProduct : reactionProducts) {
             try {
-                Molecule[] conformers = pipe.execute(reactionProduct);
-                System.out.println("conformers = " + Arrays.toString(conformers));
-                MolExporter exporter = new MolExporter("out.sdf", "sdf");
-                for (Molecule conformer : conformers) {
-                    exporter.write(conformer);
-                }
-            } catch (IOException e) {
+                Path filename = pipe.execute(reactionProduct);
+            } catch (PipeLineException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private PipelineStep<Molecule, Molecule[]> setupPipeline() {
-        return new ThreeDimensionalConverter();
+    private PipelineStep<Molecule, Path> setupPipeline() {
+        PipelineStep<Molecule, Path> converter = new ThreeDimensionalConverter(Paths.get("..\\uploads"));
+        PipelineStep<Molecule, Path> pipe = converter.pipe(new ConformerPlacementStep(
+                "ref.sdf",
+                "C(=O)Cl",
+                "obfit"));
+        return pipe;
     }
 
     /**
