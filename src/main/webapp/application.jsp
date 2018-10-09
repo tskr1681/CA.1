@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%--Load stylesheets--%>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="<c:url value = "css/main.css"/>">
     <%--load library javascript--%>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -49,7 +50,7 @@
                 <div class="form-group" ng-class="{
                     'has-error':file.wrongExtension || (!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
                     'has-success':!file.wrongExtension && !file.pristine}">
-                    <label for="file" class="control-label col-sm-3">Upload file:</label>
+                    <label for="file" class="control-label col-sm-3">Upload mrv reaction file:</label>
                     <div class="col-sm-9">
                         <label for="file" class="custom-file-upload">
                             <strong class="btn btn-default">Choose file</strong>
@@ -140,6 +141,29 @@
                         </p>
                         <p class="help-block col-sm-9 pull-right"
                            ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.min || compoundEvolverForm.crossoverRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                            A fraction between 0 and 1 is required
+                        </p>
+                    </div>
+                    <div class="form-group" ng-class="{
+                    'has-error':!compoundEvolverForm.randomImmigrantPortion.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted),
+                    'has-success':compoundEvolverForm.randomImmigrantPortion.$valid && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)}">
+                        <label for="random-immigrant-portion" class="control-label col-sm-3">Random immigrant portion:</label>
+                        <div class="col-sm-9">
+                            <input type="number"
+                                   class="form-control"
+                                   ng-model="formModel.randomImmigrantPortion"
+                                   id="random-immigrant-portion"
+                                   name="randomImmigrantPortion"
+                                   required="required"
+                                   min="0"
+                                   max="1">
+                        </div>
+                        <p class="help-block col-sm-9 pull-right"
+                           ng-show="compoundEvolverForm.randomImmigrantPortion.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                            This field is required
+                        </p>
+                        <p class="help-block col-sm-9 pull-right"
+                           ng-show="(compoundEvolverForm.randomImmigrantPortion.$error.number || compoundEvolverForm.randomImmigrantPortion.$error.min || compoundEvolverForm.randomImmigrantPortion.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                             A fraction between 0 and 1 is required
                         </p>
                     </div>
