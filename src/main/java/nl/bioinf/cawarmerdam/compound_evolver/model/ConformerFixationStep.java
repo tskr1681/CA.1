@@ -107,7 +107,7 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
 
         } catch (IOException e) {
             throw new PipeLineError(String.format(
-                    "fixating confomers with command '%s' failed with the following exception: %s",
+                    "fixating confomers with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));
         }

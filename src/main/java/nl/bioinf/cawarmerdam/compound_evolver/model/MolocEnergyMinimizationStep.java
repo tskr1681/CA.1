@@ -1,9 +1,11 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 
@@ -17,8 +19,9 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     }
 
     @Override
-    public Path execute(Path value) {
-        return null;
+    public Path execute(Path inputFile) {
+        mol3d(inputFile);
+        return inputFile;
     }
 
     private void mol3d(Path inputFile) {
@@ -54,8 +57,10 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
             }
 
         } catch (IOException e) {
-            System.out.println("exception happened - here's what I know: ");
-            System.out.println("e = " + e.toString());
+            throw new PipeLineError(String.format(
+                    "minimizing energy with command: '%s' failed with the following exception: %s",
+                    command,
+                    e.toString()));
         }
     }
 }

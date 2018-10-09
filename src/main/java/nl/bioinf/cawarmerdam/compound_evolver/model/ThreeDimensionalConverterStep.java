@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ThreeDimensionalConverter implements PipelineStep<Molecule, Path> {
+public class ThreeDimensionalConverterStep implements PipelineStep<Molecule, Path> {
 
     private int i;
     private Path filePath;
 
-    public ThreeDimensionalConverter(Path filePath) {
+    public ThreeDimensionalConverterStep(Path filePath) {
         this.filePath = filePath;
         this.i = 0;
     }

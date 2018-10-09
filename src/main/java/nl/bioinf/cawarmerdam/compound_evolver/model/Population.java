@@ -15,10 +15,11 @@ public class Population implements Iterable<Candidate> {
         this.candidateList = candidateList;
     }
 
-    public void crossover() {
+    public Population produceOffspring() {
         Reactor reactor = new Reactor();
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
+        // Perform crossing over
         // Shuffle parents
         Collections.shuffle(this.candidateList);
         int offspringSize = 10;
@@ -42,11 +43,11 @@ public class Population implements Iterable<Candidate> {
                 e.printStackTrace();
             }
         }
-        this.candidateList = offspring;
+        // Possibly introduce new individuals
+        return new Population(offspring);
     }
 
-    public void mutate() {
-
+    public void mutate(Molecule[] genome) {
     }
 
     @Override

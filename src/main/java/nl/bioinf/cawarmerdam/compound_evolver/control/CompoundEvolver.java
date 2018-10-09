@@ -48,11 +48,8 @@ public class CompoundEvolver {
         }
         // Evolve
         for (int i = 0; i < 1; i++) {
-            // Perform crossing over in population
-            this.population.crossover();
-            // Mutate part of population
-            this.population.mutate();
-            // Possibly introduce new individuals
+            // Produce offspring
+            this.population = this.population.produceOffspring();
             // Score the candidates
             for (Candidate candidate : this.population) {
                 try {
@@ -81,10 +78,12 @@ public class CompoundEvolver {
      * @return Pipeline that can be executed
      */
     private PipelineStep<Molecule, Path> setupPipeline() {
-        PipelineStep<Molecule, Path> converter = new ThreeDimensionalConverter(Paths.get("..\\uploads"));
-        PipelineStep<Molecule, Path> pipe = converter.pipe(new ConformerFixationStep(
-                anchor,
-                "obfit.exe"));
+        ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
+                Paths.get("..\\uploads"));
+        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
+        MolocEnergyMinimizationStep molocEnergyMinimizationStep = new MolocEnergyMinimizationStep("", "", "Mol3d.exe");
+        PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
+        PipelineStep<Molecule, Path> pipe = converterStep.pipe(molocEnergyMinimizationStep);
         return pipe;
     }
 
