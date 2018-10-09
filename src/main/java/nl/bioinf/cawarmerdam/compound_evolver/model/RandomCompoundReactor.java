@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 public class RandomCompoundReactor
-        implements PipelineStep<List<List<Molecule>>, List<Molecule>> {
+        implements PipelineStep<List<List<Molecule>>, List<Candidate>> {
 
     private Reactor reactor;
     private int maxSamples;
@@ -21,20 +21,20 @@ public class RandomCompoundReactor
     }
 
     @Override
-    public List<Molecule> execute(List<List<Molecule>> reactantLists) {
+    public List<Candidate> execute(List<List<Molecule>> reactantLists) {
         try {
-            return (List<Molecule>) randReact(reactantLists);
+            return randReact(reactantLists);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return new ArrayList<>();
     }
 
-    private List<Molecule> randReact(List<List<Molecule>> reactantLists) throws Exception {
+    private List<Candidate> randReact(List<List<Molecule>> reactantLists) throws Exception {
         // Amount of products generated
         int nSampled = 0;
         Random random = new Random();
-        List<Molecule> reactionProducts = new ArrayList<>();
+        List<Candidate> candidates = new ArrayList<>();
         // Try to generate products while the number of products generated is
         // lower than the maximum number of products wanted
         while (nSampled < maxSamples) {
@@ -52,11 +52,11 @@ public class RandomCompoundReactor
             reactor.setReactants(molecules);
             // Add the product and count the product if it can be made
             if ((products = reactor.react()) != null) {
-                reactionProducts.add(products[0]);
+                candidates.add(new Candidate(molecules, products[0]));
                 nSampled++;
             }
         }
-        return reactionProducts;
+        return candidates;
 
     }
 }
