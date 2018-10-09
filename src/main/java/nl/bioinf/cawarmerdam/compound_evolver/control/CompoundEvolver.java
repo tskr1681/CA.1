@@ -4,16 +4,12 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
-import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolImporter;
-import chemaxon.marvin.io.MolExportException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
-import org.openbabel.OBMol;
-import org.openbabel.vectorVector3;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -26,37 +22,69 @@ import java.io.FileReader;
  * @version 0.0.1
  */
 public class CompoundEvolver {
-    private List<Molecule> reactionProducts;
+    private PipelineStep<Molecule, Path> pipe;
+    private Population population;
+    private File anchor;
 
-    private CompoundEvolver(List<List<Molecule>> reactantLists, Reactor reactor, int maxProducts) {
-        reactionProducts = new RandomCompoundReactor(reactor, maxProducts).execute(reactantLists);
+    private CompoundEvolver(List<List<Molecule>> reactantLists, Reactor reactor, File anchor, int maxProducts) {
+        this.anchor = anchor;
+        // Construct the initial population
+        List<Candidate> candidateList = new RandomCompoundReactor(reactor, maxProducts).execute(reactantLists);
+        this.population = new Population(candidateList);
+        // Setup the pipeline
+        this.pipe = setupPipeline();
     }
 
     /**
      * Evolve compounds
      */
     private void evolve() {
-        executeInitialPipeline();
-
-    }
-
-    private void executeInitialPipeline() {
-        PipelineStep<Molecule, Path> pipe = setupPipeline();
-        for (Molecule reactionProduct : reactionProducts) {
+        for (Candidate candidate : this.population) {
             try {
-                Path filename = pipe.execute(reactionProduct);
-            } catch (PipeLineException e) {
+                scoreCandidates(candidate);
+            } catch (PipeLineError e) {
                 e.printStackTrace();
+            }
+        }
+        // Evolve
+        for (int i = 0; i < 1; i++) {
+            // Perform crossing over in population
+            this.population.crossover();
+            // Mutate part of population
+            this.population.mutate();
+            // Possibly introduce new individuals
+            // Score the candidates
+            for (Candidate candidate : this.population) {
+                try {
+                    scoreCandidates(candidate);
+                } catch (PipeLineError e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
+    /**
+     * Score set the fitness score of each candidate
+     * @param candidate Candidate instance
+     * @throws PipeLineError if an error occurred in the pipeline
+     */
+    private void scoreCandidates(Candidate candidate) throws PipeLineError {
+        // Execute pipeline
+        Path filename = pipe.execute(candidate.getPhenotype());
+        // Assign score to candidate
+        candidate.setScore(0.5);
+    }
+
+    /**
+     * Setup the pipeline for scoring candidates
+     * @return Pipeline that can be executed
+     */
     private PipelineStep<Molecule, Path> setupPipeline() {
         PipelineStep<Molecule, Path> converter = new ThreeDimensionalConverter(Paths.get("..\\uploads"));
-        PipelineStep<Molecule, Path> pipe = converter.pipe(new ConformerPlacementStep(
-                "ref.sdf",
-                "C(=O)Cl",
-                "obfit"));
+        PipelineStep<Molecule, Path> pipe = converter.pipe(new ConformerFixationStep(
+                anchor,
+                "obfit.exe"));
         return pipe;
     }
 
@@ -71,10 +99,12 @@ public class CompoundEvolver {
         // Get maximum amount of product
         int maxSamples = Integer.parseInt(args[args.length - 1]);
         // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 1);
+        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
         List<List<Molecule>> reactantLists = CompoundEvolver.loadMolecules(reactantFiles);
+        // Load anchor molecule
+        File anchor = new File(args[args.length - 2]);
         // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, maxSamples);
+        CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, anchor, maxSamples);
         // Evolve compounds
         compoundEvolver.evolve();
     }
