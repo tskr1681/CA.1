@@ -40,11 +40,14 @@ public class RandomCompoundReactor
         while (nSampled < maxSamples) {
             Iterator<List<Molecule>> iterator = reactantLists.iterator();
             List<Molecule> reactants = new ArrayList<>();
+            List<Integer> indexGenome = new ArrayList<>();
             Molecule[] products;
             while (iterator.hasNext()) {
                 // Get random reactants for a single reaction
                 List<Molecule> map = iterator.next();
-                Molecule reactant = map.get(random.nextInt(map.size()));
+                int index = random.nextInt(map.size());
+                indexGenome.add(index);
+                Molecule reactant = map.get(index);
                 reactants.add(reactant);
             }
             Molecule[] molecules = reactants.toArray(new Molecule[reactants.size()]);
@@ -52,7 +55,7 @@ public class RandomCompoundReactor
             reactor.setReactants(molecules);
             // Add the product and count the product if it can be made
             if ((products = reactor.react()) != null) {
-                candidates.add(new Candidate(molecules, products[0]));
+                candidates.add(new Candidate(indexGenome, products[0]));
                 nSampled++;
             }
         }

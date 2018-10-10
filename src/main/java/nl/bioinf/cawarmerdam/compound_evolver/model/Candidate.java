@@ -6,6 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.struc.Molecule;
 
+import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,21 +19,21 @@ import java.util.stream.IntStream;
 public class Candidate {
 
     private final int genomeSize;
-    private Molecule[] genotype;
+    private List<Integer> genotype;
     private Molecule phenotype;
-    private double score;
+    private Double score;
 
-    Candidate(Molecule[] genotype, Molecule phenotype) {
+    Candidate(List<Integer> genotype, Molecule phenotype) {
         this.genotype = genotype;
         this.phenotype = phenotype;
-        genomeSize = this.genotype.length;
+        genomeSize = this.genotype.size();
     }
 
     /**
      * Getter for the score of this candidate
      * @return The score of this candidate
      */
-    public double getScore() {
+    public Double getScore() {
         return score;
     }
 
@@ -48,7 +49,7 @@ public class Candidate {
      * Getter for the genotype
      * @return List of alleles
      */
-    public Molecule[] getGenotype() {
+    public List<Integer> getGenotype() {
         return genotype;
     }
 
@@ -60,15 +61,15 @@ public class Candidate {
         return phenotype;
     }
 
-    Molecule[] crossover(Candidate other) {
+    List<Integer> crossover(Candidate other) {
         // Get crossover points to do uniform crossing over
         boolean[] crossoverPoints = generateCrossoverPoints();
         // Select the allele from this candidates genotype if true,
         // otherwise select hte allele from the other candidate
         // Return the new genotype
         return IntStream.range(0, genomeSize)
-        .mapToObj(i -> crossoverPoints[i]? this.getGenotype()[i]:other.getGenotype()[i])
-        .toArray(Molecule[]::new);
+        .mapToObj(i -> crossoverPoints[i]? this.getGenotype().get(i) : other.getGenotype().get(i))
+        .collect(Collectors.toList());
     }
 
     private boolean[] generateCrossoverPoints() {

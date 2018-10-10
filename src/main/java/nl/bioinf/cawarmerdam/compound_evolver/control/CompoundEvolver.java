@@ -29,8 +29,7 @@ public class CompoundEvolver {
     private CompoundEvolver(List<List<Molecule>> reactantLists, Reactor reactor, File anchor, int maxProducts) {
         this.anchor = anchor;
         // Construct the initial population
-        List<Candidate> candidateList = new RandomCompoundReactor(reactor, maxProducts).execute(reactantLists);
-        this.population = new Population(candidateList);
+        this.population = new Population(reactantLists, reactor, maxProducts);
         // Setup the pipeline
         this.pipe = setupPipeline();
     }
@@ -49,7 +48,7 @@ public class CompoundEvolver {
         // Evolve
         for (int i = 0; i < 1; i++) {
             // Produce offspring
-            this.population = this.population.produceOffspring();
+            this.population.produceOffspring();
             // Score the candidates
             for (Candidate candidate : this.population) {
                 try {
@@ -105,7 +104,7 @@ public class CompoundEvolver {
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, anchor, maxSamples);
         // Evolve compounds
-        compoundEvolver.evolve();
+//        compoundEvolver.evolve();
     }
 
     private static Reactor loadReaction(String filename) throws Exception {
