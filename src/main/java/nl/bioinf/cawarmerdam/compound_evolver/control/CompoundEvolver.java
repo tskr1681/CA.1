@@ -39,11 +39,11 @@ public class CompoundEvolver {
      */
     private void evolve() {
         for (Candidate candidate : this.population) {
-            try {
-                scoreCandidates(candidate);
-            } catch (PipeLineError e) {
-                e.printStackTrace();
-            }
+//            try {
+//                scoreCandidates(candidate);
+//            } catch (PipeLineError e) {
+//                e.printStackTrace();
+//            }
         }
         // Evolve
         for (int i = 0; i < 1; i++) {
@@ -51,11 +51,11 @@ public class CompoundEvolver {
             this.population.produceOffspring();
             // Score the candidates
             for (Candidate candidate : this.population) {
-                try {
-                    scoreCandidates(candidate);
-                } catch (PipeLineError e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    scoreCandidates(candidate);
+//                } catch (PipeLineError e) {
+//                    e.printStackTrace();
+//                }
             }
         }
     }
@@ -104,7 +104,7 @@ public class CompoundEvolver {
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, anchor, maxSamples);
         // Evolve compounds
-//        compoundEvolver.evolve();
+        compoundEvolver.evolve();
     }
 
     private static Reactor loadReaction(String filename) throws Exception {

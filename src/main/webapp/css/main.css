@@ -1,0 +1,20 @@
+input[type="file"] {
+    display:none;
+}
+
+.custom-file-upload {
+    display: inline;
+    cursor: pointer;
+}
+
+.custom-file-upload > span {
+    display: block;
+    float:left;
+    padding-left: 8px;
+    padding-top: 5px;
+}
+
+.custom-file-upload > strong {
+    display: inline-block;
+    float:left;
+}
