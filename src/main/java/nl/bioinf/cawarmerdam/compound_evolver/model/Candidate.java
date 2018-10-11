@@ -31,7 +31,7 @@ public class Candidate {
 
     /**
      * Getter for the score of this candidate
-     * @return The score of this candidate
+     * @return the score of this candidate
      */
     public Double getScore() {
         return score;
@@ -39,7 +39,7 @@ public class Candidate {
 
     /**
      * Setter for the score attribute
-     * @param score The score of this candidate
+     * @param score the score of this candidate
      */
     public void setScore(double score) {
         this.score = score;
@@ -47,7 +47,7 @@ public class Candidate {
 
     /**
      * Getter for the genotype
-     * @return List of alleles
+     * @return a list of alleles
      */
     public List<Integer> getGenotype() {
         return genotype;
@@ -55,12 +55,19 @@ public class Candidate {
 
     /**
      * Getter for the phenotype
-     * @return The phenotype
+     * @return the phenotype
      */
     public Molecule getPhenotype() {
         return phenotype;
     }
 
+    /**
+     * Performs crossover between this parent and another parent
+     * for each gene either the allele from this parent is chosen or
+     * the allele from the other parent is chosen.
+     * @param other parent to perform crossover with
+     * @return the recombined genome.
+     */
     List<Integer> crossover(Candidate other) {
         // Get crossover points to do uniform crossing over
         boolean[] crossoverPoints = generateCrossoverPoints();
@@ -72,9 +79,14 @@ public class Candidate {
         .collect(Collectors.toList());
     }
 
+    /**
+     * Generates crossover points.
+     * @return an array of booleans with the length of the genome
+     */
     private boolean[] generateCrossoverPoints() {
         Random random = new Random();
         boolean[] arr = new boolean[genomeSize];
+        // Get a random boolean for every gene in the genome
         for(int i = 0; i < genomeSize; i++) {
             arr[i] = random.nextBoolean();
         }

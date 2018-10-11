@@ -30,6 +30,7 @@ public class CompoundEvolver {
         this.anchor = anchor;
         // Construct the initial population
         this.population = new Population(reactantLists, reactor, maxProducts);
+        this.population.setSelectionMethod(Population.SelectionMethod.CLEAR);
         // Setup the pipeline
         this.pipe = setupPipeline();
     }
