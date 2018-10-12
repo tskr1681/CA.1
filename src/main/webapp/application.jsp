@@ -45,45 +45,47 @@
     <div class="row">
         <div class="col-lg-12" ng-controller="FormInputCtrl">
             <h2>Set genetic algorithm parameters</h2>
-            <form
-                    name="compoundEvolverForm"
-                    novalidate="novalidate"
-                    enctype="multipart/form-data">
-                <div class="alert alert-danger" ng-show="response.hasError" ng-bind="response.error">
-                </div>
-                <div class="form-group">
-                    <div class="row"><label for="file" class="col-sm-3 col-form-label">Upload mrv reaction file:</label>
+            <form name="compoundEvolverForm"
+                  novalidate="novalidate"
+                  enctype="multipart/form-data">
+                <div class="alert alert-danger" ng-show="response.hasError" ng-bind="response.error"></div>
+                <div class="card card-body">
+                    <h6 class="card-title">Building blocks and reaction</h6>
+                    <div class="form-group row">
+                        <label for="reaction-file" class="col-sm-3 col-form-label">Upload mrv reaction file:</label>
                         <div class="col-sm-9">
-                            <label for="file" class="custom-file-upload"
-                                   ng-class="{
-                    'is-invalid':file.wrongExtension || (!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'is-valid':!file.wrongExtension && !file.pristine}">
+                            <label for="reaction-file" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose file</strong>
-                                <span ng-bind="formModel.file[0].files[0].name"></span>
+                                <span ng-bind="formModel.reactionFile[0].files[0].name"
+                                      ng-class="{
+                    'text-danger':file.wrongExtension || (!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'text-success':!file.wrongExtension && !file.pristine}"></span>
                             </label>
                             <input type="file"
-                                   file-bind="formModel.file"
-                                   id="file"
-                                   name="file"
+                                   file-bind="formModel.reactionFile"
+                                   id="reaction-file"
+                                   name="reactionFile"
                                    required="required"/>
                         </div>
-                        <div class="col"><p class="form-text text-danger col-sm-9 float-sm-right"
-                           ng-show="!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                            This field is required
-                        </p>
-                        <p class="form-text text-danger col-sm-9 float-sm-right"
-                           ng-show="file.wrongExtension">
-                            Only an mrv file (.mrv) is accepted
-                        </p></div>
+                        <div class="col-sm-9 offset-sm-3">
+                            <p class="form-text text-danger"
+                               ng-show="!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                This field is required
+                            </p>
+                            <p class="form-text text-danger"
+                               ng-show="file.wrongExtension">
+                                Only an mrv file (.mrv) is accepted
+                            </p></div>
                     </div>
                 </div>
                 <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#operator-settings">
                     Genetic operator settings
                 </button>
                 <div id="operator-settings" class="collapse">
-                    <div class="form-group">
-                        <div class="row"><label for="generation-size" class="col-sm-3 col-form-label">Generation
-                            size:</label>
+                    <div class="card card-body">
+                        <div class="form-group row">
+                            <label for="generation-size" class="col-sm-3 col-form-label">Size of initial
+                                generation:</label>
                             <div class="col-sm-9">
                                 <input type="number"
                                        class="form-control"
@@ -97,45 +99,19 @@
                     'is-invalid':!compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.generationSize.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.generationSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
-                            <div class="col"><p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="compoundEvolverForm.generationSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                This field is required
-                            </p>
-                            <p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="(compoundEvolverForm.generationSize.$error.number || compoundEvolverForm.generationSize.$error.step || compoundEvolverForm.generationSize.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                An integer value (a whole number) above 2 is required
-                            </p></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row"><label for="mutation-rate" class="col-sm-3 col-form-label">Mutation
-                            rate:</label>
-                            <div class="col-sm-9">
-                                <input type="number"
-                                       class="form-control"
-                                       ng-model="formModel.mutationRate"
-                                       id="mutation-rate"
-                                       name="mutationRate"
-                                       required="required"
-                                       min="0"
-                                       max="1"
-                                       ng-class="{
-                    'is-invalid':!compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.generationSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.generationSize.$error.number || compoundEvolverForm.generationSize.$error.step || compoundEvolverForm.generationSize.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    An integer value (a whole number) above 2 is required
+                                </p>
                             </div>
-                            <div class="col"><p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                This field is required
-                            </p>
-                            <p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="(compoundEvolverForm.mutationRate.$error.number || compoundEvolverForm.mutationRate.$error.min || compoundEvolverForm.mutationRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                A fraction between 0 and 1 is required
-                            </p></div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row"><label for="crossover-rate" class="col-sm-3 col-form-label">Crossover
-                            rate:</label>
+                        <div class="form-group row">
+                            <label for="crossover-rate" class="col-sm-3 col-form-label">Crossover rate:</label>
                             <div class="col-sm-9">
                                 <input type="number"
                                        class="form-control"
@@ -149,46 +125,98 @@
                     'is-invalid':!compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
-                            <div class="col"><p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                This field is required
-                            </p>
-                            <p class="form-text text-danger col-sm-9 float-sm-right"
-                               ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.min || compoundEvolverForm.crossoverRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                A fraction between 0 and 1 is required
-                            </p></div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.min || compoundEvolverForm.crossoverRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row"><label for="random-immigrant-portion" class="col-sm-3 col-form-label">Random
-                            immigrant
-                            portion:</label>
+                        <div class="form-group row">
+                            <label for="elitist-rate" class="col-sm-3 col-form-label">Elitist rate:</label>
                             <div class="col-sm-9">
                                 <input type="number"
                                        class="form-control"
-                                       ng-model="formModel.randomImmigrantPortion"
-                                       id="random-immigrant-portion"
-                                       name="randomImmigrantPortion"
+                                       ng-model="formModel.elitistRate"
+                                       id="elitist-rate"
+                                       name="elitistRate"
                                        required="required"
                                        min="0"
                                        max="1"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.randomImmigrantPortion.$valid && (!compoundEvolverForm.randomImmigrantPortion.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.randomImmigrantPortion.$valid && (!compoundEvolverForm.randomImmigrantPortion.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.elitistRate.$valid && (!compoundEvolverForm.elitistRate.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.elitistRate.$valid && (!compoundEvolverForm.elitistRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
-                            <div class="col"><p class="form-text text-danger col-sm-9 float-sm-right"
-                                 ng-show="compoundEvolverForm.randomImmigrantPortion.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                This field is required
-                            </p>
-                            <p class="form-text text-danger col-sm-9 float-sm-right"
-                                 ng-show="(compoundEvolverForm.randomImmigrantPortion.$error.number || compoundEvolverForm.randomImmigrantPortion.$error.min || compoundEvolverForm.randomImmigrantPortion.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                A fraction between 0 and 1 is required
-                            </p></div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.elitistRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.elitistRate.$error.number || compoundEvolverForm.elitistRate.$error.min || compoundEvolverForm.elitistRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row"><label for="selection-method" class="col-sm-3 col-form-label">Selection
-                            method:</label>
+                        <div class="form-group row">
+                            <label for="mutation-rate" class="col-sm-3 col-form-label">Mutation rate:</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.mutationRate"
+                                       id="mutation-rate"
+                                       name="mutationRate"
+                                       required="required"
+                                       min="0"
+                                       max="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.mutationRate.$error.number || compoundEvolverForm.mutationRate.$error.min || compoundEvolverForm.mutationRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="random-immigrant-rate" class="col-sm-3 col-form-label">Random immigrant
+                                rate:</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.randomImmigrantRate"
+                                       id="random-immigrant-rate"
+                                       name="randomImmigrantRate"
+                                       required="required"
+                                       min="0"
+                                       max="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.randomImmigrantRate.$valid && (!compoundEvolverForm.randomImmigrantRate.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.randomImmigrantRate.$valid && (!compoundEvolverForm.randomImmigrantRate.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.randomImmigrantRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.randomImmigrantRate.$error.number || compoundEvolverForm.randomImmigrantRate.$error.min || compoundEvolverForm.randomImmigrantRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="selection-method" class="col-sm-3 col-form-label">Selection method:</label>
                             <div class="col-sm-9">
                                 <select class="form-control"
                                         id="selection-method"
@@ -199,12 +227,13 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row"><label for="mutation-method" class="col-sm-3 col-form-label">Mutation
-                            method:</label>
+                        <div class="form-group row">
+                            <label for="mutation-method" class="col-sm-3 col-form-label">Mutation method:</label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="mutation-method" ng-model="formModel.mutationMethod">
+                                <select class="form-control"
+                                        id="mutation-method"
+                                        ng-model="formModel.mutationMethod"
+                                        required="required">
                                     <option>Distance dependent</option>
                                     <option>Distance independent</option>
                                 </select>
@@ -212,11 +241,33 @@
                         </div>
                     </div>
                 </div>
-                <br/>
-                <button type="submit" class="btn btn-default"
-                        ng-click="onSubmit((!file.wrongExtension) && (file.hasFile) && compoundEvolverForm.$valid)">
-                    Submit
+                <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#docking-settings">
+                    Docking settings
                 </button>
+                <div id="docking-settings" class="collapse">
+                    <div class="card card-body">
+                        <div class="form-group row">
+                            <label for="force-field" class="col-sm-3 col-form-label">Force field:</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="force-field"
+                                        ng-model="formModel.forceField"
+                                        required="required">
+                                    <option>Distance dependent</option>
+                                    <option>Distance independent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-9 offset-sm-3">
+                        <button type="submit" class="btn btn-default"
+                                ng-click="onSubmit((!file.wrongExtension) && (file.hasFile) && compoundEvolverForm.$valid)">
+                            Submit
+                        </button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

@@ -10,10 +10,12 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     $scope.formModel = {
         generationSize: 50,
         mutationRate: 0.5,
-        crossoverRate: 0.5,
-        randomImmigrantPortion:0.5,
+        crossoverRate: 0.8,
+        elitistRate: 0.1,
+        randomImmigrantRate:0.1,
         selectionMethod:'Fitness proportionate selection',
-        mutationMethod:'Distance dependent'
+        mutationMethod:'Distance dependent',
+        forceField: 0
     };
     $scope.file = {wrongExtension: false, pristine: true, hasFile: false};
     $scope.response = {hasError: false};

@@ -5,8 +5,11 @@
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
 import chemaxon.formats.MolImporter;
+import chemaxon.reaction.Reaction;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
+import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 
 import java.io.File;
@@ -22,14 +25,14 @@ import java.io.FileReader;
  * @version 0.0.1
  */
 public class CompoundEvolver {
+    private Random random = new Random();
     private PipelineStep<Molecule, Path> pipe;
     private Population population;
     private File anchor;
 
-    private CompoundEvolver(List<List<Molecule>> reactantLists, Reactor reactor, File anchor, int maxProducts) {
+    public CompoundEvolver(Population population, File anchor) {
         this.anchor = anchor;
-        // Construct the initial population
-        this.population = new Population(reactantLists, reactor, maxProducts);
+        this.population = population;
         this.population.setSelectionMethod(Population.SelectionMethod.CLEAR);
         // Setup the pipeline
         this.pipe = setupPipeline();
@@ -40,23 +43,23 @@ public class CompoundEvolver {
      */
     private void evolve() {
         for (Candidate candidate : this.population) {
-//            try {
-//                scoreCandidates(candidate);
-//            } catch (PipeLineError e) {
-//                e.printStackTrace();
-//            }
+            try {
+                scoreCandidates(candidate);
+            } catch (PipeLineError e) {
+                e.printStackTrace();
+            }
         }
         // Evolve
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 6; i++) {
             // Produce offspring
             this.population.produceOffspring();
             // Score the candidates
             for (Candidate candidate : this.population) {
-//                try {
-//                    scoreCandidates(candidate);
-//                } catch (PipeLineError e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    scoreCandidates(candidate);
+                } catch (PipeLineError e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -68,9 +71,9 @@ public class CompoundEvolver {
      */
     private void scoreCandidates(Candidate candidate) throws PipeLineError {
         // Execute pipeline
-        Path filename = pipe.execute(candidate.getPhenotype());
+//        Path filename = pipe.execute(candidate.getPhenotype());
         // Assign score to candidate
-        candidate.setScore(0.5);
+        candidate.setScore(random.nextDouble());
     }
 
     /**
@@ -94,54 +97,19 @@ public class CompoundEvolver {
      */
     public static void main(String[] args) throws Exception {
         // Load reactor from argument
-        Reactor reactor = CompoundEvolver.loadReaction(args[0]);
+        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
         // Get maximum amount of product
         int maxSamples = Integer.parseInt(args[args.length - 1]);
         // Load molecules
         String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
-        List<List<Molecule>> reactantLists = CompoundEvolver.loadMolecules(reactantFiles);
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
         // Load anchor molecule
         File anchor = new File(args[args.length - 2]);
+        // Construct the initial population
+        Population population = new Population(reactantLists, reactor, maxSamples);
         // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(reactantLists, reactor, anchor, maxSamples);
+        CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);
         // Evolve compounds
         compoundEvolver.evolve();
-    }
-
-    private static Reactor loadReaction(String filename) throws Exception {
-        Reactor reactor = new Reactor();
-        try {
-            MolImporter importer = new MolImporter(filename);
-            reactor.setReaction(importer.read());
-            importer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-        return reactor;
-    }
-
-    private static List<List<Molecule>> loadMolecules(String[] filenames) throws Exception {
-        List<List<Molecule>> reactantLists = new ArrayList<>();
-        for (String i : filenames) {
-            List<Molecule> moleculeMap = new ArrayList<>();
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(i));
-                for (String line; (line = br.readLine()) != null; ) {
-                    try {
-                        moleculeMap.add(MolImporter.importMol(line));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw e;
-                    }
-                }
-                reactantLists.add(moleculeMap);
-                br.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw e;
-            }
-        }
-        return reactantLists;
     }
 }
