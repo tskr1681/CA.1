@@ -7,6 +7,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 import chemaxon.struc.Molecule;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,7 +17,7 @@ import java.util.stream.IntStream;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class Candidate {
+public class Candidate implements Comparable<Candidate>{
 
     private final int genomeSize;
     private List<Integer> genotype;
@@ -91,5 +92,23 @@ public class Candidate {
             arr[i] = random.nextBoolean();
         }
         return arr;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Candidate candidate = (Candidate) o;
+        return Objects.equals(getGenotype(), candidate.getGenotype());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGenotype());
+    }
+
+    @Override
+    public int compareTo(Candidate o) {
+        return -Double.compare(this.getScore(), o.getScore());
     }
 }

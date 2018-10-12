@@ -24,11 +24,12 @@ public class Population implements Iterable<Candidate> {
 
     private final Reactor reaction;
     private final List<List<Molecule>> reactantLists;
+    private final Random random;
+    private final int randomImmigrantCount;
     private double[][][] alleleSimilarities;
     private List<Candidate> candidateList;
     private int populationSize;
     private double mutationRate;
-
     private double selectionFraction;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
@@ -38,11 +39,13 @@ public class Population implements Iterable<Candidate> {
     public enum MutationMethod {DISTANCE_DEPENDENT, DISTANCE_INDEPENDENT}
 
     public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) {
+        this.random = new Random();
         this.reaction = reaction;
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.mutationRate = 0.1;
         this.selectionFraction = 0.5;
+        this.randomImmigrantCount = 1;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_DEPENDENT;
         this.candidateList = new RandomCompoundReactor(this.reaction, initialGenerationSize).execute(this.reactantLists);
@@ -50,50 +53,90 @@ public class Population implements Iterable<Candidate> {
         computeAlleleSimilarities();
     }
 
+    /**
+     * Setter for selection method.
+     * @param selectionMethod for use in selecting new offspring.
+     */
     public void setSelectionMethod(SelectionMethod selectionMethod) {
         this.selectionMethod = selectionMethod;
     }
 
+    /**
+     * Getter for the selection fraction.
+     * @return fraction off population that will be selected.
+     */
     public double getSelectionFraction() {
         return selectionFraction;
     }
 
+    /**
+     * Setter for the selection fraction.
+     * @param selectionFraction, the fraction off the population that will be selected.
+     */
     public void setSelectionFraction(double selectionFraction) {
         this.selectionFraction = selectionFraction;
     }
 
+    /**
+     * Setter for the mutation method.
+     * @param mutationMethod for use in introducing mutations.
+     */
     public void setMutationMethod(MutationMethod mutationMethod) {
         this.mutationMethod = mutationMethod;
     }
 
+    /**
+     * Getter for the selection method.
+     * @return the method that is set to select new offspring.
+     */
     public SelectionMethod getSelectionMethod() {
         return selectionMethod;
     }
 
+    /**
+     * Getter for the mutation method.
+     * @return the method that is set to introduce mutations.
+     */
     public MutationMethod getMutationMethod() {
         return mutationMethod;
     }
 
+    /**
+     * Getter for the population size.
+     * @return the population size.
+     */
     public int getPopulationSize() {
         return populationSize;
     }
 
+    /**
+     * Setter for the population size.
+     * @param populationSize, the size to set the amount of individuals to in newer generations.
+     */
     public void setPopulationSize(int populationSize) {
         this.populationSize = populationSize;
     }
 
+    /**
+     * Getter for the mutation rate.
+     * @return the mutation rate.
+     */
     public double getMutationRate() {
         return mutationRate;
     }
 
+    /**
+     * Setter for the mutation rate.
+     * @param mutationRate, the rate at which to introduce new mutations in a gene.
+     */
     public void setMutationRate(double mutationRate) {
         this.mutationRate = mutationRate;
     }
 
     /**
      * Computes allele similarities by using the Tanimoto dissimilarity functionality provided by the Chemaxon API
-     * <a href="https://docs.chemaxon.com/display/docs/Similarity+search">Similarity search</a>
-     * The similarity of a compound to itself is set so its fraction of the total similarities for the compound to
+     * <a href="https://docs.chemaxon.com/display/docs/Similarity+search">Similarity search</a>.
+     * The similarity of a compound to itself is set so its fraction of the total similarities for the compound to.
      * other compounds and itself is equal to the mutation rate. Like so:
      *
      *
@@ -135,10 +178,10 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Get the tanimoto dissimilarity score between the first molecule and the second molecule
-     * @param firstMolecule the first molecule to compare
-     * @param secondMolecule the second molecule to compare
-     * @return the tanimoto dissimilarity score as a float
+     * Get the tanimoto dissimilarity score between the first molecule and the second molecule.
+     * @param firstMolecule the first molecule to compare.
+     * @param secondMolecule the second molecule to compare.
+     * @return the tanimoto dissimilarity score as a float.
      */
     private float getTanimoto(Molecule firstMolecule, Molecule secondMolecule) {
         // Get chemical fingerprints
@@ -157,12 +200,16 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Overloaded produceOffspring method with default parameter value population size set to the instance field
-     * population size
+     * population size.
      */
     public void produceOffspring() {
         produceOffspring(this.populationSize);
     }
 
+    /**
+     * A method responsible for producing offspring.
+     * @param offspringSize the amount of candidates the offspring will consist off.
+     */
     private void produceOffspring(int offspringSize) {
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
@@ -172,51 +219,73 @@ public class Population implements Iterable<Candidate> {
         // Select parents
         selectParents();
         // Loop to fill offspring list to offspring size
-        for (int i = 0; offspring.size() < offspringSize; i++) {
+        for (int i = 0; offspring.size() < offspringSize - this.randomImmigrantCount; i++) {
             System.out.println("i = " + i);
+            // Get some genomes by crossing over according to crossover probability
+
             // Get the recombined genome by crossing over
-            List<Integer> recombinedGenome = getRecombinedGenome(i);
+            List<Integer> newGenome = getRecombinedGenome(i);
             // Mutate the recombined genome
-            mutate(recombinedGenome);
+            mutate(newGenome);
             try {
                 // get Reactants from the indices
-                Molecule[] reactants = getReactantsFromIndices(recombinedGenome);
+                Molecule[] reactants = getReactantsFromIndices(newGenome);
                 reaction.setReactants(reactants);
                 Molecule[] products;
                 // Try to produce a product
                 if ((products = reaction.react()) != null) {
-                    offspring.add(new Candidate(recombinedGenome, products[0]));
+                    offspring.add(new Candidate(newGenome, products[0]));
                 }
             } catch (ReactionException e) {
                 e.printStackTrace();
             }
         }
         // Possibly introduce new individuals
+        offspring.addAll(this.introduceRandomImmigrants());
     }
 
     /**
-     * Select the parents according to the method that is set
+     * A method that creates random new immigrants.
+     * @return a list of new individuals (random immigrants).
+     */
+    private List<Candidate> introduceRandomImmigrants() {
+        return new RandomCompoundReactor(this.reaction, randomImmigrantCount).execute(this.reactantLists);
+    }
+
+    /**
+     * Select the parents according to the method that is set.
      * If the method flag was set to cleared, do nothing.
      */
     private void selectParents() {
+        // Assert that the candidates have a score
+        assert (candidateList.size() > 0) && candidateList.get(0).getScore() != null;
         // Select the parents according to the method that is set
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
             candidateList = this.fitnessProportionateSelection();
         } else if (this.selectionMethod == SelectionMethod.TRUNCATED_SELECTION) {
-            throw new RuntimeException("Truncated selection not implemented!");
+            candidateList = this.truncatedSelection();
         }
         // Do nothing if the flag is cleared
     }
 
+    /**
+     * A method selecting reactants from the reactant lists with the given list of indices.
+     * @param recombinedGenome, a list of indices as long as the reactant lists list.
+     * @return an array of reactants from the reactant lists.
+     */
     private Molecule[] getReactantsFromIndices(List<Integer> recombinedGenome) {
         return IntStream.range(0, reactantLists.size())
                 .mapToObj(i -> reactantLists.get(i).get(recombinedGenome.get(i)))
                 .toArray(Molecule[]::new);
     }
 
+    /**
+     * A selection method that selects individuals probabilistically by using the fitness score.
+     * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
+     * up to the nearest integer.
+     * @return the selected individuals
+     */
     private List<Candidate> fitnessProportionateSelection() {
-        // Assert that the candidates have a score
-        assert (candidateList.size() > 0) && candidateList.get(0).getScore() != null;
         List<Candidate> selectedParents = new ArrayList<>();
         // Select the amount of parents corresponding to the total parents multiplied by the selection rate
         for (int i = 0; i < candidateList.size() * this.selectionFraction; i++) {
@@ -225,6 +294,21 @@ public class Population implements Iterable<Candidate> {
         return selectedParents;
     }
 
+    /**
+     * A selection method that selects the individuals with the best score.
+     * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
+     * up to the nearest integer.
+     * @return the selected individuals
+     */
+    private List<Candidate> truncatedSelection() {
+        Collections.sort(this.candidateList);
+        return this.candidateList.subList(0, (int) Math.ceil(candidateList.size() * this.selectionFraction));
+    }
+
+    /**
+     * Method that selects an individual probabilistically based on the fitness score.
+     * @return the index of the individual selected.
+     */
     private int rouletteSelect() {
         // Create a stream to get the score of every candidate and convert this to a double
         return makeWeightedChoice(candidateList.stream()
@@ -233,12 +317,17 @@ public class Population implements Iterable<Candidate> {
                 .toArray());
     }
 
+    /**
+     * Chooses an item in a array of weights.
+     * @param weights the weights to choose from.
+     * @return the index of the item in the array that was chosen.
+     */
     private int makeWeightedChoice(double[] weights) {
         double weightsSum = 0;
         // Get sum of fitness scores
         weightsSum = DoubleStream.of(weights).sum();
         // get a random value
-        double value = new Random().nextDouble() * weightsSum;
+        double value = this.random.nextDouble() * weightsSum;
         // locate the random value based on the weights
         for (int i = 0; i < weights.length; i++) {
             value -= weights[i];
@@ -248,6 +337,11 @@ public class Population implements Iterable<Candidate> {
         return weights.length - 1;
     }
 
+    /**
+     * Recombines genomes of two individuals.
+     * @param i the index to get individuals from.
+     * @return the recombined genome as a list
+     */
     private List<Integer> getRecombinedGenome(int i) {
         // Get the index of two parents to perform crossover between the two
         int firstParentIndex = i % this.candidateList.size();
@@ -259,16 +353,56 @@ public class Population implements Iterable<Candidate> {
         return firstParent.crossover(otherParent);
     }
 
+    /**
+     * Introduce mutations in the genome according to the mutation rate and the set mutation method.
+     * @param genome to introduce mutations in.
+     */
     private void mutate(List<Integer> genome) {
         // Loop through each allele
         String format = "%10s -> %10s";
         System.out.println(String.format(format, "curr", "new"));
         for (int i = 0; i < genome.size(); i++) {
             int allele = genome.get(i);
-            int reactantIndex = makeWeightedChoice(alleleSimilarities[i][allele]);
+            int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
             System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
         }
+    }
+
+    /**
+     * Method that introduces mutations with either a distance dependent method
+     * or a distance independent method.
+     * @param i, the index of the reactant list
+     * @param allele the index of the allele in the reactant list
+     * @return the index of the chosen reactant from the reactant list
+     */
+    private int getMutationSubstitute(int i, int allele) {
+        if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
+            return makeWeightedChoice(alleleSimilarities[i][allele]);
+        } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
+            return makeChoice(alleleSimilarities[i][allele].length, allele);
+        } else {
+            throw new RuntimeException("Mutation method not set!");
+        }
+    }
+
+    /**
+     * Method that chooses either the allele index that is given
+     * or another index that can range from 0 to size - 1, excluding the given allele index.
+     * @param size, the size of the array or list to choose from.
+     * @param allele the current allele index.
+     * @return the index of choice.
+     */
+    private int makeChoice(int size, int allele) {
+        // Only choose for mutation when the random double is below the mutation rate so when the mutation rate
+        // is 0 the condition is always true and when the mutation rate is 1 the condition is always false.
+        if (this.random.nextDouble() < this.mutationRate) {
+
+            int index = this.random.nextInt(size);
+            if (index == allele) index = size;
+            return index;
+        } else
+            return allele;
     }
 
     @Override
