@@ -1,11 +1,12 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 
@@ -19,9 +20,18 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     }
 
     @Override
-    public Path execute(Path inputFile) {
+    public Double execute(Path inputFile) {
+        String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
+        String receptorName = FilenameUtils.removeExtension(String.valueOf(Paths.get(receptorFilePath).getFileName()));
         mol3d(inputFile);
-        return inputFile;
+        File eneFilePath = new File(String.format("%s_%s.ene", ligandName, receptorName));
+        FileInputStream fastaFileInputStream = null;
+        try {
+            fastaFileInputStream = new FileInputStream(eneFilePath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return Collections.min(EneFileParser.parseEneFile(fastaFileInputStream, eneFilePath.getName()));
     }
 
     private void mol3d(Path inputFile) {
@@ -29,7 +39,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         String line = null;
 
         // Build command
-        String command = String.format("%s -e %s -w0.01 %s",
+        String command = String.format("%s -e '%s' '-w0.01' '%s'",
                 molocExecutable,
                 receptorFilePath,
                 inputFile);

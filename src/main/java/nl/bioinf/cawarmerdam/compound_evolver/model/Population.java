@@ -36,6 +36,8 @@ public class Population implements Iterable<Candidate> {
     private double elitistRate;
     private int populationSize;
 
+    private enum ReproductionMethod {CROSSOVER, ELITIST, RANDOM_IMMIGRANT, CLEAR}
+
     public enum SelectionMethod {CLEAR, FITNESS_PROPORTIONATE_SELECTION, TRUNCATED_SELECTION}
 
     public enum MutationMethod {DISTANCE_DEPENDENT, DISTANCE_INDEPENDENT}
@@ -59,6 +61,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for selection method.
+     *
      * @param selectionMethod for use in selecting new offspring.
      */
     public void setSelectionMethod(SelectionMethod selectionMethod) {
@@ -67,6 +70,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the selection fraction.
+     *
      * @return fraction off population that will be selected.
      */
     public double getSelectionFraction() {
@@ -75,6 +79,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the selection fraction.
+     *
      * @param selectionFraction, the fraction off the population that will be selected.
      */
     public void setSelectionFraction(double selectionFraction) {
@@ -83,6 +88,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the mutation method.
+     *
      * @param mutationMethod for use in introducing mutations.
      */
     public void setMutationMethod(MutationMethod mutationMethod) {
@@ -91,6 +97,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the selection method.
+     *
      * @return the method that is set to select new offspring.
      */
     public SelectionMethod getSelectionMethod() {
@@ -99,6 +106,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the mutation method.
+     *
      * @return the method that is set to introduce mutations.
      */
     public MutationMethod getMutationMethod() {
@@ -107,6 +115,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the population size.
+     *
      * @return the population size.
      */
     public int getPopulationSize() {
@@ -115,6 +124,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the population size.
+     *
      * @param populationSize, the size to set the amount of individuals to in newer generations.
      */
     public void setPopulationSize(int populationSize) {
@@ -123,6 +133,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the mutation rate.
+     *
      * @return the mutation rate.
      */
     public double getMutationRate() {
@@ -131,6 +142,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the mutation rate.
+     *
      * @param mutationRate, the rate at which to introduce new mutations in a gene.
      */
     public void setMutationRate(double mutationRate) {
@@ -202,7 +214,8 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Get the tanimoto dissimilarity score between the first molecule and the second molecule.
-     * @param firstMolecule the first molecule to compare.
+     *
+     * @param firstMolecule  the first molecule to compare.
      * @param secondMolecule the second molecule to compare.
      * @return the tanimoto dissimilarity score as a float.
      */
@@ -231,6 +244,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * A method responsible for producing offspring.
+     *
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
     private void produceOffspring(int offspringSize) {
@@ -241,35 +255,47 @@ public class Population implements Iterable<Candidate> {
         Collections.shuffle(this.candidateList);
         // Select parents
         selectParents();
+        ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
         // Loop to fill offspring list to offspring size
         for (int i = 0; offspring.size() < offspringSize; i++) {
             System.out.println("i = " + i);
             // Get some genomes by crossing over according to crossover probability
-            int offspringChoice = makeWeightedChoice(new double[]{
-                    this.crossoverRate,
-                    this.elitistRate,
-                    this.randomImmigrantRate});
+            if (offspringChoice == ReproductionMethod.CLEAR) {
+                offspringChoice = ReproductionMethod.values()[makeWeightedChoice(new double[]{
+                        this.crossoverRate,
+                        this.elitistRate,
+                        this.randomImmigrantRate})];
+            }
             System.out.println("offspringChoice = " + offspringChoice);
-            if (offspringChoice == 0) {
-                // Get the recombined genome by crossing over
-                List<Integer> newGenome = getRecombinedGenome(i);
-                // Mutate the recombined genome
-                mutate(newGenome);
-                finalizeOffspring(offspring, newGenome);
-            } else if (offspringChoice == 1) {
-                // Get the recombined genome by crossing over
-                List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
-                // Mutate the recombined genome
-                mutate(newGenome);
-                finalizeOffspring(offspring, newGenome);
-            } else if (offspringChoice == 2) {
-                // Introduce a random immigrant
-                offspring.add(introduceRandomImmigrant());
+            Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
+            if (newOffspring != null) {
+                offspring.add(newOffspring);
+                offspringChoice = ReproductionMethod.CLEAR;
             }
         }
     }
 
-    private void finalizeOffspring(List<Candidate> offspring, List<Integer> newGenome) {
+    private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
+        if (offspringChoice == ReproductionMethod.CROSSOVER) {
+            // Get the recombined genome by crossing over
+            List<Integer> newGenome = getRecombinedGenome(i);
+            // Mutate the recombined genome
+            mutate(newGenome);
+            return finalizeOffspring(newGenome);
+        } else if (offspringChoice == ReproductionMethod.ELITIST) {
+            // Get the recombined genome by crossing over
+            List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
+            // Mutate the recombined genome
+            mutate(newGenome);
+            return finalizeOffspring(newGenome);
+        } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
+            // Introduce a random immigrant
+            return introduceRandomImmigrant();
+        }
+        return null;
+    }
+
+    private Candidate finalizeOffspring(List<Integer> newGenome) {
         try {
             // get Reactants from the indices
             Molecule[] reactants = getReactantsFromIndices(newGenome);
@@ -279,12 +305,14 @@ public class Population implements Iterable<Candidate> {
             if ((products = reaction.react()) != null) {
                 Candidate newCandidate = new Candidate(newGenome, products[0]);
                 if (newCandidate.isValid()) {
-                    offspring.add(newCandidate);
+                    return newCandidate;
                 }
             }
         } catch (ReactionException e) {
-            throw new RuntimeException("Could not execute reaction: " + e.toString());
+            // Should log this
+            e.printStackTrace();
         }
+        return null;
     }
 
     /**

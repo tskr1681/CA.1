@@ -97,6 +97,9 @@ public class EvolveServlet extends HttpServlet {
     }
 
     private static Double getDoubleParameter(String parameter) {
+        if (parameter == null) {
+
+        }
         final String Digits     = "(\\p{Digit}+)";
         final String HexDigits  = "(\\p{XDigit}+)";
         // an exponent is 'e' or 'E' followed by an optionally

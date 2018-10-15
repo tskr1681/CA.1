@@ -5,6 +5,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.marvin.calculations.HBDAPlugin;
+import chemaxon.marvin.calculations.logPPlugin;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
 
@@ -21,12 +22,13 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate>{
 
-    private static Double maxHydrogenBondDonors = null;
-    private static Double maxHydrogenBondAcceptors = null;
-    private static Double maxMolecularMass = null;
-    private static Double maxPartitionCoefficient = null;
+    private static Double MAX_HYDROGEN_BOND_DONORS = null;
+    private static Double MAX_HYDROGEN_BOND_ACCEPTORS = null;
+    private static Double MAX_MOLECULAR_MASS = null;
+    private static Double MAX_PARTITION_COEFFICIENT = null;
     private final int genomeSize;
     private HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
+    private logPPlugin logPPlugin = new logPPlugin();
     private List<Integer> genotype;
     private Molecule phenotype;
     private Double score;
@@ -34,12 +36,41 @@ public class Candidate implements Comparable<Candidate>{
     Candidate(List<Integer> genotype, Molecule phenotype) {
         this.genotype = genotype;
         this.phenotype = phenotype;
-        genomeSize = this.genotype.size();
-        try {
-            hydrogenBondPlugin.setMolecule(this.phenotype);
-        } catch (PluginException e) {
-            throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
+        this.genomeSize = this.genotype.size();
+        if (MAX_HYDROGEN_BOND_ACCEPTORS != null || MAX_HYDROGEN_BOND_DONORS != null) {
+            try {
+                this.hydrogenBondPlugin.setMolecule(this.phenotype);
+                this.hydrogenBondPlugin.setExcludeSulfur(true);
+                this.hydrogenBondPlugin.setExcludeHalogens(true);
+                this.hydrogenBondPlugin.run();
+            } catch (PluginException e) {
+                throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
+            }
         }
+        if (MAX_PARTITION_COEFFICIENT != null) {
+            try {
+                this.logPPlugin.setMolecule(this.phenotype);
+                this.logPPlugin.run();
+            } catch (PluginException e) {
+                throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
+            }
+        }
+    }
+
+    public static void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {
+        MAX_HYDROGEN_BOND_DONORS = maxHydrogenBondDonors;
+    }
+
+    public static void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
+        MAX_HYDROGEN_BOND_ACCEPTORS = maxHydrogenBondAcceptors;
+    }
+
+    public static void setMaxMolecularMass(Double maxMolecularMass) {
+        MAX_MOLECULAR_MASS = maxMolecularMass;
+    }
+
+    public static void setMaxPartitionCoefficient(Double maxPartitionCoefficient) {
+        MAX_PARTITION_COEFFICIENT = maxPartitionCoefficient;
     }
 
     /**
@@ -131,37 +162,38 @@ public class Candidate implements Comparable<Candidate>{
     }
 
     public boolean isValid() {
-        if (maxHydrogenBondDonors != null) {
+        if (MAX_HYDROGEN_BOND_DONORS != null) {
             if(!isHydrogenBondDonorCountValid()) return false;
         }
-        if (maxHydrogenBondAcceptors != null) {
+        if (MAX_HYDROGEN_BOND_ACCEPTORS != null) {
             if(!isHydrogenBondAcceptorCountValid()) return false;
         }
-        if (maxMolecularMass != null) {
+        if (MAX_MOLECULAR_MASS != null) {
             if(!isMolecularMassValid()) return false;
         }
-        if (maxPartitionCoefficient != null) {
+        if (MAX_PARTITION_COEFFICIENT != null) {
             if(!isPartitionCoefficientValid()) return false;
         }
         return true;
     }
 
     private boolean isPartitionCoefficientValid() {
-        return true;
+        double logPTrue = this.logPPlugin.getlogPTrue();
+        return (logPTrue <= MAX_PARTITION_COEFFICIENT);
     }
 
     private boolean isMolecularMassValid() {
         double mass = this.phenotype.getExactMass();
-        return (mass <= maxMolecularMass);
+        return (mass <= MAX_MOLECULAR_MASS);
     }
 
     private boolean isHydrogenBondAcceptorCountValid() {
         int acceptorAtomCount = hydrogenBondPlugin.getAcceptorAtomCount();
-        return (acceptorAtomCount <= maxHydrogenBondAcceptors);
+        return (acceptorAtomCount <= MAX_HYDROGEN_BOND_ACCEPTORS);
     }
 
     private boolean isHydrogenBondDonorCountValid() {
         int donorAtomCount = hydrogenBondPlugin.getDonorAtomCount();
-        return (donorAtomCount <= maxHydrogenBondDonors);
+        return (donorAtomCount <= MAX_HYDROGEN_BOND_DONORS);
     }
 }
