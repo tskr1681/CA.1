@@ -4,7 +4,9 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
+import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileFormatException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
+import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandlingException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
@@ -45,11 +47,18 @@ public class EvolveServlet extends HttpServlet {
         double elitistRate = getDoubleParameter(request.getParameter("elitistRate"));
         double randomImmigrantRate = getDoubleParameter(request.getParameter("randomImmigrantRate"));
         Reactor reaction = ReactionFileHandler.loadReaction(getFileFromRequest(request, "reactionFile"));
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(new String[] {
-                "X:\\Internship\\reactants\\aldehyde_small.smiles",
-                "X:\\Internship\\reactants\\amine_tryptamine.smiles",
-                "X:\\Internship\\reactants\\acids_small.smiles",
-                "X:\\Internship\\reactants\\isocyanide_small.smiles"});
+        List<List<Molecule>> reactantLists = null;
+        try {
+            reactantLists = ReactantFileHandler.loadMolecules(new String[] {
+                    "X:\\Internship\\reactants\\aldehyde_small.smiles",
+                    "X:\\Internship\\reactants\\amine_tryptamine.smiles",
+                    "X:\\Internship\\reactants\\acids_small.smiles",
+                    "X:\\Internship\\reactants\\isocyanide_small.smiles"});
+        } catch (ReactantFileHandlingException e) {
+            e.printStackTrace();
+        } catch (ReactantFileFormatException e) {
+            e.printStackTrace();
+        }
         Population initialPopulation = new Population(reactantLists, reaction, generationSize);
         initialPopulation.setCrossoverRate(crossoverRate);
         initialPopulation.setMutationRate(mutationRate);

@@ -7,40 +7,54 @@ import chemaxon.struc.Molecule;
 import javax.servlet.http.Part;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ReactantFileHandler {
-    public static List<List<Molecule>> loadMolecules(String[] filenames) throws FileNotFoundException {
+    public static List<List<Molecule>> loadMolecules(String[] filenames) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
-        for (String filename : filenames) {
-            File initialFile = new File(filename);
-            reactantLists.add(readSmileFile(new FileInputStream(initialFile)));
+        for (String fileName : filenames) {
+            File initialFile = new File(fileName);
+            try {
+                reactantLists.add(readSmileFile(new FileInputStream(initialFile), fileName));
+            } catch (FileNotFoundException e) {
+                throw new ReactantFileHandlingException(e.getMessage(), fileName);
+            }
         }
         return reactantLists;
     }
 
-    public static List<List<Molecule>> loadMolecules(Part[] fileParts) throws IOException {
+    public static List<List<Molecule>> loadMolecules(Part[] fileParts) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
-            reactantLists.add(readSmileFile(filePart.getInputStream()));
+            String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+            try {
+                reactantLists.add(readSmileFile(
+                        filePart.getInputStream(),
+                        fileName));
+            } catch (IOException e) {
+                throw new ReactantFileHandlingException(e.getMessage(), fileName);
+            }
         }
         return reactantLists;
     }
 
-    private static List<Molecule> readSmileFile(InputStream inputStream) {
+    private static List<Molecule> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<Molecule> moleculeMap = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
+            int lineNumber = 0;
+            for (String line; (line = reader.readLine()) != null; lineNumber++) {
                 try {
                     moleculeMap.add(MolImporter.importMol(line));
                 } catch (MolFormatException e) {
-                    e.printStackTrace();
+                    throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ReactantFileHandlingException(e.getMessage(), fileName);
         }
         return moleculeMap;
     }
 }
+
