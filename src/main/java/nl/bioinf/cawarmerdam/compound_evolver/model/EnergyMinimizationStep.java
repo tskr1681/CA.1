@@ -2,7 +2,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import java.nio.file.Path;
 
-public abstract class EnergyMinimizationStep implements PipelineStep<Path, Path> {
+public abstract class EnergyMinimizationStep implements PipelineStep<Path, Double> {
 
     private String forceField;
 

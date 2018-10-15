@@ -50,7 +50,7 @@
                   enctype="multipart/form-data">
                 <div class="alert alert-danger" ng-show="response.hasError" ng-bind="response.error"></div>
                 <div class="card card-body">
-                    <h6 class="card-title">Building blocks and reaction</h6>
+                    <h5 class="card-title"><b>Building blocks and reaction</b></h5>
                     <div class="form-group row">
                         <label for="reaction-file" class="col-sm-3 col-form-label">Upload mrv reaction file:</label>
                         <div class="col-sm-9">
@@ -83,6 +83,7 @@
                 </button>
                 <div id="operator-settings" class="collapse">
                     <div class="card card-body">
+                        <h5 class="card-title"><b>Genetic operators</b></h5>
                         <div class="form-group row">
                             <label for="generation-size" class="col-sm-3 col-form-label">Size of initial
                                 generation:</label>
@@ -246,6 +247,7 @@
                 </button>
                 <div id="docking-settings" class="collapse">
                     <div class="card card-body">
+                        <h5 class="card-title"><b>Docking</b></h5>
                         <div class="form-group row">
                             <label for="force-field" class="col-sm-3 col-form-label">Force field:</label>
                             <div class="col-sm-9">
@@ -253,9 +255,118 @@
                                         id="force-field"
                                         ng-model="formModel.forceField"
                                         required="required">
-                                    <option>Distance dependent</option>
-                                    <option>Distance independent</option>
+                                    <option>mmff94</option>
+                                    <option>mab(moloc)</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="filter-settings">
+                    <div class="card card-body">
+                        <h5 class="card-title"><b>Filters</b></h5>
+                        <div class="form-group row">
+                            <label for="max-molecular-mass" class="col-sm-3 col-form-label">Maximum molecular mass:
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxMolecularMass"
+                                       id="max-molecular-mass"
+                                       name="maxMolecularMass"
+                                       required="required"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.maxMolecularMass.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.maxMolecularMass.$error.number || compoundEvolverForm.maxMolecularMass.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A positive numeric value is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="max-hydrogen-bond-donors" class="col-sm-3 col-form-label">Maximum hydrogen bond donors:
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxHydrogenBondDonors"
+                                       id="max-hydrogen-bond-donors"
+                                       name="maxHydrogenBondDonors"
+                                       required="required"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.maxHydrogenBondDonors.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.maxHydrogenBondDonors.$error.number || compoundEvolverForm.maxHydrogenBondDonors.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A positive numeric value is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="max-hydrogen-bond-acceptors" class="col-sm-3 col-form-label">Maximum hydrogen bond acceptors:
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxHydrogenBondAcceptors"
+                                       id="max-hydrogen-bond-acceptors"
+                                       name="maxHydrogenBondAcceptors"
+                                       required="required"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.maxHydrogenBondAcceptors.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.maxHydrogenBondAcceptors.$error.number || compoundEvolverForm.maxHydrogenBondAcceptors.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A positive numeric value is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="max-partition-coefficient" class="col-sm-3 col-form-label">Maximum octanol-water partition coefficient logP value:
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxPartitionCoefficient"
+                                       id="max-partition-coefficient"
+                                       name="maxPartitionCoefficient"
+                                       required="required"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.maxPartitionCoefficient.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.maxPartitionCoefficient.$error.number || compoundEvolverForm.maxPartitionCoefficient.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A positive numeric value is required
+                                </p>
                             </div>
                         </div>
                     </div>

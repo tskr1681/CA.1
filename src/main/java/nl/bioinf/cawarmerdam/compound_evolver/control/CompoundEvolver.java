@@ -4,8 +4,6 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
-import chemaxon.formats.MolImporter;
-import chemaxon.reaction.Reaction;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
@@ -16,8 +14,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -26,7 +22,7 @@ import java.io.FileReader;
  */
 public class CompoundEvolver {
     private Random random = new Random();
-    private PipelineStep<Molecule, Path> pipe;
+    private PipelineStep<Molecule, Double> pipe;
     private Population population;
     private File anchor;
 
@@ -71,23 +67,34 @@ public class CompoundEvolver {
      */
     private void scoreCandidates(Candidate candidate) throws PipeLineError {
         // Execute pipeline
-//        Path filename = pipe.execute(candidate.getPhenotype());
+        Double score = pipe.execute(candidate.getPhenotype());
         // Assign score to candidate
-        candidate.setScore(random.nextDouble());
+//        candidate.setScore(random.nextDouble());
+        candidate.setScore(score);
     }
 
     /**
      * Setup the pipeline for scoring candidates
      * @return Pipeline that can be executed
      */
-    private PipelineStep<Molecule, Path> setupPipeline() {
+    private PipelineStep<Molecule, Double> setupPipeline() {
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
                 Paths.get("..\\uploads"));
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
-        MolocEnergyMinimizationStep molocEnergyMinimizationStep = new MolocEnergyMinimizationStep("", "", "Mol3d.exe");
+        MolocEnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep();
         PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
-        PipelineStep<Molecule, Path> pipe = converterStep.pipe(molocEnergyMinimizationStep);
+        PipelineStep<Molecule, Double> pipe = converterStep.pipe(energyMinimizationStep);
         return pipe;
+    }
+
+    private MolocEnergyMinimizationStep getEnergyMinimizationStep() {
+        if (true) {
+            return new MolocEnergyMinimizationStep(
+                    "",
+                    "X:\\Internship\\receptor\\rec.mab",
+                    "Mol3d.exe");
+        }
+        return null;
     }
 
     /**
