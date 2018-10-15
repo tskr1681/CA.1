@@ -15,7 +15,11 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         randomImmigrantRate:0.1,
         selectionMethod:'Fitness proportionate selection',
         mutationMethod:'Distance dependent',
-        forceField: 0
+        forceField: 'mmff94',
+        maxMolecularMass: 500,
+        maxHydrogenBondDonors: 5,
+        maxHydrogenBondAcceptors: 10,
+        maxPartitionCoefficient: 5
     };
     $scope.file = {wrongExtension: false, pristine: true, hasFile: false};
     $scope.response = {hasError: false};
