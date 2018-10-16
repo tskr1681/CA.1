@@ -10,8 +10,10 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.stream.DoubleStream.of;
 
@@ -35,6 +37,7 @@ public class Population implements Iterable<Candidate> {
     private double randomImmigrantRate;
     private double elitistRate;
     private int populationSize;
+    private int generation;
 
     private enum ReproductionMethod {CROSSOVER, ELITIST, RANDOM_IMMIGRANT, CLEAR}
 
@@ -47,16 +50,31 @@ public class Population implements Iterable<Candidate> {
         this.reaction = reaction;
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
-        this.mutationRate = 0.5;
-        this.selectionFraction = 0.5;
-        this.crossoverRate = 1;
+        this.generation = 0;
+        this.mutationRate = 0.1;
+        this.selectionFraction = 0.6;
+        this.crossoverRate = 0;
         this.elitistRate = 0.5;
-        this.randomImmigrantRate = 0.5;
+        this.randomImmigrantRate = 0.0;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
-        this.mutationMethod = MutationMethod.DISTANCE_DEPENDENT;
+        this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.candidateList = new RandomCompoundReactor(this.reaction, initialGenerationSize).execute(this.reactantLists);
-        this.alleleSimilarities = new double[reactantLists.size()][][];
-        computeAlleleSimilarities();
+    }
+
+    public double getRandomImmigrantRate() {
+        return randomImmigrantRate;
+    }
+
+    public void setRandomImmigrantRate(double randomImmigrantRate) {
+        this.randomImmigrantRate = randomImmigrantRate;
+    }
+
+    public double getElitistRate() {
+        return elitistRate;
+    }
+
+    public void setElitistRate(double elitistRate) {
+        this.elitistRate = elitistRate;
     }
 
     /**
@@ -183,7 +201,8 @@ public class Population implements Iterable<Candidate> {
      * Compensated   | 4,5 |  0,2 |  0,3
      * Fraction      | 0,9 | 0,04 | 0,06
      */
-    private void computeAlleleSimilarities() {
+    public void computeAlleleSimilarities() {
+        this.alleleSimilarities = new double[reactantLists.size()][][];
         // Loop through every reactant list (Acids, Amines, etc...)
         for (int i1 = 0; i1 < reactantLists.size(); i1++) {
             List<Molecule> reactants = reactantLists.get(i1);
@@ -258,7 +277,7 @@ public class Population implements Iterable<Candidate> {
         ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
         // Loop to fill offspring list to offspring size
         for (int i = 0; offspring.size() < offspringSize; i++) {
-            System.out.println("i = " + i);
+//            System.out.println("i = " + i);
             // Get some genomes by crossing over according to crossover probability
             if (offspringChoice == ReproductionMethod.CLEAR) {
                 offspringChoice = ReproductionMethod.values()[makeWeightedChoice(new double[]{
@@ -266,13 +285,15 @@ public class Population implements Iterable<Candidate> {
                         this.elitistRate,
                         this.randomImmigrantRate})];
             }
-            System.out.println("offspringChoice = " + offspringChoice);
+//            System.out.println("offspringChoice = " + offspringChoice);
             Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
             if (newOffspring != null) {
                 offspring.add(newOffspring);
                 offspringChoice = ReproductionMethod.CLEAR;
             }
         }
+        candidateList = offspring;
+        generation++;
     }
 
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
@@ -286,6 +307,7 @@ public class Population implements Iterable<Candidate> {
             // Get the recombined genome by crossing over
             List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
             // Mutate the recombined genome
+//            System.out.println(this.candidateList.get(i % this.candidateList.size()));
             mutate(newGenome);
             return finalizeOffspring(newGenome);
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
@@ -332,11 +354,17 @@ public class Population implements Iterable<Candidate> {
         // Assert that the candidates have a score
         assert (candidateList.size() > 0) && candidateList.get(0).getScore() != null;
         // Select the parents according to the method that is set
+        List<Double> scores = candidateList.stream()
+                .map(Candidate::getScore).collect(Collectors.toList());
+        System.out.println("Parents         = " + scores);
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
             candidateList = this.fitnessProportionateSelection();
         } else if (this.selectionMethod == SelectionMethod.TRUNCATED_SELECTION) {
             candidateList = this.truncatedSelection();
         }
+        scores = candidateList.stream()
+                .map(Candidate::getScore).collect(Collectors.toList());
+        System.out.println("SelectedParents = " + scores);
         // Do nothing if the flag is cleared
     }
 
@@ -377,7 +405,7 @@ public class Population implements Iterable<Candidate> {
      */
     private List<Candidate> truncatedSelection() {
         Collections.sort(this.candidateList);
-        return this.candidateList.subList(0, (int) Math.ceil(candidateList.size() * this.selectionFraction));
+        return this.candidateList.subList(0, (int) Math.ceil(this.candidateList.size() * this.selectionFraction));
     }
 
     /**
@@ -431,6 +459,20 @@ public class Population implements Iterable<Candidate> {
         return firstParent.crossover(otherParent);
     }
 
+    @Override
+    public String toString() {
+        List<Double> scores = candidateList.stream()
+                .map(Candidate::getScore)
+                .collect(Collectors.toList());
+        OptionalDouble average = scores.stream().mapToDouble(v -> v).average();
+        return String.format(
+                "Generation %d, individual count = %d %n" +
+                        " agv | min | max %n %3.0f | %3.0f | %3.0f ",
+                generation, candidateList.size(),
+                average.isPresent() ? average.getAsDouble() : Double.NaN,
+                Collections.min(scores), Collections.max(scores));
+    }
+
     /**
      * Introduce mutations in the genome according to the mutation rate and the set mutation method.
      *
@@ -439,12 +481,16 @@ public class Population implements Iterable<Candidate> {
     private void mutate(List<Integer> genome) {
         // Loop through each allele
         String format = "%10s -> %10s";
-        System.out.println(String.format(format, "curr", "new"));
+//        System.out.println(String.format(format, "curr", "new"));
         for (int i = 0; i < genome.size(); i++) {
             int allele = genome.get(i);
             int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
-            System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
+            if (alleleSimilarities != null) {
+                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
+            } else {
+                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
+            }
         }
     }
 
@@ -458,9 +504,15 @@ public class Population implements Iterable<Candidate> {
      */
     private int getMutationSubstitute(int i, int allele) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
+            // Check if similarity matrix was calculated.
+            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
+            if (this.alleleSimilarities == null) {
+                throw new RuntimeException("Allele similarity matrices should be computed " +
+                    "for distance dependant mutation!");
+            }
             return makeWeightedChoice(alleleSimilarities[i][allele]);
         } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
-            return makeChoice(alleleSimilarities[i][allele].length, allele);
+            return makeChoice(reactantLists.get(i).size(), allele);
         } else {
             throw new RuntimeException("Mutation method not set!");
         }
@@ -479,11 +531,19 @@ public class Population implements Iterable<Candidate> {
         // is 0 the condition is always true and when the mutation rate is 1 the condition is always false.
         if (this.random.nextDouble() < this.mutationRate) {
 
-            int index = this.random.nextInt(size);
-            if (index == allele) index = size;
+            int index = this.random.nextInt(size + 1);
+            if (index == size) index = allele;
             return index;
         } else
             return allele;
+    }
+
+    public Stream<Candidate> stream() {
+        return candidateList.stream();
+    }
+
+    public int size() {
+        return candidateList.size();
     }
 
     @Override

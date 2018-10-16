@@ -87,23 +87,23 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
             // Build process with the command
             Process p = Runtime.getRuntime().exec(command);
 
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-            System.out.println("Here is the standard output of the command:\n");
-            while ((line = stdInput.readLine()) != null) {
-                System.out.println(line);
-            }
-
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((line = stdError.readLine()) != null) {
-                System.out.println(line);
-            }
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
+//
+//            // read the output from the command
+//            System.out.println("Here is the standard output of the command:\n");
+//            while ((line = stdInput.readLine()) != null) {
+//                System.out.println(line);
+//            }
+//
+//            // read any errors from the attempted command
+//            System.out.println("Here is the standard error of the command (if any):\n");
+//            while ((line = stdError.readLine()) != null) {
+//                System.out.println(line);
+//            }
 
         } catch (IOException e) {
             throw new PipeLineError(String.format(

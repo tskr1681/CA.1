@@ -196,4 +196,12 @@ public class Candidate implements Comparable<Candidate>{
         int donorAtomCount = hydrogenBondPlugin.getDonorAtomCount();
         return (donorAtomCount <= MAX_HYDROGEN_BOND_DONORS);
     }
+
+    @Override
+    public String toString() {
+        return "Candidate{" +
+                "genotype=" + genotype +
+                ", score=" + score +
+                '}';
+    }
 }

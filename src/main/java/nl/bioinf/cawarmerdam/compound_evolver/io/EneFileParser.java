@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class EneFileParser {
@@ -16,14 +17,12 @@ public class EneFileParser {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(eneFileInputStream, Charset.defaultCharset()))) {
             String lineFromFile;
-            StringBuilder stringBuilder = new StringBuilder();
-            // Parse fasta
             while ((lineFromFile = reader.readLine()) != null) {
-                // If line starts with '>' a header is encountered
+                // If line starts with ' 1' the next text is the score
                 if (lineFromFile.startsWith(" 1")) {
                     // Get score after this
-                    String[] split = lineFromFile.split("\\\\s+");
-                    scores.add(Double.parseDouble(split[1]));
+                    String[] split = lineFromFile.split("\\s+");
+                    scores.add(Double.parseDouble(split[2]));
                 }
             }
         } catch (IOException e) {

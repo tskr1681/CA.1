@@ -6,7 +6,9 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 
@@ -24,14 +26,19 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(Paths.get(receptorFilePath).getFileName()));
         mol3d(inputFile);
-        File eneFilePath = new File(String.format("%s_%s.ene", ligandName, receptorName));
+        File eneFilePath = new File(String.format("_%s.ene", receptorName));
         FileInputStream fastaFileInputStream = null;
         try {
             fastaFileInputStream = new FileInputStream(eneFilePath);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        return Collections.min(EneFileParser.parseEneFile(fastaFileInputStream, eneFilePath.getName()));
+        List<Double> conformerScores = EneFileParser.parseEneFile(fastaFileInputStream, eneFilePath.getName());
+        System.out.println("conformerScores = " + conformerScores);
+        if (conformerScores.size() > 0) {
+            return Collections.min(conformerScores);
+        }
+        return 0.0;
     }
 
     private void mol3d(Path inputFile) {
@@ -39,11 +46,10 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         String line = null;
 
         // Build command
-        String command = String.format("%s -e '%s' '-w0.01' '%s'",
+        String command = String.format("%s -e \"%s\" \"-w0.01\" -E \"%s\"",
                 molocExecutable,
                 receptorFilePath,
                 inputFile);
-
         try {
             // Build process with the command
             Process p = Runtime.getRuntime().exec(command);

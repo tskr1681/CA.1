@@ -29,7 +29,9 @@ public class CompoundEvolver {
     public CompoundEvolver(Population population, File anchor) {
         this.anchor = anchor;
         this.population = population;
-        this.population.setSelectionMethod(Population.SelectionMethod.CLEAR);
+        this.population.computeAlleleSimilarities();
+        this.population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
+        this.population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Setup the pipeline
         this.pipe = setupPipeline();
     }
@@ -40,19 +42,20 @@ public class CompoundEvolver {
     private void evolve() {
         for (Candidate candidate : this.population) {
             try {
-                scoreCandidates(candidate);
+                scoreCandidate(candidate);
             } catch (PipeLineError e) {
                 e.printStackTrace();
             }
         }
         // Evolve
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 10; i++) {
+            System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
             // Score the candidates
             for (Candidate candidate : this.population) {
                 try {
-                    scoreCandidates(candidate);
+                    scoreCandidate(candidate);
                 } catch (PipeLineError e) {
                     e.printStackTrace();
                 }
@@ -65,9 +68,11 @@ public class CompoundEvolver {
      * @param candidate Candidate instance
      * @throws PipeLineError if an error occurred in the pipeline
      */
-    private void scoreCandidates(Candidate candidate) throws PipeLineError {
+    private void scoreCandidate(Candidate candidate) throws PipeLineError {
         // Execute pipeline
-        Double score = pipe.execute(candidate.getPhenotype());
+//        double score = -pipe.execute(candidate.getPhenotype());
+        double score = candidate.getPhenotype().getExactMass();
+//        System.out.println("score = " + score);
         // Assign score to candidate
 //        candidate.setScore(random.nextDouble());
         candidate.setScore(score);
@@ -92,7 +97,7 @@ public class CompoundEvolver {
             return new MolocEnergyMinimizationStep(
                     "",
                     "X:\\Internship\\receptor\\rec.mab",
-                    "Mol3d.exe");
+                    "C:\\Program Files (x86)\\moloc\\bin\\Mol3d.exe");
         }
         return null;
     }

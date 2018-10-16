@@ -62,6 +62,8 @@ public class EvolveServlet extends HttpServlet {
         Population initialPopulation = new Population(reactantLists, reaction, generationSize);
         initialPopulation.setCrossoverRate(crossoverRate);
         initialPopulation.setMutationRate(mutationRate);
+        initialPopulation.setElitistRate(elitistRate);
+        initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
         return null;
     }
 

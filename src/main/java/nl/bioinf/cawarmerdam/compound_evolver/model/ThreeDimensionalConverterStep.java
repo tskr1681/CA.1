@@ -22,7 +22,6 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Molecule, Pat
     @Override
     public Path execute(Molecule molecule) {
         Path conformerFileName = getConformerFileName();
-        System.out.println("conformerFileName = " + conformerFileName);
         try {
             Molecule[] conformers = createConformers(molecule);
             MolExporter exporter = new MolExporter(conformerFileName.toString(), "sdf");
