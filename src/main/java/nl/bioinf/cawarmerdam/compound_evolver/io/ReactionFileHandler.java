@@ -9,25 +9,24 @@ import java.io.*;
 import java.nio.file.Paths;
 
 public final class ReactionFileHandler {
-    public static Reactor loadReaction(String filePath) throws FileNotFoundException {
+    public static Reactor loadReaction(String filePath) throws FileNotFoundException, ReactionFileHandlerException {
         File initialFile = new File(filePath);
         return loadReactionFromInputStream(new FileInputStream(initialFile), filePath);
     }
 
-    public static Reactor loadReaction(Part filePart) throws IOException {
+    public static Reactor loadReaction(Part filePart) throws IOException, ReactionFileHandlerException {
         return loadReactionFromInputStream(filePart.getInputStream(),
                 Paths.get(filePart.getSubmittedFileName()).getFileName().toString());
     }
 
-    private static Reactor loadReactionFromInputStream(InputStream inputStream, String fileName) {
+    private static Reactor loadReactionFromInputStream(InputStream inputStream, String fileName) throws ReactionFileHandlerException {
         Reactor reactor = new Reactor();
         try {
             MolImporter importer = new MolImporter(inputStream);
             reactor.setReaction(importer.read());
             importer.close();
         } catch (IOException | ReactionException exception) {
-            throw new IllegalArgumentException(
-                    String.format("Could not read file '%s': %s", fileName, exception.toString()));
+            throw new ReactionFileHandlerException(exception.getMessage(), fileName);
         }
         return reactor;
     }

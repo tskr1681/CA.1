@@ -38,12 +38,55 @@ public class Population implements Iterable<Candidate> {
     private double elitistRate;
     private int populationSize;
     private int generation;
+    private List<List<Double>> scores;
+
 
     private enum ReproductionMethod {CROSSOVER, ELITIST, RANDOM_IMMIGRANT, CLEAR}
 
-    public enum SelectionMethod {CLEAR, FITNESS_PROPORTIONATE_SELECTION, TRUNCATED_SELECTION}
+    public enum SelectionMethod {
+        CLEAR("Clear"),
+        FITNESS_PROPORTIONATE_SELECTION("Fitness proportionate selection"),
+        TRUNCATED_SELECTION("Truncated selection");
 
-    public enum MutationMethod {DISTANCE_DEPENDENT, DISTANCE_INDEPENDENT}
+        private final String text;
+
+        SelectionMethod(String text) {
+            this.text = text;
+        }
+
+        public static SelectionMethod fromString(String text) {
+            for (SelectionMethod method : SelectionMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    public enum MutationMethod {
+        DISTANCE_DEPENDENT("Distance dependent"),
+        DISTANCE_INDEPENDENT("Distance independent");
+
+        private final String text;
+
+        MutationMethod(String text) {
+            this.text = text;
+        }
+
+        public String getText() {
+            return this.text;
+        }
+
+        public static MutationMethod fromString(String text) {
+            for (MutationMethod method : MutationMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
 
     public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) {
         this.random = new Random();
@@ -59,6 +102,11 @@ public class Population implements Iterable<Candidate> {
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.candidateList = new RandomCompoundReactor(this.reaction, initialGenerationSize).execute(this.reactantLists);
+        this.scores = new ArrayList<>();
+    }
+
+    public List<List<Double>> getFitness() {
+        return scores;
     }
 
     public double getRandomImmigrantRate() {
@@ -267,6 +315,10 @@ public class Population implements Iterable<Candidate> {
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
     private void produceOffspring(int offspringSize) {
+        // Get scores
+        scores.add(candidateList.stream()
+                .map(Candidate::getScore)
+                .collect(Collectors.toList()));
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
         // Perform crossing over

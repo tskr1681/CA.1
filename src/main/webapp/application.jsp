@@ -221,6 +221,7 @@
                             <div class="col-sm-9">
                                 <select class="form-control"
                                         id="selection-method"
+                                        name="selectionMethod"
                                         ng-model="formModel.selectionMethod"
                                         required="required">
                                     <option>Fitness proportionate selection</option>
@@ -233,6 +234,7 @@
                             <div class="col-sm-9">
                                 <select class="form-control"
                                         id="mutation-method"
+                                        name="mutationMethod"
                                         ng-model="formModel.mutationMethod"
                                         required="required">
                                     <option>Distance dependent</option>

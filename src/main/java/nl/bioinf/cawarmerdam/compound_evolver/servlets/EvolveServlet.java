@@ -4,10 +4,7 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileFormatException;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandlingException;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
+import nl.bioinf.cawarmerdam.compound_evolver.io.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
 import javax.servlet.ServletException;
@@ -33,38 +30,71 @@ public class EvolveServlet extends HttpServlet {
         try {
             // Create new compoundEvolver
             CompoundEvolver compoundEvolver = constructCompoundEvolver(request);
-            mapper.writeValue(response.getOutputStream(), "Success");
-        } catch (IllegalArgumentException exception) {
+            compoundEvolver.evolve();
+            mapper.writeValue(response.getOutputStream(), compoundEvolver.getPopulationFitness());
+        } catch (IllegalArgumentException | IOException exception) {
             response.setStatus(400);
             mapper.writeValue(response.getOutputStream(), exception.getMessage());
+        } catch (ReactantFileHandlingException | ReactantFileFormatException e) {
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
+        } catch (ReactionFileHandlerException e) {
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
         }
     }
 
-    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException {
+    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException {
+        // Get generation size
         int generationSize = getIntegerParameter(request.getParameter("generationSize"));
-        double crossoverRate = getDoubleParameter(request.getParameter("crossoverRate"));
-        double mutationRate = getDoubleParameter(request.getParameter("mutationRate"));
-        double elitistRate = getDoubleParameter(request.getParameter("elitistRate"));
-        double randomImmigrantRate = getDoubleParameter(request.getParameter("randomImmigrantRate"));
+
+        // Get reaction
         Reactor reaction = ReactionFileHandler.loadReaction(getFileFromRequest(request, "reactionFile"));
-        List<List<Molecule>> reactantLists = null;
-        try {
-            reactantLists = ReactantFileHandler.loadMolecules(new String[] {
-                    "X:\\Internship\\reactants\\aldehyde_small.smiles",
-                    "X:\\Internship\\reactants\\amine_tryptamine.smiles",
-                    "X:\\Internship\\reactants\\acids_small.smiles",
-                    "X:\\Internship\\reactants\\isocyanide_small.smiles"});
-        } catch (ReactantFileHandlingException e) {
-            e.printStackTrace();
-        } catch (ReactantFileFormatException e) {
-            e.printStackTrace();
-        }
+
+        // Get reactants
+        List<List<Molecule>> reactantLists = getReactants();
+
+        // Initialize population instance
         Population initialPopulation = new Population(reactantLists, reaction, generationSize);
+
+        // Get crossover rate
+        double crossoverRate = getDoubleParameter(request.getParameter("crossoverRate"));
         initialPopulation.setCrossoverRate(crossoverRate);
+
+        // Get mutation rate
+        double mutationRate = getDoubleParameter(request.getParameter("mutationRate"));
         initialPopulation.setMutationRate(mutationRate);
+
+        // Get elitist rate
+        double elitistRate = getDoubleParameter(request.getParameter("elitistRate"));
         initialPopulation.setElitistRate(elitistRate);
+
+        // Get random immigrant rate
+        double randomImmigrantRate = getDoubleParameter(request.getParameter("randomImmigrantRate"));
         initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
-        return null;
+
+        // Get mutation method
+        Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
+                request.getParameter("mutationMethod"));
+        initialPopulation.setMutationMethod(mutationMethod);
+
+        // Get selection method
+        Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
+                request.getParameter("selectionMethod"));
+        initialPopulation.setSelectionMethod(selectionMethod);
+        return new CompoundEvolver(
+                initialPopulation,
+                new File("X:\\Internship\\reference_fragment\\anchor.sdf"));
+    }
+
+    private List<List<Molecule>> getReactants() throws ReactantFileHandlingException, ReactantFileFormatException {
+        List<List<Molecule>> reactantLists = null;
+        reactantLists = ReactantFileHandler.loadMolecules(new String[] {
+                "X:\\Internship\\reactants\\aldehyde_small.smiles",
+                "X:\\Internship\\reactants\\amine_tryptamine.smiles",
+                "X:\\Internship\\reactants\\acids_small.smiles",
+                "X:\\Internship\\reactants\\isocyanide_small.smiles"});
+        return reactantLists;
     }
 
     private Part getFileFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {

@@ -36,10 +36,14 @@ public class CompoundEvolver {
         this.pipe = setupPipeline();
     }
 
+    public List<List<Double>> getPopulationFitness() {
+        return this.population.getFitness();
+    }
+
     /**
      * Evolve compounds
      */
-    private void evolve() {
+    public void evolve() {
         for (Candidate candidate : this.population) {
             try {
                 scoreCandidate(candidate);
