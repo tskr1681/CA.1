@@ -29,9 +29,6 @@ public class CompoundEvolver {
     public CompoundEvolver(Population population, File anchor) {
         this.anchor = anchor;
         this.population = population;
-        this.population.computeAlleleSimilarities();
-        this.population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
-        this.population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Setup the pipeline
         this.pipe = setupPipeline();
     }
@@ -52,7 +49,7 @@ public class CompoundEvolver {
             }
         }
         // Evolve
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
@@ -123,6 +120,9 @@ public class CompoundEvolver {
         File anchor = new File(args[args.length - 2]);
         // Construct the initial population
         Population population = new Population(reactantLists, reactor, maxSamples);
+        population.computeAlleleSimilarities();
+        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
+        population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);
         // Evolve compounds

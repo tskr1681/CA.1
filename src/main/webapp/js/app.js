@@ -74,6 +74,19 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
                     // log data to the console so we can see
                     console.log(data);
+                    function getSum(total, num) {
+                        return total + num;
+                    }
+                    var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
+                    console.log(avgScores);
+                    var chartData = {labels: [...Array(avgScores.length).keys()],
+                    datasets: [{data: avgScores, label: "average", borderColor: "#333333", fill: "false"}]};
+
+                    var ctx = document.getElementById("myChart").getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: chartData,
+                    });
                     $scope.response.hasError = false;
                     $scope.$apply();
                 },
