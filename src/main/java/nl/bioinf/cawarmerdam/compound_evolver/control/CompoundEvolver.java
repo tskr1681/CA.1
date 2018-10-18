@@ -21,16 +21,31 @@ import java.util.*;
  * @version 0.0.1
  */
 public class CompoundEvolver {
+
+    private int setNumberOfGenerations;
     private Random random = new Random();
     private PipelineStep<Molecule, Double> pipe;
     private Population population;
     private File anchor;
 
+    public enum ForceField {MAB, MMFF94}
+
+    public enum TerminationCondition {FIXED_GENERATION_NUMBER, CONVERGENCE, DURATION}
+
     public CompoundEvolver(Population population, File anchor) {
         this.anchor = anchor;
         this.population = population;
+        this.setNumberOfGenerations = 20;
         // Setup the pipeline
         this.pipe = setupPipeline();
+    }
+
+    public int getSetNumberOfGenerations() {
+        return setNumberOfGenerations;
+    }
+
+    public void setNumberOfGenerations(int generations) {
+        this.setNumberOfGenerations = generations;
     }
 
     public List<List<Double>> getPopulationFitness() {
@@ -49,7 +64,7 @@ public class CompoundEvolver {
             }
         }
         // Evolve
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < this.setNumberOfGenerations; i++) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
@@ -85,7 +100,7 @@ public class CompoundEvolver {
      */
     private PipelineStep<Molecule, Double> setupPipeline() {
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
-                Paths.get("..\\uploads"));
+                Paths.get("X:\\uploads"));
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
         MolocEnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep();
         PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);

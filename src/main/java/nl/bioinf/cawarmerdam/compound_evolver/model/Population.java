@@ -95,7 +95,7 @@ public class Population implements Iterable<Candidate> {
         this.populationSize = initialGenerationSize;
         this.generation = 0;
         this.mutationRate = 0.1;
-        this.selectionFraction = 0.6;
+        this.selectionFraction = 0.3;
         this.crossoverRate = 0;
         this.elitistRate = 0.5;
         this.randomImmigrantRate = 0.0;
@@ -539,9 +539,9 @@ public class Population implements Iterable<Candidate> {
             int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
             if (alleleSimilarities != null) {
-                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
+//                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
             } else {
-                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
+//                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
             }
         }
     }
@@ -557,7 +557,7 @@ public class Population implements Iterable<Candidate> {
     private int getMutationSubstitute(int i, int allele) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
-            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
+//            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
             if (this.alleleSimilarities == null) {
                 throw new RuntimeException("Allele similarity matrices should be computed " +
                     "for distance dependant mutation!");

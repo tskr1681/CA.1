@@ -53,14 +53,14 @@
                 <div class="card card-body">
                     <h5 class="card-title"><b>Building blocks and reaction</b></h5>
                     <div class="form-group row">
-                        <label for="reaction-file" class="col-sm-3 col-form-label">Upload mrv reaction file:</label>
+                        <label for="reaction-file" class="col-sm-3 col-form-label">Upload reaction file (.mrv):</label>
                         <div class="col-sm-9">
                             <label for="reaction-file" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose file</strong>
                                 <span ng-bind="formModel.reactionFile[0].files[0].name"
                                       ng-class="{
-                    'text-danger':file.wrongExtension || (!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'text-success':!file.wrongExtension && !file.pristine}"></span>
+                    'text-danger':reactionFile.wrongExtension || (!reactionFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'text-success':!reactionFile.wrongExtension && !reactionFile.pristine}"></span>
                             </label>
                             <input type="file"
                                    file-bind="formModel.reactionFile"
@@ -70,12 +70,39 @@
                         </div>
                         <div class="col-sm-9 offset-sm-3">
                             <p class="form-text text-danger"
-                               ng-show="!file.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                               ng-show="!reactionFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                 This field is required
                             </p>
                             <p class="form-text text-danger"
-                               ng-show="file.wrongExtension">
+                               ng-show="reactionFile.wrongExtension">
                                 Only an mrv file (.mrv) is accepted
+                            </p></div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="reactant-files" class="col-sm-3 col-form-label">Upload reactants files (.smiles, .smi):</label>
+                        <div class="col-sm-9">
+                            <label for="reactant-files" class="custom-file-upload">
+                                <strong class="btn btn-secondary">Choose files</strong>
+                                <span ng-bind="reactantFiles.names"
+                                      ng-class="{
+                    'text-danger':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'text-success':!reactantFiles.wrongExtension && !reactantFiles.pristine}"></span>
+                            </label>
+                            <input type="file"
+                                   file-bind="formModel.reactantFiles"
+                                   id="reactant-files"
+                                   name="reactantFiles"
+                                   required="required"
+                                   multiple="multiple"/>
+                        </div>
+                        <div class="col-sm-9 offset-sm-3">
+                            <p class="form-text text-danger"
+                               ng-show="!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                This field is required
+                            </p>
+                            <p class="form-text text-danger"
+                               ng-show="reactantFiles.wrongExtension">
+                                Only smiles files (.smiles, .smi) are accepted
                             </p></div>
                     </div>
                 </div>
@@ -109,6 +136,58 @@
                                 <p class="form-text text-danger"
                                    ng-show="(compoundEvolverForm.generationSize.$error.number || compoundEvolverForm.generationSize.$error.step || compoundEvolverForm.generationSize.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     An integer value (a whole number) above 2 is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="number-of-generations" class="col-sm-3 col-form-label">Number of generations:</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.numberOfGenerations"
+                                       id="number-of-generations"
+                                       name="numberOfGenerations"
+                                       required="required"
+                                       min="2"
+                                       step="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.numberOfGenerations.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.numberOfGenerations.$error.number || compoundEvolverForm.numberOfGenerations.$error.step || compoundEvolverForm.numberOfGenerations.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    An integer value (a whole number) above 2 is required
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="selection-size" class="col-sm-3 col-form-label">Selection size:</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.selectionSize"
+                                       id="selection-size"
+                                       name="selectionSize"
+                                       required="required"
+                                       min="0"
+                                       max="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.selectionSize.$valid && (!compoundEvolverForm.selectionSize.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.selectionSize.$valid && (!compoundEvolverForm.selectionSize.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.selectionSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.selectionSize.$error.number || compoundEvolverForm.selectionSize.$error.min || compoundEvolverForm.selectionSize.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
                                 </p>
                             </div>
                         </div>
@@ -377,7 +456,7 @@
                 <div class="form-group row">
                     <div class="col-sm-9 offset-sm-3">
                         <button type="submit" class="btn btn-default"
-                                ng-click="onSubmit((!file.wrongExtension) && (file.hasFile) && compoundEvolverForm.$valid)">
+                                ng-click="onSubmit((!reactionFile.wrongExtension) && (reactionFile.hasFile) && compoundEvolverForm.$valid)">
                             Submit
                         </button>
                     </div>

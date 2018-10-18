@@ -67,8 +67,8 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
 
     /**
      * Execute the obfit command line program
-     * @param conformerLib The path to a file with conformers
-     * @param outFile The path to a file that can function as an output file
+     * @param conformerLib The path to a reactionFile with conformers
+     * @param outFile The path to a reactionFile that can function as an output reactionFile
      * @throws PipeLineError if an error occured in executing the obfit command
      */
     private void obFit(String conformerLib, String outFile) throws PipeLineError {

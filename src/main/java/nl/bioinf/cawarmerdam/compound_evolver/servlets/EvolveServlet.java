@@ -50,6 +50,7 @@ public class EvolveServlet extends HttpServlet {
 
         // Get reaction
         Reactor reaction = ReactionFileHandler.loadReaction(getFileFromRequest(request, "reactionFile"));
+        System.out.println(reaction.getReactantCount());
 
         // Get reactants
         List<List<Molecule>> reactantLists = getReactants();
@@ -60,6 +61,10 @@ public class EvolveServlet extends HttpServlet {
         // Get crossover rate
         double crossoverRate = getDoubleParameter(request.getParameter("crossoverRate"));
         initialPopulation.setCrossoverRate(crossoverRate);
+
+        // Get selection size
+        double selectionSize = getDoubleParameter(request.getParameter("selectionSize"));
+        initialPopulation.setSelectionFraction(selectionSize);
 
         // Get mutation rate
         double mutationRate = getDoubleParameter(request.getParameter("mutationRate"));
@@ -77,14 +82,23 @@ public class EvolveServlet extends HttpServlet {
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
                 request.getParameter("mutationMethod"));
         initialPopulation.setMutationMethod(mutationMethod);
+        // Compute allele similarity values if mutation method relies on these
+        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT) initialPopulation.computeAlleleSimilarities();
 
         // Get selection method
         Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
                 request.getParameter("selectionMethod"));
+
         initialPopulation.setSelectionMethod(selectionMethod);
-        return new CompoundEvolver(
+        CompoundEvolver evolver = new CompoundEvolver(
                 initialPopulation,
                 new File("X:\\Internship\\reference_fragment\\anchor.sdf"));
+
+        // Get number of numberOfGenerations
+        int numberOfGenerations = getIntegerParameter(request.getParameter("numberOfGenerations"));
+        evolver.setNumberOfGenerations(numberOfGenerations);
+
+        return evolver;
     }
 
     private List<List<Molecule>> getReactants() throws ReactantFileHandlingException, ReactantFileFormatException {

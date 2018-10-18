@@ -26,14 +26,15 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(Paths.get(receptorFilePath).getFileName()));
         mol3d(inputFile);
-        File eneFilePath = new File(String.format("_%s.ene", receptorName));
+        Path eneFilePath = Paths.get(String.format("%s_%s.ene", ligandName, receptorName));
+        File eneFile = inputFile.resolveSibling(String.valueOf(eneFilePath)).toFile();
         FileInputStream fastaFileInputStream = null;
         try {
-            fastaFileInputStream = new FileInputStream(eneFilePath);
+            fastaFileInputStream = new FileInputStream(eneFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        List<Double> conformerScores = EneFileParser.parseEneFile(fastaFileInputStream, eneFilePath.getName());
+        List<Double> conformerScores = EneFileParser.parseEneFile(fastaFileInputStream, eneFile.getName());
         System.out.println("conformerScores = " + conformerScores);
         if (conformerScores.size() > 0) {
             return Collections.min(conformerScores);
