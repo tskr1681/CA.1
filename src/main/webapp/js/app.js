@@ -24,8 +24,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         maxPartitionCoefficient: 5
     };
     $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false};
-    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, names: "hello"};
+    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, names: ""};
     $scope.response = {hasError: false};
+
+    var myChart = null;
 
     /**
      * Sets the form to pristine: set grey colours and such.
@@ -93,7 +95,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                             {data: maxScores, label: "maximum", borderColor: "#ff0055", fill: "false"}]};
 
                     var ctx = document.getElementById("myChart").getContext('2d');
-                    var myChart = new Chart(ctx, {
+
+                    if (myChart !== null) {myChart.destroy();}
+
+                    myChart = new Chart(ctx, {
                         type: 'line',
                         data: chartData,
                     });

@@ -356,17 +356,12 @@
                                        ng-model="formModel.maxMolecularMass"
                                        id="max-molecular-mass"
                                        name="maxMolecularMass"
-                                       required="required"
                                        min="0"
                                        ng-class="{
                     'is-invalid':!compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <p class="form-text text-danger"
-                                   ng-show="compoundEvolverForm.maxMolecularMass.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                    This field is required
-                                </p>
                                 <p class="form-text text-danger"
                                    ng-show="(compoundEvolverForm.maxMolecularMass.$error.number || compoundEvolverForm.maxMolecularMass.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A positive numeric value is required
@@ -382,17 +377,12 @@
                                        ng-model="formModel.maxHydrogenBondDonors"
                                        id="max-hydrogen-bond-donors"
                                        name="maxHydrogenBondDonors"
-                                       required="required"
                                        min="0"
                                        ng-class="{
                     'is-invalid':!compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <p class="form-text text-danger"
-                                   ng-show="compoundEvolverForm.maxHydrogenBondDonors.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                    This field is required
-                                </p>
                                 <p class="form-text text-danger"
                                    ng-show="(compoundEvolverForm.maxHydrogenBondDonors.$error.number || compoundEvolverForm.maxHydrogenBondDonors.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A positive numeric value is required
@@ -408,17 +398,12 @@
                                        ng-model="formModel.maxHydrogenBondAcceptors"
                                        id="max-hydrogen-bond-acceptors"
                                        name="maxHydrogenBondAcceptors"
-                                       required="required"
                                        min="0"
                                        ng-class="{
                     'is-invalid':!compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <p class="form-text text-danger"
-                                   ng-show="compoundEvolverForm.maxHydrogenBondAcceptors.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                    This field is required
-                                </p>
                                 <p class="form-text text-danger"
                                    ng-show="(compoundEvolverForm.maxHydrogenBondAcceptors.$error.number || compoundEvolverForm.maxHydrogenBondAcceptors.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A positive numeric value is required
@@ -434,17 +419,12 @@
                                        ng-model="formModel.maxPartitionCoefficient"
                                        id="max-partition-coefficient"
                                        name="maxPartitionCoefficient"
-                                       required="required"
                                        min="0"
                                        ng-class="{
                     'is-invalid':!compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <p class="form-text text-danger"
-                                   ng-show="compoundEvolverForm.maxPartitionCoefficient.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                    This field is required
-                                </p>
                                 <p class="form-text text-danger"
                                    ng-show="(compoundEvolverForm.maxPartitionCoefficient.$error.number || compoundEvolverForm.maxPartitionCoefficient.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A positive numeric value is required

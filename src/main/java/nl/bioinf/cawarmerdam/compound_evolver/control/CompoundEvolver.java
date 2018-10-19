@@ -22,7 +22,9 @@ import java.util.*;
  */
 public class CompoundEvolver {
 
-    private int setNumberOfGenerations;
+    private ForceField forceField;
+    private TerminationCondition terminationCondition;
+    private int numberOfGenerations;
     private Random random = new Random();
     private PipelineStep<Molecule, Double> pipe;
     private Population population;
@@ -35,17 +37,35 @@ public class CompoundEvolver {
     public CompoundEvolver(Population population, File anchor) {
         this.anchor = anchor;
         this.population = population;
-        this.setNumberOfGenerations = 20;
+        this.numberOfGenerations = 20;
+        this.forceField = ForceField.MAB;
+        this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         // Setup the pipeline
         this.pipe = setupPipeline();
     }
 
-    public int getSetNumberOfGenerations() {
-        return setNumberOfGenerations;
+    public ForceField getForceField() {
+        return forceField;
+    }
+
+    public void setForceField(ForceField forceField) {
+        this.forceField = forceField;
+    }
+
+    public TerminationCondition getTerminationCondition() {
+        return terminationCondition;
+    }
+
+    public void setTerminationCondition(TerminationCondition terminationCondition) {
+        this.terminationCondition = terminationCondition;
+    }
+
+    public int getNumberOfGenerations() {
+        return numberOfGenerations;
     }
 
     public void setNumberOfGenerations(int generations) {
-        this.setNumberOfGenerations = generations;
+        this.numberOfGenerations = generations;
     }
 
     public List<List<Double>> getPopulationFitness() {
@@ -64,7 +84,7 @@ public class CompoundEvolver {
             }
         }
         // Evolve
-        for (int i = 0; i < this.setNumberOfGenerations; i++) {
+        for (int i = 0; i < this.numberOfGenerations; i++) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
@@ -86,8 +106,8 @@ public class CompoundEvolver {
      */
     private void scoreCandidate(Candidate candidate) throws PipeLineError {
         // Execute pipeline
-//        double score = -pipe.execute(candidate.getPhenotype());
-        double score = candidate.getPhenotype().getExactMass();
+        double score = -pipe.execute(candidate.getPhenotype());
+//        double score = candidate.getPhenotype().getExactMass();
 //        System.out.println("score = " + score);
         // Assign score to candidate
 //        candidate.setScore(random.nextDouble());
@@ -109,13 +129,14 @@ public class CompoundEvolver {
     }
 
     private MolocEnergyMinimizationStep getEnergyMinimizationStep() {
-        if (true) {
+        if (this.forceField == ForceField.MAB) {
             return new MolocEnergyMinimizationStep(
                     "",
                     "X:\\Internship\\receptor\\rec.mab",
                     "C:\\Program Files (x86)\\moloc\\bin\\Mol3d.exe");
+        } else {
+            throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
-        return null;
     }
 
     /**
@@ -135,8 +156,7 @@ public class CompoundEvolver {
         File anchor = new File(args[args.length - 2]);
         // Construct the initial population
         Population population = new Population(reactantLists, reactor, maxSamples);
-        population.computeAlleleSimilarities();
-        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
+        population.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);

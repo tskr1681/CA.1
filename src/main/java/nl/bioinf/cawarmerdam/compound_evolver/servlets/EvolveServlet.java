@@ -5,6 +5,7 @@ import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
 import javax.servlet.ServletException;
@@ -77,6 +78,22 @@ public class EvolveServlet extends HttpServlet {
         // Get random immigrant rate
         double randomImmigrantRate = getDoubleParameter(request.getParameter("randomImmigrantRate"));
         initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
+
+//        // Get maximum hydrogen bond acceptors
+//        double maxHydrogenBondAcceptors = getDoubleParameter(request.getParameter("maxHydrogenBondAcceptors"));
+//        Candidate.setMaxHydrogenBondAcceptors(maxHydrogenBondAcceptors);
+//
+//        // Get maximum hydrogen bond acceptors
+//        double maxHydrogenBondDonors = getDoubleParameter(request.getParameter("maxHydrogenBondDonors"));
+//        Candidate.setMaxHydrogenBondDonors(maxHydrogenBondDonors);
+//
+//        // Get maximum molecular mass
+//        double maxMolecularMass = getDoubleParameter(request.getParameter("maxMolecularMass"));
+//        Candidate.setMaxMolecularMass(maxMolecularMass);
+//
+//        // Get maximum partition coefficient
+//        double maxPartitionCoefficient = getDoubleParameter(request.getParameter("maxPartitionCoefficient"));
+//        Candidate.setMaxPartitionCoefficient(maxPartitionCoefficient);
 
         // Get mutation method
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
