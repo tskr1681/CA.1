@@ -161,7 +161,7 @@ public class Candidate implements Comparable<Candidate>{
         hydrogenBondPlugin.setpHStep(pHStep);
     }
 
-    public boolean isValid() {
+    boolean isValid() {
         if (MAX_HYDROGEN_BOND_DONORS != null) {
             if(!isHydrogenBondDonorCountValid()) return false;
         }
@@ -172,7 +172,7 @@ public class Candidate implements Comparable<Candidate>{
             if(!isMolecularMassValid()) return false;
         }
         if (MAX_PARTITION_COEFFICIENT != null) {
-            if(!isPartitionCoefficientValid()) return false;
+            return isPartitionCoefficientValid();
         }
         return true;
     }

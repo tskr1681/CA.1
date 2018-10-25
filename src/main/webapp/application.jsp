@@ -322,6 +322,19 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="termination-condition" class="col-sm-3 col-form-label">Termination condition:</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="termination-condition"
+                                        name="terminationCondition"
+                                        ng-model="formModel.terminationCondition"
+                                        required="required">
+                                    <option value="fixed">Maximum number of generations reached</option>
+                                    <option value="convergence">Convergence reached</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <%--<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#docking-settings">--%>

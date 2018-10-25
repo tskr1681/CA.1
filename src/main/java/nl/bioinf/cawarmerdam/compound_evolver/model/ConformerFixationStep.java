@@ -19,11 +19,11 @@ import java.nio.file.Paths;
 public class ConformerFixationStep implements PipelineStep<Path, Path> {
 
     private String smartsPattern;
-    private File referenceMolecule;
+    private Path referenceMolecule;
     private String obfitExecutable;
     private static Path subPath = Paths.get("fixed");
 
-    public ConformerFixationStep(File referenceMolecule, String obfitExecutable) {
+    public ConformerFixationStep(Path referenceMolecule, String obfitExecutable) {
         this.referenceMolecule = referenceMolecule;
         this.obfitExecutable = obfitExecutable;
         try {
@@ -39,7 +39,7 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
      */
     private String convertToSmarts() throws IOException {
         // Get input and output
-        InputStream inputStream = new FileInputStream(referenceMolecule);
+        InputStream inputStream = new FileInputStream(referenceMolecule.toFile());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         // Create a converter instance
         MolConverter converter = new MolConverter(inputStream, outputStream, "smiles:u", false);

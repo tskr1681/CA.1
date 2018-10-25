@@ -17,6 +17,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         randomImmigrantRate:0.1,
         selectionMethod:'Fitness proportionate selection',
         mutationMethod:'Distance dependent',
+        terminationCondition: 'fixed',
         forceField: 'mmff94',
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
@@ -45,12 +46,27 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
      * @param jqXHR
      */
     function getErrorResponse(jqXHR) {
-        if (jqXHR.responseText !== undefined && jqXHR.responseText !== "") {
-            $scope.response.error = jqXHR.responseText.substr(1).slice(0, -1);
-        } else if (jqXHR.status === 0) {
-            $scope.response.error = "Connection failed"
-        } else {
-            $scope.response.error = "Generic error"
+        let ct = jqXHR.getResponseHeader("content-type") || "";
+        if (ct.indexOf('html') > -1) {
+            if (jqXHR.responseText !== undefined && jqXHR.responseText !== "") {
+                $scope.response.error = jqXHR.responseText.substr(1).slice(0, -1);
+            } else if (jqXHR.status === 0) {
+                $scope.response.error = "Connection failed"
+            } else {
+                $scope.response.error = "Generic error"
+            }
+        }
+        if (ct.indexOf('json') > -1) {
+            console.log(jqXHR.responseJSON);
+            let jsonData = $.parseJSON(jqXHR.responseJSON);
+
+            if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
+                $scope.response.error = jsonData.fieldName + ": "+ jsonData.cause
+            } else if (jqXHR.status === 0) {
+                $scope.response.error = "Connection failed"
+            } else {
+                $scope.response.error = "Generic error"
+            }
         }
     }
 

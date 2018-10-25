@@ -267,9 +267,7 @@ public class Population implements Iterable<Candidate> {
                     alleleSimilarities[i1][i][j] = tanimoto;
                     alleleSimilarities[i1][j][i] = tanimoto;
                 }
-            }
-            // Loop through every reactant in the reactant list to set values at the diagonal
-            for (int i = 0; i < alleleSimilarities[i1].length; i++) {
+                // Set values at the diagonal
                 // Get the sum of all similarity values for the current reactant
                 // excluding the i,i location (because this is set to zero (0))
                 double weightsSum = DoubleStream.of(alleleSimilarities[i1][i]).sum();
@@ -277,6 +275,54 @@ public class Population implements Iterable<Candidate> {
                 alleleSimilarities[i1][i][i] = weightsSum / mutationRate - weightsSum;
             }
         }
+    }
+
+    public void initializeAlleleSimilaritiesMatrix() {
+        this.alleleSimilarities = new double[reactantLists.size()][][];
+        // Loop through every reactant list (Acids, Amines, etc...)
+        for (int i1 = 0; i1 < reactantLists.size(); i1++) {
+            List<Molecule> reactants = reactantLists.get(i1);
+            // Create a 2d matrix for the current reactant list
+            alleleSimilarities[i1] = new double[reactants.size()][reactants.size()];
+        }
+    }
+
+    /**
+     * Computes allele similarities for a specific allele by using the Tanimoto dissimilarity functionality provided
+     * by the Chemaxon API
+     * <a href="https://docs.chemaxon.com/display/docs/Similarity+search">Similarity search</a>.
+     * The similarity of a compound to itself is set so its fraction of the total similarities for the compound to.
+     * other compounds and itself is equal to the mutation rate. Like so:
+     * <p>
+     * <p>
+     * Mutation rate | 0,1 |      |
+     * --------------|-----|------|------
+     * |     |      |
+     * Similarities  |   1 |  0,2 |  0,3
+     * Compensated   | 4,5 |  0,2 |  0,3
+     * Fraction      | 0,9 | 0,04 | 0,06
+     */
+    private void computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex) {
+        // Get reactants which it is about
+        List<Molecule> reactants = reactantLists.get(reactantsListIndex);
+        // Loop through reactants in the reactant list for all reactants
+        // Calculate tanimoto only if the diagonal in the matrix is not encountered and the cell is not yet filled
+        // We don't calculate the tanimoto for the diagonal because the similarity values at the diagonal (location i,i)
+        // should always be 1
+        // When computing the alleles in random fashion it is uncertain which values are already filled
+        for (int j = 0; j < reactants.size(); j++) {
+            if (j != alleleIndex & alleleSimilarities[reactantsListIndex][alleleIndex][j] == 0) {
+                // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
+                double tanimoto = (double) 1 - getTanimoto(reactants.get(alleleIndex), reactants.get(j));
+                alleleSimilarities[reactantsListIndex][alleleIndex][j] = tanimoto;
+                alleleSimilarities[reactantsListIndex][j][alleleIndex] = tanimoto;
+            }
+        }
+        // Get the sum of all similarity values for the current reactant
+        // excluding the i,i location (because this is set to zero (0))
+        double weightsSum = DoubleStream.of(alleleSimilarities[reactantsListIndex][alleleIndex]).sum();
+        // Take the mutation rate into account with the following calculation
+        alleleSimilarities[reactantsListIndex][alleleIndex][alleleIndex] = weightsSum / mutationRate - weightsSum;
     }
 
     /**
@@ -539,7 +585,7 @@ public class Population implements Iterable<Candidate> {
             int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
             if (alleleSimilarities != null) {
-//                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
+                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
             } else {
 //                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
             }
@@ -550,21 +596,26 @@ public class Population implements Iterable<Candidate> {
      * Method that introduces mutations with either a distance dependent method
      * or a distance independent method.
      *
-     * @param i,     the index of the reactant list
+     * @param reactants_list_index, the index of the reactants list
      * @param allele the index of the allele in the reactant list
      * @return the index of the chosen reactant from the reactant list
      */
-    private int getMutationSubstitute(int i, int allele) {
+    private int getMutationSubstitute(int reactants_list_index, int allele) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
 //            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
             if (this.alleleSimilarities == null) {
-                throw new RuntimeException("Allele similarity matrices should be computed " +
+                throw new RuntimeException("Allele similarity matrices should be defined " +
                     "for distance dependant mutation!");
             }
-            return makeWeightedChoice(alleleSimilarities[i][allele]);
+            // If the similarities for this allele with other alleles has not yet been calculated, calculate these now
+            if (alleleSimilarities[reactants_list_index][allele][allele] == 0) {
+                computeSpecificAlleleSimilarities(reactants_list_index, allele);
+            }
+            // Return allele substitute index
+            return makeWeightedChoice(alleleSimilarities[reactants_list_index][allele]);
         } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
-            return makeChoice(reactantLists.get(i).size(), allele);
+            return makeChoice(reactantLists.get(reactants_list_index).size(), allele);
         } else {
             throw new RuntimeException("Mutation method not set!");
         }

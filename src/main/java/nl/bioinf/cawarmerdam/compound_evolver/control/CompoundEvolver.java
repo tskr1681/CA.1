@@ -22,26 +22,61 @@ import java.util.*;
  */
 public class CompoundEvolver {
 
+    private Path pipelineOutputFileLocation;
     private ForceField forceField;
     private TerminationCondition terminationCondition;
-    private int numberOfGenerations;
+    private int maxNumberOfGenerations;
     private Random random = new Random();
     private PipelineStep<Molecule, Double> pipe;
     private Population population;
-    private File anchor;
+    private Path anchor;
+    private int nonImprovingGenerationAmountFactor;
+    private boolean dummyFitness = true;
 
     public enum ForceField {MAB, MMFF94}
 
-    public enum TerminationCondition {FIXED_GENERATION_NUMBER, CONVERGENCE, DURATION}
+    public enum TerminationCondition {
+        FIXED_GENERATION_NUMBER("fixed"),
+        CONVERGENCE("convergence"),
+        DURATION("duration");
 
-    public CompoundEvolver(Population population, File anchor) {
+        private final String text;
+
+        TerminationCondition(String text) {
+            this.text = text;
+        }
+
+        public static TerminationCondition fromString(String text) {
+            for (TerminationCondition condition : TerminationCondition.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }}
+
+    public CompoundEvolver(Population population, Path anchor) {
         this.anchor = anchor;
         this.population = population;
-        this.numberOfGenerations = 20;
+        this.maxNumberOfGenerations = 5;
         this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
-        // Setup the pipeline
-        this.pipe = setupPipeline();
+    }
+
+    public Path getPipelineOutputFileLocation() {
+        return pipelineOutputFileLocation;
+    }
+
+    public void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) {
+        this.pipelineOutputFileLocation = pipelineOutputFileLocation;
+    }
+
+    public int getNonImprovingGenerationAmountFactor() {
+        return nonImprovingGenerationAmountFactor;
+    }
+
+    public void setNonImprovingGenerationAmountFactor(int nonImprovingGenerationAmountFactor) {
+        this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
     }
 
     public ForceField getForceField() {
@@ -60,12 +95,12 @@ public class CompoundEvolver {
         this.terminationCondition = terminationCondition;
     }
 
-    public int getNumberOfGenerations() {
-        return numberOfGenerations;
+    public int getMaxNumberOfGenerations() {
+        return maxNumberOfGenerations;
     }
 
-    public void setNumberOfGenerations(int generations) {
-        this.numberOfGenerations = generations;
+    public void setMaxNumberOfGenerations(int generations) {
+        this.maxNumberOfGenerations = generations;
     }
 
     public List<List<Double>> getPopulationFitness() {
@@ -84,7 +119,8 @@ public class CompoundEvolver {
             }
         }
         // Evolve
-        for (int i = 0; i < this.numberOfGenerations; i++) {
+        int generationNumber = 0;
+        while (!shouldTerminate(generationNumber)) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
@@ -96,18 +132,49 @@ public class CompoundEvolver {
                     e.printStackTrace();
                 }
             }
+            generationNumber++;
         }
+    }
+
+    private boolean shouldTerminate(int generationNumber) {
+        if (this.terminationCondition == TerminationCondition.FIXED_GENERATION_NUMBER) {
+            return generationNumber == this.maxNumberOfGenerations;
+        } else if (this.terminationCondition == TerminationCondition.CONVERGENCE) {
+            return this.hasConverged(generationNumber);
+        }
+        throw new RuntimeException(
+                String.format("Termination condition '%s' is not implemented", this.terminationCondition.toString()));
+    }
+
+    private boolean hasConverged(int generationNumber) {
+        List<List<Double>> populationFitness = this.getPopulationFitness();
+        double highestScore = 0;
+        int highestScoringGenerationNumber = 0;
+        for (int i = 0; i < populationFitness.size(); i++) {
+            Double max = Collections.max(populationFitness.get(i));
+            if (max > highestScore) {
+                highestScore = max;
+                highestScoringGenerationNumber = i;
+            }
+        }
+        return highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber > generationNumber;
     }
 
     /**
      * Score set the fitness score of each candidate
+     *
      * @param candidate Candidate instance
      * @throws PipeLineError if an error occurred in the pipeline
      */
     private void scoreCandidate(Candidate candidate) throws PipeLineError {
         // Execute pipeline
-        double score = -pipe.execute(candidate.getPhenotype());
-//        double score = candidate.getPhenotype().getExactMass();
+        double score = 0;
+        if (!dummyFitness) {
+            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
+            score = -pipe.execute(candidate.getPhenotype());
+        } else {
+            score = candidate.getPhenotype().getExactMass();
+        }
 //        System.out.println("score = " + score);
         // Assign score to candidate
 //        candidate.setScore(random.nextDouble());
@@ -116,24 +183,30 @@ public class CompoundEvolver {
 
     /**
      * Setup the pipeline for scoring candidates
+     *
      * @return Pipeline that can be executed
      */
-    private PipelineStep<Molecule, Double> setupPipeline() {
+    public void setupPipeline(Path outputFileLocation) {
+        this.setPipelineOutputFileLocation(outputFileLocation);
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
-                Paths.get("X:\\uploads"));
+                this.pipelineOutputFileLocation);
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
-        MolocEnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep();
+        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep();
         PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
-        PipelineStep<Molecule, Double> pipe = converterStep.pipe(energyMinimizationStep);
-        return pipe;
+        this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
-    private MolocEnergyMinimizationStep getEnergyMinimizationStep() {
+    private EnergyMinimizationStep getEnergyMinimizationStep() {
         if (this.forceField == ForceField.MAB) {
             return new MolocEnergyMinimizationStep(
                     "",
                     "X:\\Internship\\receptor\\rec.mab",
                     "C:\\Program Files (x86)\\moloc\\bin\\Mol3d.exe");
+        } else if (this.forceField == ForceField.MMFF94) {
+            return new VinaEnergyMinimizationStep(
+                    "",
+                    Paths.get("X:\\Internship\\receptor\\rec.pdbqt"),
+                    "C:\\Program Files (x86)\\The Scripps Research Institute\\Vina\\vina.exe");
         } else {
             throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
@@ -153,13 +226,15 @@ public class CompoundEvolver {
         String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
         // Load anchor molecule
-        File anchor = new File(args[args.length - 2]);
+        Path anchor = Paths.get(args[args.length - 2]);
         // Construct the initial population
         Population population = new Population(reactantLists, reactor, maxSamples);
-        population.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
+        population.initializeAlleleSimilaritiesMatrix();
+        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);
+        compoundEvolver.setupPipeline(Paths.get("X:\\uploads"));
         // Evolve compounds
         compoundEvolver.evolve();
     }
