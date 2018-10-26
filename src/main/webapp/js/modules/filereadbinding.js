@@ -28,7 +28,7 @@ angular.module('fileReadBinding', []).directive("fileBind", ['$parse', function 
                         invalidityArray.push(wrongExtension);
                         names.push(file.name)
                     });
-                    scope[attributes.name].names = names.join(" ");
+                    scope[attributes.name].names = names;
                     scope[attributes.name].wrongExtension = (invalidityArray.indexOf(true) !== -1)
 
                 } else {

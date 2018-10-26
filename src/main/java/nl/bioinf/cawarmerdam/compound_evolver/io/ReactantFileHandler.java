@@ -25,10 +25,11 @@ public final class ReactantFileHandler {
         return reactantLists;
     }
 
-    public static List<List<Molecule>> loadMolecules(Part[] fileParts) throws ReactantFileHandlingException, ReactantFileFormatException {
+    public static List<List<Molecule>> loadMolecules(List<Part> fileParts) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+            System.out.println("fileName = " + fileName);
             try {
                 reactantLists.add(readSmileFile(
                         filePart.getInputStream(),

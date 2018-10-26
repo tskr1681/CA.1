@@ -17,6 +17,10 @@
     <link rel="stylesheet" href="<c:url value = "css/main.css"/>">
     <%--load library javascript--%>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
@@ -79,14 +83,15 @@
                             </p></div>
                     </div>
                     <div class="form-group row">
-                        <label for="reactant-files" class="col-sm-3 col-form-label">Upload reactants files (.smiles, .smi):</label>
+                        <label for="reactant-files" class="col-sm-3 col-form-label">Upload reactants files (.smiles,
+                            .smi):</label>
                         <div class="col-sm-9">
                             <label for="reactant-files" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose files</strong>
-                                <span ng-bind="reactantFiles.names"
-                                      ng-class="{
-                    'text-danger':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'text-success':!reactantFiles.wrongExtension && !reactantFiles.pristine}"></span>
+                                <%--<span ng-bind="reactantFiles.names"--%>
+                                <%--ng-class="{--%>
+                                <%--'text-danger':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),--%>
+                                <%--'text-success':!reactantFiles.wrongExtension && !reactantFiles.pristine}"></span>--%>
                             </label>
                             <input type="file"
                                    file-bind="formModel.reactantFiles"
@@ -105,9 +110,18 @@
                                 Only smiles files (.smiles, .smi) are accepted
                             </p></div>
                     </div>
+                    <div class="row">
+                        <div class="col-sm-9 offset-sm-3">
+                            <ul class="list-unstyled" id="sortable">
+                                <li id="file-list-item-{{$index}}" ng-repeat="file in reactantFiles.names track by $index">
+                                    <span class="badge badge-secondary">{{file}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 <%--<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#operator-settings">--%>
-                    <%--Genetic operator settings--%>
+                <%--Genetic operator settings--%>
                 <%--</button>--%>
                 <div id="operator-settings">
                     <div class="card card-body">
@@ -140,7 +154,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="number-of-generations" class="col-sm-3 col-form-label">Number of generations:</label>
+                            <label for="number-of-generations" class="col-sm-3 col-form-label">Number of
+                                generations:</label>
                             <div class="col-sm-9">
                                 <input type="number"
                                        class="form-control"
@@ -323,7 +338,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="termination-condition" class="col-sm-3 col-form-label">Termination condition:</label>
+                            <label for="termination-condition" class="col-sm-3 col-form-label">Termination
+                                condition:</label>
                             <div class="col-sm-9">
                                 <select class="form-control"
                                         id="termination-condition"
@@ -348,9 +364,10 @@
                                        required="required"
                                        min="0"
                                        max="1"
+                                       ng-disabled="formModel.terminationCondition == 'fixed'"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.nonImprovingGenerationQuantity.$valid && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.nonImprovingGenerationQuantity.$valid && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.nonImprovingGenerationQuantity.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.nonImprovingGenerationQuantity.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <p class="form-text text-danger"
@@ -366,7 +383,7 @@
                     </div>
                 </div>
                 <%--<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#docking-settings">--%>
-                    <%--Docking settings--%>
+                <%--Docking settings--%>
                 <%--</button>--%>
                 <div id="docking-settings">
                     <div class="card card-body">
@@ -423,7 +440,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="max-hydrogen-bond-donors" class="col-sm-3 col-form-label">Maximum hydrogen bond donors:
+                            <label for="max-hydrogen-bond-donors" class="col-sm-3 col-form-label">Maximum hydrogen bond
+                                donors:
                             </label>
                             <div class="col-sm-9">
                                 <input type="number"
@@ -445,7 +463,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="max-hydrogen-bond-acceptors" class="col-sm-3 col-form-label">Maximum hydrogen bond acceptors:
+                            <label for="max-hydrogen-bond-acceptors" class="col-sm-3 col-form-label">Maximum hydrogen
+                                bond acceptors:
                             </label>
                             <div class="col-sm-9">
                                 <input type="number"
@@ -467,7 +486,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="max-partition-coefficient" class="col-sm-3 col-form-label">Maximum octanol-water partition coefficient logP value:
+                            <label for="max-partition-coefficient" class="col-sm-3 col-form-label">Maximum octanol-water
+                                partition coefficient logP value:
                             </label>
                             <div class="col-sm-9">
                                 <input type="number"

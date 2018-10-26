@@ -32,6 +32,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
     var myChart = null;
 
+    $( function() {
+        $("#sortable").sortable();
+    });
+
     /**
      * Sets the form to pristine: set grey colours and such.
      */
@@ -79,10 +83,20 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     $scope.onSubmit = function (valid) {
         if (valid) {
 
+            var fileOrder = [];
+
+            $("#sortable").sortable("toArray").forEach(function (id) {
+                let splitted_id = id.split("-");
+                fileOrder.push(splitted_id[splitted_id.length - 1]);
+            });
+
+            console.log(fileOrder);
+
             var form = $('form')[0];
 
             // Create an FormData object
             var formData = new FormData(form);
+            formData.append("fileOrder", JSON.stringify(fileOrder));
 
             console.log(formData);
 
@@ -134,7 +148,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             })
         } else {
             // Form is not valid. Keep quiet.
-            console.log("Invalid Form!")
+            console.log("Invalid Form!");
         }
     }
 });

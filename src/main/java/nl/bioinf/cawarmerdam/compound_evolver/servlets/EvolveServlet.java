@@ -18,9 +18,11 @@ import javax.servlet.http.Part;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "EvolveServlet", urlPatterns = "/evolve.do")
 @MultipartConfig
@@ -47,7 +49,8 @@ public class EvolveServlet extends HttpServlet {
             mapper.writeValue(response.getOutputStream(), e.getMessage());
         } catch (Exception e) {
             response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getStackTrace());
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -60,7 +63,10 @@ public class EvolveServlet extends HttpServlet {
         System.out.println(reaction.getReactantCount());
 
         // Get reactants
-        List<List<Molecule>> reactantLists = getReactants();
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getReactantFilesFromRequest(request));
+        List<Integer> reactantsFileOrder = getFileOrderParameterFromRequest(request);
+        System.out.println("reactantsFileOrder = " + reactantsFileOrder);
+        reactantLists = reorderReactantsLists(reactantLists, reactantsFileOrder);
 
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, reaction, generationSize);
@@ -118,8 +124,12 @@ public class EvolveServlet extends HttpServlet {
         evolver.setMaxNumberOfGenerations(numberOfGenerations);
 
         // Get non improving generation quantity
-        double nonImprovingGenerationQuantity = getDoubleParameterFromRequest(request, "nonImprovingGenerationQuantity");
-        evolver.setNonImprovingGenerationAmountFactor(nonImprovingGenerationQuantity);
+        try {
+            double nonImprovingGenerationQuantity = getDoubleParameterFromRequest(request, "nonImprovingGenerationQuantity");
+            evolver.setNonImprovingGenerationAmountFactor(nonImprovingGenerationQuantity);
+        } catch (FormFieldHandlingException e) {
+            if (e.cause != FormFieldHandlingException.Cause.NULL && e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
+        }
 
         // Get termination condition
         CompoundEvolver.TerminationCondition terminationCondition = CompoundEvolver.TerminationCondition.fromString(
@@ -127,6 +137,18 @@ public class EvolveServlet extends HttpServlet {
         evolver.setTerminationCondition(terminationCondition);
 
         return evolver;
+    }
+
+    private List<List<Molecule>> reorderReactantsLists(List<List<Molecule>> reactantLists, List<Integer> reactantsFileOrder) {
+        return reactantsFileOrder.stream().map(reactantLists::get).collect(Collectors.toList());
+    }
+
+    private List<Integer> getFileOrderParameterFromRequest(HttpServletRequest request) throws IOException {
+        // Get parameter as string
+        String fileOrder = request.getParameter("fileOrder");
+        // this parses the json
+        ObjectMapper mapper = new ObjectMapper();
+        return Arrays.asList(mapper.readValue(fileOrder, Integer[].class));
     }
 
     private void handleFilterOptions(HttpServletRequest request) throws FormFieldHandlingException {
@@ -190,6 +212,13 @@ public class EvolveServlet extends HttpServlet {
             throw new IllegalArgumentException(
                     String.format("File in field '%s' was not specified", fileFieldName));
         }
+    }
+
+    private List<Part> getReactantFilesFromRequest(HttpServletRequest request) throws IOException, ServletException {
+        return request.getParts().stream()
+                .filter(part -> "reactantFiles"
+                        .equals(part.getName()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -315,10 +344,10 @@ public class EvolveServlet extends HttpServlet {
         String toJSON() {
             String jsonFormat =
                     "{" +
-                    "\"fieldName\": \"%s\"," +
-                    "\"fieldValue\": \"%s\"," +
-                    "\"cause\": \"%s\"," +
-                    "\"message\": \"%s\"}";
+                            "\"fieldName\": \"%s\"," +
+                            "\"fieldValue\": \"%s\"," +
+                            "\"cause\": \"%s\"," +
+                            "\"message\": \"%s\"}";
             return String.format(jsonFormat, fieldName, fieldValue, cause, getMessage());
         }
     }
