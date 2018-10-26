@@ -45,6 +45,9 @@ public class EvolveServlet extends HttpServlet {
         } catch (ReactionFileHandlerException e) {
             response.setStatus(400);
             mapper.writeValue(response.getOutputStream(), e.getMessage());
+        } catch (Exception e) {
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getStackTrace());
         }
     }
 
@@ -82,6 +85,51 @@ public class EvolveServlet extends HttpServlet {
         double randomImmigrantRate = getDoubleParameterFromRequest(request, "randomImmigrantRate");
         initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
 
+        // If use lipinski is set to true, handle the filter options.
+        boolean useLipinski = getBooleanParameterFromRequest(request, "useLipinski");
+        if (useLipinski) handleFilterOptions(request);
+
+        // Get mutation method
+        Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
+                request.getParameter("mutationMethod"));
+        initialPopulation.setMutationMethod(mutationMethod);
+        // Compute allele similarity values if mutation method relies on these
+        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT)
+            initialPopulation.initializeAlleleSimilaritiesMatrix();
+
+        // Get selection method
+        Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
+                request.getParameter("selectionMethod"));
+
+        initialPopulation.setSelectionMethod(selectionMethod);
+        CompoundEvolver evolver = new CompoundEvolver(
+                initialPopulation,
+                Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf"));
+
+        evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
+        if (!evolver.isDummyFitness()) {
+            evolver.setupPipeline(Paths.get(
+                    getServletContext().getInitParameter("upload.location"), generateRandomToken()));
+            System.out.println("evolver.getPipelineOutputFileLocation() = " + evolver.getPipelineOutputFileLocation());
+        }
+
+        // Get number of numberOfGenerations
+        int numberOfGenerations = getIntegerParameterFromRequest(request, "numberOfGenerations");
+        evolver.setMaxNumberOfGenerations(numberOfGenerations);
+
+        // Get non improving generation quantity
+        double nonImprovingGenerationQuantity = getDoubleParameterFromRequest(request, "nonImprovingGenerationQuantity");
+        evolver.setNonImprovingGenerationAmountFactor(nonImprovingGenerationQuantity);
+
+        // Get termination condition
+        CompoundEvolver.TerminationCondition terminationCondition = CompoundEvolver.TerminationCondition.fromString(
+                request.getParameter("terminationCondition"));
+        evolver.setTerminationCondition(terminationCondition);
+
+        return evolver;
+    }
+
+    private void handleFilterOptions(HttpServletRequest request) throws FormFieldHandlingException {
         // Get maximum hydrogen bond acceptors
         try {
             double maxHydrogenBondAcceptors = getDoubleParameterFromRequest(request, "maxHydrogenBondAcceptors");
@@ -117,36 +165,11 @@ public class EvolveServlet extends HttpServlet {
             if (e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
             // Continue if it is not present
         }
+    }
 
-        // Get mutation method
-        Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
-                request.getParameter("mutationMethod"));
-        initialPopulation.setMutationMethod(mutationMethod);
-        // Compute allele similarity values if mutation method relies on these
-        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT)
-            initialPopulation.initializeAlleleSimilaritiesMatrix();
-
-        // Get selection method
-        Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
-                request.getParameter("selectionMethod"));
-
-        initialPopulation.setSelectionMethod(selectionMethod);
-        CompoundEvolver evolver = new CompoundEvolver(
-                initialPopulation,
-                Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf"));
-
-        evolver.setupPipeline(Paths.get("X:\\uploads", generateRandomToken()));
-
-        // Get number of numberOfGenerations
-        int numberOfGenerations = getIntegerParameterFromRequest(request, "numberOfGenerations");
-        evolver.setMaxNumberOfGenerations(numberOfGenerations);
-
-        // Get termination condition
-        CompoundEvolver.TerminationCondition terminationCondition = CompoundEvolver.TerminationCondition.valueOf(
-                request.getParameter("terminationCondition"));
-        evolver.setTerminationCondition(terminationCondition);
-
-        return evolver;
+    private boolean getBooleanParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
+        String parameter = request.getParameter(name);
+        return parameter != null;
     }
 
     private List<List<Molecule>> getReactants() throws ReactantFileHandlingException, ReactantFileFormatException {
@@ -270,7 +293,7 @@ public class EvolveServlet extends HttpServlet {
      */
     private static String generateRandomToken() {
         SecureRandom random = new SecureRandom();
-        byte bytes[] = new byte[128];
+        byte bytes[] = new byte[32];
         random.nextBytes(bytes);
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString(bytes);
@@ -281,7 +304,7 @@ public class EvolveServlet extends HttpServlet {
         private String fieldValue;
         private Cause cause;
 
-        enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER}
+        enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER, BAD_BOOLEAN}
 
         FormFieldHandlingException(String fieldName, String fieldValue, Cause cause) {
             this.fieldName = fieldName;

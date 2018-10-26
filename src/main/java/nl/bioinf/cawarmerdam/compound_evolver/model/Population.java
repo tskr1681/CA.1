@@ -105,6 +105,10 @@ public class Population implements Iterable<Candidate> {
         this.scores = new ArrayList<>();
     }
 
+    public int getGeneration() {
+        return generation;
+    }
+
     public List<List<Double>> getFitness() {
         return scores;
     }
@@ -311,7 +315,7 @@ public class Population implements Iterable<Candidate> {
         // should always be 1
         // When computing the alleles in random fashion it is uncertain which values are already filled
         for (int j = 0; j < reactants.size(); j++) {
-            if (j != alleleIndex & alleleSimilarities[reactantsListIndex][alleleIndex][j] == 0) {
+            if (j != alleleIndex && alleleSimilarities[reactantsListIndex][alleleIndex][j] == 0) {
                 // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
                 double tanimoto = (double) 1 - getTanimoto(reactants.get(alleleIndex), reactants.get(j));
                 alleleSimilarities[reactantsListIndex][alleleIndex][j] = tanimoto;
@@ -585,7 +589,7 @@ public class Population implements Iterable<Candidate> {
             int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
             if (alleleSimilarities != null) {
-                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
+//                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
             } else {
 //                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
             }

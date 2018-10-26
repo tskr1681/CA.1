@@ -2,10 +2,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.formats.MolConverter;
 import chemaxon.formats.MolExporter;
-import chemaxon.formats.MolFormatException;
-import chemaxon.formats.MolImporter;
 import org.apache.commons.io.FilenameUtils;
-import org.openbabel.OBConversion;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -66,7 +63,7 @@ public class VinaEnergyMinimizationStep extends EnergyMinimizationStep {
             }
 
         } catch (IOException e) {
-            throw new PipeLineError(String.format(
+            throw new PipeLineException(String.format(
                     "minimizing energy with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));
@@ -84,7 +81,7 @@ public class VinaEnergyMinimizationStep extends EnergyMinimizationStep {
 //            conv.Convert();
 //            return outputFile;
 //        }
-//        throw new PipeLineError(String.format("ligand in '%s' could not be converted to '%s'.",
+//        throw new PipeLineException(String.format("ligand in '%s' could not be converted to '%s'.",
 //                fileName, outputFile.toString()));
 //    }
 
@@ -102,7 +99,7 @@ public class VinaEnergyMinimizationStep extends EnergyMinimizationStep {
             mc.close();
             return outputFile;
         } catch (IOException e) {
-            throw new PipeLineError(String.format("ligand in '%s' could not be converted to '%s':%s",
+            throw new PipeLineException(String.format("ligand in '%s' could not be converted to '%s':%s",
                     fileName, outputFile.toString(), e.getMessage()));
         }
     }
@@ -147,7 +144,7 @@ public class VinaEnergyMinimizationStep extends EnergyMinimizationStep {
             }
 
         } catch (IOException e) {
-            throw new PipeLineError(String.format(
+            throw new PipeLineException(String.format(
                     "minimizing energy with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));

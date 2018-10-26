@@ -10,7 +10,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -30,8 +29,17 @@ public class CompoundEvolver {
     private PipelineStep<Molecule, Double> pipe;
     private Population population;
     private Path anchor;
-    private int nonImprovingGenerationAmountFactor;
-    private boolean dummyFitness = true;
+    private double nonImprovingGenerationAmountFactor;
+
+    public boolean isDummyFitness() {
+        return dummyFitness;
+    }
+
+    private boolean dummyFitness;
+
+    public void setDummyFitness(boolean dummyFitness) {
+        this.dummyFitness = dummyFitness;
+    }
 
     public enum ForceField {MAB, MMFF94}
 
@@ -68,14 +76,21 @@ public class CompoundEvolver {
     }
 
     public void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) {
+        if (!pipelineOutputFileLocation.toFile().exists()){
+            boolean mkdir = pipelineOutputFileLocation.toFile().mkdir();
+            if (!mkdir) {
+                throw new PipeLineException(String.format("Could not create directory '%s'",
+                        pipelineOutputFileLocation.toString()));
+            }
+        }
         this.pipelineOutputFileLocation = pipelineOutputFileLocation;
     }
 
-    public int getNonImprovingGenerationAmountFactor() {
+    public double getNonImprovingGenerationAmountFactor() {
         return nonImprovingGenerationAmountFactor;
     }
 
-    public void setNonImprovingGenerationAmountFactor(int nonImprovingGenerationAmountFactor) {
+    public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
         this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
     }
 
@@ -114,13 +129,12 @@ public class CompoundEvolver {
         for (Candidate candidate : this.population) {
             try {
                 scoreCandidate(candidate);
-            } catch (PipeLineError e) {
+            } catch (PipeLineException e) {
                 e.printStackTrace();
             }
         }
         // Evolve
-        int generationNumber = 0;
-        while (!shouldTerminate(generationNumber)) {
+        while (!shouldTerminate()) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
@@ -128,45 +142,46 @@ public class CompoundEvolver {
             for (Candidate candidate : this.population) {
                 try {
                     scoreCandidate(candidate);
-                } catch (PipeLineError e) {
+                } catch (PipeLineException e) {
                     e.printStackTrace();
                 }
             }
-            generationNumber++;
         }
     }
 
-    private boolean shouldTerminate(int generationNumber) {
-        if (this.terminationCondition == TerminationCondition.FIXED_GENERATION_NUMBER) {
-            return generationNumber == this.maxNumberOfGenerations;
-        } else if (this.terminationCondition == TerminationCondition.CONVERGENCE) {
+    private boolean shouldTerminate() {
+        int generationNumber = this.population.getGeneration();
+        if (this.terminationCondition == TerminationCondition.CONVERGENCE && generationNumber > 5) {
             return this.hasConverged(generationNumber);
         }
-        throw new RuntimeException(
-                String.format("Termination condition '%s' is not implemented", this.terminationCondition.toString()));
+        return generationNumber == this.maxNumberOfGenerations;
     }
 
     private boolean hasConverged(int generationNumber) {
         List<List<Double>> populationFitness = this.getPopulationFitness();
         double highestScore = 0;
         int highestScoringGenerationNumber = 0;
+        double max = 0;
         for (int i = 0; i < populationFitness.size(); i++) {
-            Double max = Collections.max(populationFitness.get(i));
+            max = Collections.max(populationFitness.get(i));
             if (max > highestScore) {
                 highestScore = max;
                 highestScoringGenerationNumber = i;
             }
         }
-        return highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber > generationNumber;
+        System.out.printf("highscore: %.2f at Ngen %d, curr: %.2f --- ", highestScore, highestScoringGenerationNumber, max);
+        double nonImprovingGenerationNumber = highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber;
+        System.out.printf("%f < %d = %s%n", nonImprovingGenerationNumber, generationNumber, nonImprovingGenerationNumber < generationNumber);
+        return nonImprovingGenerationNumber < generationNumber;
     }
 
     /**
      * Score set the fitness score of each candidate
      *
      * @param candidate Candidate instance
-     * @throws PipeLineError if an error occurred in the pipeline
+     * @throws PipeLineException if an error occurred in the pipeline
      */
-    private void scoreCandidate(Candidate candidate) throws PipeLineError {
+    private void scoreCandidate(Candidate candidate) throws PipeLineException {
         // Execute pipeline
         double score = 0;
         if (!dummyFitness) {
@@ -235,6 +250,7 @@ public class CompoundEvolver {
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);
         compoundEvolver.setupPipeline(Paths.get("X:\\uploads"));
+        compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();
     }

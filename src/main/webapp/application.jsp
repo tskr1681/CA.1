@@ -335,6 +335,34 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="non-improving-generation-quantity" class="col-sm-3 col-form-label">
+                                Non-improving generation amount:
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.nonImprovingGenerationQuantity"
+                                       id="non-improving-generation-quantity"
+                                       name="nonImprovingGenerationQuantity"
+                                       required="required"
+                                       min="0"
+                                       max="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.nonImprovingGenerationQuantity.$valid && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.nonImprovingGenerationQuantity.$valid && (!compoundEvolverForm.nonImprovingGenerationQuantity.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <p class="form-text text-danger"
+                                   ng-show="compoundEvolverForm.nonImprovingGenerationQuantity.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </p>
+                                <p class="form-text text-danger"
+                                   ng-show="(compoundEvolverForm.nonImprovingGenerationQuantity.$error.number || compoundEvolverForm.nonImprovingGenerationQuantity.$error.min || compoundEvolverForm.nonImprovingGenerationQuantity.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A fraction between 0 and 1 is required
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <%--<button type="button" class="btn btn-link" data-toggle="collapse" data-target="#docking-settings">--%>
@@ -361,6 +389,18 @@
                     <div class="card card-body">
                         <h5 class="card-title"><b>Filters</b></h5>
                         <div class="form-group row">
+                            <div class="form-check col-sm-9 offset-sm-3">
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       ng-model="formModel.useLipinski"
+                                       id="use-lipinski"
+                                       name="useLipinski"
+                                       value="lipinski">
+                                <label class="form-check-label"
+                                       for="use-lipinski">Use Lipinski's / Pfizer's rule of five</label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="max-molecular-mass" class="col-sm-3 col-form-label">Maximum molecular mass:
                             </label>
                             <div class="col-sm-9">
@@ -370,9 +410,10 @@
                                        id="max-molecular-mass"
                                        name="maxMolecularMass"
                                        min="0"
+                                       ng-disabled="!formModel.useLipinski"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.maxMolecularMass.$valid && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.maxMolecularMass.$valid && formModel.useLipinski && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxMolecularMass.$valid && formModel.useLipinski && (!compoundEvolverForm.maxMolecularMass.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <p class="form-text text-danger"
@@ -391,9 +432,10 @@
                                        id="max-hydrogen-bond-donors"
                                        name="maxHydrogenBondDonors"
                                        min="0"
+                                       ng-disabled="!formModel.useLipinski"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.maxHydrogenBondDonors.$valid && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.maxHydrogenBondDonors.$valid && formModel.useLipinski && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxHydrogenBondDonors.$valid && formModel.useLipinski && (!compoundEvolverForm.maxHydrogenBondDonors.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <p class="form-text text-danger"
@@ -412,9 +454,10 @@
                                        id="max-hydrogen-bond-acceptors"
                                        name="maxHydrogenBondAcceptors"
                                        min="0"
+                                       ng-disabled="!formModel.useLipinski"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.maxHydrogenBondAcceptors.$valid && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.maxHydrogenBondAcceptors.$valid && formModel.useLipinski && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxHydrogenBondAcceptors.$valid && formModel.useLipinski && (!compoundEvolverForm.maxHydrogenBondAcceptors.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <p class="form-text text-danger"
@@ -433,9 +476,10 @@
                                        id="max-partition-coefficient"
                                        name="maxPartitionCoefficient"
                                        min="0"
+                                       ng-disabled="!formModel.useLipinski"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.maxPartitionCoefficient.$valid && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.maxPartitionCoefficient.$valid && formModel.useLipinski && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxPartitionCoefficient.$valid && formModel.useLipinski && (!compoundEvolverForm.maxPartitionCoefficient.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <p class="form-text text-danger"

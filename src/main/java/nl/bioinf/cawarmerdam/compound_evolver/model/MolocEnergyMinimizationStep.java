@@ -6,7 +6,6 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,6 +50,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
                 molocExecutable,
                 receptorFilePath,
                 inputFile);
+        System.out.println("command = " + command);
         try {
             // Build process with the command
             Process p = Runtime.getRuntime().exec(command);
@@ -74,7 +74,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
             }
 
         } catch (IOException e) {
-            throw new PipeLineError(String.format(
+            throw new PipeLineException(String.format(
                     "minimizing energy with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));

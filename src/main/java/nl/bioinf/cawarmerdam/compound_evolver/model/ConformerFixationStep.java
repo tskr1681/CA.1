@@ -52,7 +52,7 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
     }
 
     @Override
-    public Path execute(Path targetMolecule) throws PipeLineError {
+    public Path execute(Path targetMolecule) throws PipeLineException {
         Path outFile = targetMolecule.resolveSibling(
                 Paths.get(subPath.toString(), targetMolecule.getFileName().toString()));
         File directory = new File(String.valueOf(outFile.getParent()));
@@ -69,9 +69,9 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
      * Execute the obfit command line program
      * @param conformerLib The path to a reactionFile with conformers
      * @param outFile The path to a reactionFile that can function as an output reactionFile
-     * @throws PipeLineError if an error occured in executing the obfit command
+     * @throws PipeLineException if an error occured in executing the obfit command
      */
-    private void obFit(String conformerLib, String outFile) throws PipeLineError {
+    private void obFit(String conformerLib, String outFile) throws PipeLineException {
         // Initialize string line
         String line = null;
 
@@ -106,7 +106,7 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
 //            }
 
         } catch (IOException e) {
-            throw new PipeLineError(String.format(
+            throw new PipeLineException(String.format(
                     "fixating confomers with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));
