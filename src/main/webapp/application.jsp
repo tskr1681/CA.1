@@ -82,10 +82,10 @@
                                 Only an mrv file (.mrv) is accepted
                             </p></div>
                     </div>
-                    <div class="form-group row">
-                        <label for="reactant-files" class="col-sm-3 col-form-label">Upload reactants files (.smiles,
+                    <div class="form-group row d-block">
+                        <label for="reactant-files" class="col-sm-3 float-sm-left col-form-label">Upload reactants files (.smiles,
                             .smi):</label>
-                        <div class="col-sm-9">
+                        <div class="col-sm-9 float-sm-left">
                             <label for="reactant-files" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose files</strong>
                                 <%--<span ng-bind="reactantFiles.names"--%>
@@ -100,24 +100,23 @@
                                    required="required"
                                    multiple="multiple"/>
                         </div>
-                        <div class="col-sm-9 offset-sm-3">
-                            <p class="form-text text-danger"
+                            <p class="col-sm-9 float-sm-right form-text text-danger"
                                ng-show="!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                 This field is required
                             </p>
-                            <p class="form-text text-danger"
+                            <p class="col-sm-9 float-sm-right form-text text-danger"
                                ng-show="reactantFiles.wrongExtension">
                                 Only smiles files (.smiles, .smi) are accepted
-                            </p></div>
+                            </p>
                     </div>
                     <div class="row">
                         <div class="col-sm-9 offset-sm-3">
-                            <ul class="list-unstyled" id="sortable">
-                                <li id="file-list-item-{{$index}}" ng-repeat="file in reactantFiles.files track by $index">
-                                    <span class="badge badge-secondary"
-                                    ng-class="{
-                                    'badge-danger':file.invalid,
-                                    'badge-success':!file.invalid }">{{file.name}}</span>
+                            <ul class="list-group" id="sortable">
+                                <li class="list-group-item" id="file-list-item-{{$index}}"
+                                    ng-repeat="file in reactantFiles.files track by $index">
+                                    <span class=""
+                                          ng-class="{
+                                    'text-danger':file.invalid}">{{file.name}}</span>
                                 </li>
                             </ul>
                         </div>
@@ -409,15 +408,18 @@
                     <div class="card card-body">
                         <h5 class="card-title"><b>Filters</b></h5>
                         <div class="form-group row">
-                            <div class="form-check col-sm-9 offset-sm-3">
-                                <input type="checkbox"
-                                       class="form-check-input"
-                                       ng-model="formModel.useLipinski"
-                                       id="use-lipinski"
-                                       name="useLipinski"
-                                       value="lipinski">
-                                <label class="form-check-label"
-                                       for="use-lipinski">Use Lipinski's / Pfizer's rule of five</label>
+                            <div class="col-sm-9 offset-sm-3">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.useLipinski"
+                                           id="use-lipinski"
+                                           name="useLipinski"
+                                           value="lipinski">
+                                    <label class="form-check-label" for="use-lipinski">
+                                        Use Lipinski's / Pfizer's rule of five
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
