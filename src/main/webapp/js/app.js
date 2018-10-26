@@ -27,7 +27,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         maxPartitionCoefficient: 5
     };
     $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false};
-    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, names: ""};
+    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, files:[]};
     $scope.response = {hasError: false};
 
     var myChart = null;

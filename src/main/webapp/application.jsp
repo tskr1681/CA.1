@@ -113,8 +113,11 @@
                     <div class="row">
                         <div class="col-sm-9 offset-sm-3">
                             <ul class="list-unstyled" id="sortable">
-                                <li id="file-list-item-{{$index}}" ng-repeat="file in reactantFiles.names track by $index">
-                                    <span class="badge badge-secondary">{{file}}</span>
+                                <li id="file-list-item-{{$index}}" ng-repeat="file in reactantFiles.files track by $index">
+                                    <span class="badge badge-secondary"
+                                    ng-class="{
+                                    'badge-danger':file.invalid,
+                                    'badge-success':!file.invalid }">{{file.name}}</span>
                                 </li>
                             </ul>
                         </div>
