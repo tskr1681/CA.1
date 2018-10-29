@@ -15,7 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -109,13 +110,21 @@ public class EvolveServlet extends HttpServlet {
 
         initialPopulation.setSelectionMethod(selectionMethod);
         CompoundEvolver evolver = new CompoundEvolver(
-                initialPopulation,
-                Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf"));
+                initialPopulation);
 
+        System.out.println("dummy : " + getInitParameter("dummy.fitness"));
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
         if (!evolver.isDummyFitness()) {
-            evolver.setupPipeline(Paths.get(
-                    getServletContext().getInitParameter("upload.location"), generateRandomToken()));
+            Path outputFileLocation = Paths.get(
+                    getServletContext().getInitParameter("upload.location"), generateRandomToken());
+            if (! outputFileLocation.toFile().exists()){
+                outputFileLocation.toFile().mkdir();
+            }
+            Path receptorLocation = outputFileLocation.resolve("rec.mab");
+            copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);
+            Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
+            copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
+            evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation);
             System.out.println("evolver.getPipelineOutputFileLocation() = " + evolver.getPipelineOutputFileLocation());
         }
 
@@ -211,6 +220,22 @@ public class EvolveServlet extends HttpServlet {
         } else {
             throw new IllegalArgumentException(
                     String.format("File in field '%s' was not specified", fileFieldName));
+        }
+    }
+
+    private void copyFilePart(Part filePart, Path path) throws IOException {
+        try (OutputStream out = new FileOutputStream(path.toFile()); InputStream filecontent = filePart.getInputStream()) {
+
+            int read = 0;
+            final byte[] bytes = new byte[1024];
+
+            while ((read = filecontent.read(bytes)) != -1) {
+                out.write(bytes, 0, read);
+            }
+
+        } catch (FileNotFoundException fne) {
+            // Throw exception
+
         }
     }
 

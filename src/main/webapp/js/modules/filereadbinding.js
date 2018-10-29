@@ -11,10 +11,9 @@ angular.module('fileReadBinding', []).directive("fileBind", ['$parse', function 
                     .assign(scope, element);
 
                 var requiredExtensions;
-                if (attributes.name === "reactionFile") {
-                    requiredExtensions = ["mrv"];
-                } else if (attributes.name === "reactantFiles") {
-                    requiredExtensions = ["smi", "smiles"]
+
+                if (scope[attributes.name].permittedExtensions !== undefined) {
+                    requiredExtensions = scope[attributes.name].permittedExtensions;
                 }
 
                 var extension;

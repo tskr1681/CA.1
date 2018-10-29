@@ -25,11 +25,17 @@ public final class ReactantFileHandler {
         return reactantLists;
     }
 
+    /**
+     * Method responsible for loading reaction file parts as a list of reactant lists.
+     * @param fileParts, files as parts that starts with a SMILES string on each line.
+     * @return a list of reactant lists.
+     * @throws ReactantFileHandlingException if an IO exception is encountered.
+     * @throws ReactantFileFormatException if a SMILES molecule could not be read.
+     */
     public static List<List<Molecule>> loadMolecules(List<Part> fileParts) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-            System.out.println("fileName = " + fileName);
             try {
                 reactantLists.add(readSmileFile(
                         filePart.getInputStream(),
@@ -41,6 +47,14 @@ public final class ReactantFileHandler {
         return reactantLists;
     }
 
+    /**
+     * Method responsible for reading a reactants file from an inputStream.
+     * @param inputStream, starting with a SMILES string on each line.
+     * @param fileName, name of the file that is read.
+     * @return a list of reactants (molecules).
+     * @throws ReactantFileHandlingException if an IO exception is encountered.
+     * @throws ReactantFileFormatException if the molecules could not be read due to a formatting problem.
+     */
     private static List<Molecule> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<Molecule> moleculeMap = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))) {

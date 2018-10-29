@@ -11,7 +11,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         generationSize: 50,
         numberOfGenerations: 20,
         selectionSize: 0.4,
-        mutationRate: 0.5,
+        mutationRate: 0.1,
         crossoverRate: 0.8,
         elitistRate: 0.1,
         randomImmigrantRate:0.1,
@@ -26,8 +26,11 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5
     };
-    $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false};
-    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, files:[]};
+    $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["mrv"]};
+    $scope.receptorFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["mab"]};
+    $scope.anchorFragmentFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["sdf"]};
+    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, files:[], permittedExtensions: ["smiles", "smi"]};
+
     $scope.response = {hasError: false};
 
     var myChart = null;
@@ -42,9 +45,13 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     function setPristine() {
         $scope.compoundEvolverForm.$setPristine();
         $scope.reactionFile.pristine = true;
-        $scope.reactionFile.hasFile = true;
+        $scope.reactionFile.hasFile = false;
         $scope.reactantFiles.pristine = true;
-        $scope.reactantFiles.pristine = true;
+        $scope.reactantFiles.hasFile = false;
+        $scope.receptorFile.pristine = true;
+        $scope.receptorFile.hasFile = false;
+        $scope.anchorFragmentFile.pristine = true;
+        $scope.anchorFragmentFile.hasFile = false;
     }
 
     /**
@@ -89,8 +96,6 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 let splitted_id = id.split("-");
                 fileOrder.push(splitted_id[splitted_id.length - 1]);
             });
-
-            console.log(fileOrder);
 
             var form = $('form')[0];
 

@@ -11,10 +11,10 @@ import java.util.List;
 
 public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 
-    private String receptorFilePath;
+    private Path receptorFilePath;
     private String molocExecutable;
 
-    public MolocEnergyMinimizationStep(String forcefield, String receptorFilePath, String molocExecutable) {
+    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable) {
         super(forcefield);
         this.receptorFilePath = receptorFilePath;
         this.molocExecutable = molocExecutable;
@@ -23,7 +23,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     @Override
     public Double execute(Path inputFile) {
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
-        String receptorName = FilenameUtils.removeExtension(String.valueOf(Paths.get(receptorFilePath).getFileName()));
+        String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
         mol3d(inputFile);
         Path eneFilePath = Paths.get(String.format("%s_%s.ene", ligandName, receptorName));
         File eneFile = inputFile.resolveSibling(String.valueOf(eneFilePath)).toFile();

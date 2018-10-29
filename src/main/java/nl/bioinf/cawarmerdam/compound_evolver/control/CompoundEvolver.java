@@ -28,7 +28,6 @@ public class CompoundEvolver {
     private Random random = new Random();
     private PipelineStep<Molecule, Double> pipe;
     private Population population;
-    private Path anchor;
     private double nonImprovingGenerationAmountFactor;
 
     public boolean isDummyFitness() {
@@ -63,8 +62,7 @@ public class CompoundEvolver {
             throw new IllegalArgumentException("No constant with text " + text + " found");
         }}
 
-    public CompoundEvolver(Population population, Path anchor) {
-        this.anchor = anchor;
+    public CompoundEvolver(Population population) {
         this.population = population;
         this.maxNumberOfGenerations = 5;
         this.forceField = ForceField.MAB;
@@ -196,26 +194,32 @@ public class CompoundEvolver {
         candidate.setScore(score);
     }
 
+    public void setupPipeline(Path outputFileLocation) {
+        Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
+        Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
+        setupPipeline(outputFileLocation, receptor, anchor);
+    }
+
     /**
      * Setup the pipeline for scoring candidates
      *
      * @return Pipeline that can be executed
      */
-    public void setupPipeline(Path outputFileLocation) {
+    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) {
         this.setPipelineOutputFileLocation(outputFileLocation);
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
                 this.pipelineOutputFileLocation);
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
-        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep();
+        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile);
         PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
-    private EnergyMinimizationStep getEnergyMinimizationStep() {
+    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) {
         if (this.forceField == ForceField.MAB) {
             return new MolocEnergyMinimizationStep(
                     "",
-                    "X:\\Internship\\receptor\\rec.mab",
+                    receptorFile,
                     "C:\\Program Files (x86)\\moloc\\bin\\Mol3d.exe");
         } else if (this.forceField == ForceField.MMFF94) {
             return new VinaEnergyMinimizationStep(
@@ -248,7 +252,7 @@ public class CompoundEvolver {
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(population, anchor);
+        CompoundEvolver compoundEvolver = new CompoundEvolver(population);
         compoundEvolver.setupPipeline(Paths.get("X:\\uploads"));
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds

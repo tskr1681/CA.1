@@ -11,12 +11,12 @@
 
     <context-param>
         <param-name>obfit.executable</param-name>
-        <param-value>obfit</param-value>
+        <param-value>obfit.exe</param-value>
     </context-param>
 
     <context-param>
         <param-name>mol3d.executable</param-name>
-        <param-value>C:\Program files (x86)\moloc\bin\mol3d</param-value>
+        <param-value>C:\Program Files (x86)\moloc\bin\Mol3d.exe</param-value>
     </context-param>
 
     <servlet>
@@ -33,7 +33,7 @@
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet</servlet-class>
         <init-param>
             <param-name>dummy.fitness</param-name>
-            <param-value>1</param-value>
+            <param-value>0</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>

@@ -105,26 +105,65 @@ public class Population implements Iterable<Candidate> {
         this.scores = new ArrayList<>();
     }
 
+    /**
+     * Getter for the current generation number.
+     *
+     * @return the current generation number.
+     */
     public int getGeneration() {
         return generation;
     }
 
+    /**
+     * Getter for the fitness of candidates in every generation so far.
+     *
+     * @return a list of lists of fitness scores
+     */
     public List<List<Double>> getFitness() {
         return scores;
     }
 
+    /**
+     * Getter for the random immigrant rate. The random immigrant rate should be seen in relation to the
+     * elitist rate and the crossover rate. When creating offspring a candidate solution is either produced
+     * as a random immigrant, as the crossover product of two parents or by directly copying a selected candidate.
+     *
+     * @return the random immigrant rate
+     */
     public double getRandomImmigrantRate() {
         return randomImmigrantRate;
     }
 
+    /**
+     * Setter for the random immigrant rate. The random immigrant rate should be seen in relation to the
+     * elitist rate and the crossover rate. When creating offspring a candidate solution is either produced
+     * as a random immigrant, as the crossover product of two parents or by directly copying a selected candidate.
+     *
+     * @param randomImmigrantRate, the weight of selecting a random immigrant as offspring.
+     */
     public void setRandomImmigrantRate(double randomImmigrantRate) {
         this.randomImmigrantRate = randomImmigrantRate;
     }
 
+    /**
+     * Getter for the rate at which the elitist concept is chosen for offspring. The elitist rate should be seen
+     * in relation to the random immigrant rate and the crossover rate. The rates act as weights for choosing
+     * the method for getting a new individual.
+     *
+     * @return the elitist rate.
+     */
     public double getElitistRate() {
         return elitistRate;
     }
 
+    /**
+     * Setter for the rate at which the elitist concept is chosen for offspring. The elitist rate should be seen
+     * in relation to the random immigrant rate and the crossover rate. The rates act as weights for choosing
+     * the method for getting a new individual.
+     *
+     * @param elitistRate is the weight that the elitist concept has in choosing an offspring production method for
+     *                    an individual.
+     */
     public void setElitistRate(double elitistRate) {
         this.elitistRate = elitistRate;
     }
@@ -281,6 +320,9 @@ public class Population implements Iterable<Candidate> {
         }
     }
 
+    /**
+     * Initializes the matrix for allele similarities within a pool of reactants, for each pool of reactants.
+     */
     public void initializeAlleleSimilaritiesMatrix() {
         this.alleleSimilarities = new double[reactantLists.size()][][];
         // Loop through every reactant list (Acids, Amines, etc...)
@@ -338,6 +380,9 @@ public class Population implements Iterable<Candidate> {
      */
     private float getTanimoto(Molecule firstMolecule, Molecule secondMolecule) {
         // Get chemical fingerprints
+        // Current fingerprints are simple, could also use extended connectivity fingerprints (ECFPs):
+        // "Compared to path-based fingerprints, ECFPs typically provide more adequate results for similarity searching,
+        // which approximate the expectations of a medicinal chemist better."
         ChemicalFingerprint firstFingerprint = new ChemicalFingerprint(new CFParameters());
         ChemicalFingerprint secondFingerprint = new ChemicalFingerprint(new CFParameters());
         // Try to get the tanimoto dissimilarity score
@@ -398,6 +443,13 @@ public class Population implements Iterable<Candidate> {
         generation++;
     }
 
+    /**
+     * Produces a novel candidate to by applying the given reproduction method.
+     *
+     * @param offspringChoice, The choice of reproducing method; use crossover, elitist, or random immigrant.
+     * @param i an index of the current list of candidates at which to pick parents for new offspring.
+     * @return the produced
+     */
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
@@ -416,7 +468,8 @@ public class Population implements Iterable<Candidate> {
             // Introduce a random immigrant
             return introduceRandomImmigrant();
         }
-        return null;
+        // Throw exception when another reproduction method is wanted.
+        throw new RuntimeException("Reproduction method '" + offspringChoice.toString() + "' is not yet implemented!");
     }
 
     private Candidate finalizeOffspring(List<Integer> newGenome) {
