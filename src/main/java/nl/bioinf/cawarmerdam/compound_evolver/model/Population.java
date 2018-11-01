@@ -35,13 +35,13 @@ public class Population implements Iterable<Candidate> {
     private double selectionFraction;
     private double crossoverRate;
     private double randomImmigrantRate;
-    private double elitistRate;
+    private double elitismRate;
     private int populationSize;
     private int generation;
     private List<List<Double>> scores;
 
 
-    private enum ReproductionMethod {CROSSOVER, ELITIST, RANDOM_IMMIGRANT, CLEAR}
+    private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
 
     public enum SelectionMethod {
         CLEAR("Clear"),
@@ -97,7 +97,7 @@ public class Population implements Iterable<Candidate> {
         this.mutationRate = 0.1;
         this.selectionFraction = 0.3;
         this.crossoverRate = 0;
-        this.elitistRate = 0.5;
+        this.elitismRate = 0.5;
         this.randomImmigrantRate = 0.0;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
@@ -125,7 +125,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Getter for the random immigrant rate. The random immigrant rate should be seen in relation to the
-     * elitist rate and the crossover rate. When creating offspring a candidate solution is either produced
+     * elitism rate and the crossover rate. When creating offspring a candidate solution is either produced
      * as a random immigrant, as the crossover product of two parents or by directly copying a selected candidate.
      *
      * @return the random immigrant rate
@@ -136,7 +136,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the random immigrant rate. The random immigrant rate should be seen in relation to the
-     * elitist rate and the crossover rate. When creating offspring a candidate solution is either produced
+     * elitism rate and the crossover rate. When creating offspring a candidate solution is either produced
      * as a random immigrant, as the crossover product of two parents or by directly copying a selected candidate.
      *
      * @param randomImmigrantRate, the weight of selecting a random immigrant as offspring.
@@ -146,26 +146,26 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Getter for the rate at which the elitist concept is chosen for offspring. The elitist rate should be seen
+     * Getter for the rate at which the elitism concept is chosen for offspring. The elitism rate should be seen
      * in relation to the random immigrant rate and the crossover rate. The rates act as weights for choosing
      * the method for getting a new individual.
      *
-     * @return the elitist rate.
+     * @return the elitism rate.
      */
-    public double getElitistRate() {
-        return elitistRate;
+    public double getElitismRate() {
+        return elitismRate;
     }
 
     /**
-     * Setter for the rate at which the elitist concept is chosen for offspring. The elitist rate should be seen
+     * Setter for the rate at which the elitism concept is chosen for offspring. The elitism rate should be seen
      * in relation to the random immigrant rate and the crossover rate. The rates act as weights for choosing
      * the method for getting a new individual.
      *
-     * @param elitistRate is the weight that the elitist concept has in choosing an offspring production method for
+     * @param elitismRate is the weight that the elitism concept has in choosing an offspring production method for
      *                    an individual.
      */
-    public void setElitistRate(double elitistRate) {
-        this.elitistRate = elitistRate;
+    public void setElitismRate(double elitismRate) {
+        this.elitismRate = elitismRate;
     }
 
     /**
@@ -429,7 +429,7 @@ public class Population implements Iterable<Candidate> {
             if (offspringChoice == ReproductionMethod.CLEAR) {
                 offspringChoice = ReproductionMethod.values()[makeWeightedChoice(new double[]{
                         this.crossoverRate,
-                        this.elitistRate,
+                        this.elitismRate,
                         this.randomImmigrantRate})];
             }
 //            System.out.println("offspringChoice = " + offspringChoice);
@@ -446,7 +446,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Produces a novel candidate to by applying the given reproduction method.
      *
-     * @param offspringChoice, The choice of reproducing method; use crossover, elitist, or random immigrant.
+     * @param offspringChoice, The choice of reproducing method; use crossover, elitism, or random immigrant.
      * @param i an index of the current list of candidates at which to pick parents for new offspring.
      * @return the produced
      */
@@ -457,7 +457,7 @@ public class Population implements Iterable<Candidate> {
             // Mutate the recombined genome
             mutate(newGenome);
             return finalizeOffspring(newGenome);
-        } else if (offspringChoice == ReproductionMethod.ELITIST) {
+        } else if (offspringChoice == ReproductionMethod.ELITISM) {
             // Get the recombined genome by crossing over
             List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
             // Mutate the recombined genome

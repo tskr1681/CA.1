@@ -13,6 +13,8 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -26,7 +28,7 @@ public class CompoundEvolver {
     private TerminationCondition terminationCondition;
     private int maxNumberOfGenerations;
     private Random random = new Random();
-    private PipelineStep<Molecule, Double> pipe;
+    private PipelineStep<Candidate, Double> pipe;
     private Population population;
     private double nonImprovingGenerationAmountFactor;
 
@@ -124,27 +126,27 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     public void evolve() {
-        for (Candidate candidate : this.population) {
-            try {
-                scoreCandidate(candidate);
-            } catch (PipeLineException e) {
-                e.printStackTrace();
-            }
-        }
+        scoreCandidates();
         // Evolve
         while (!shouldTerminate()) {
             System.out.println(this.population.toString());
             // Produce offspring
             this.population.produceOffspring();
             // Score the candidates
-            for (Candidate candidate : this.population) {
-                try {
-                    scoreCandidate(candidate);
-                } catch (PipeLineException e) {
-                    e.printStackTrace();
-                }
-            }
+            scoreCandidates();
         }
+    }
+
+    private void scoreCandidates() {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        for (Candidate candidate : this.population) {
+            Runnable pipelineExecutor = new PipelineExecutor(pipe, candidate);
+            executor.execute(pipelineExecutor);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+        System.out.println("Finished all threads");
     }
 
     private boolean shouldTerminate() {
@@ -184,17 +186,18 @@ public class CompoundEvolver {
         double score = 0;
         if (!dummyFitness) {
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-            score = -pipe.execute(candidate.getPhenotype());
+            score = -pipe.execute(candidate);
+            candidate.setScore(score);
         } else {
             score = candidate.getPhenotype().getExactMass();
+            candidate.setScore(score);
         }
 //        System.out.println("score = " + score);
         // Assign score to candidate
 //        candidate.setScore(random.nextDouble());
-        candidate.setScore(score);
     }
 
-    public void setupPipeline(Path outputFileLocation) {
+    private void setupPipeline(Path outputFileLocation) {
         Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
         Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
         setupPipeline(outputFileLocation, receptor, anchor);
@@ -202,8 +205,6 @@ public class CompoundEvolver {
 
     /**
      * Setup the pipeline for scoring candidates
-     *
-     * @return Pipeline that can be executed
      */
     public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) {
         this.setPipelineOutputFileLocation(outputFileLocation);
@@ -211,7 +212,7 @@ public class CompoundEvolver {
                 this.pipelineOutputFileLocation);
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile);
-        PipelineStep<Molecule, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
+        PipelineStep<Candidate, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
@@ -253,7 +254,7 @@ public class CompoundEvolver {
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population);
-        compoundEvolver.setupPipeline(Paths.get("X:\\uploads"));
+        compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"));
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();

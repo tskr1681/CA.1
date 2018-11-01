@@ -18,3 +18,19 @@ input[type="file"] {
     display: inline-block;
     float:left;
 }
+
+.mono-font {
+    font-family: Consolas, Lucida Console, monospace;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.table-borderless > tbody > tr > td,
+.table-borderless > tbody > tr > th,
+.table-borderless > tfoot > tr > td,
+.table-borderless > tfoot > tr > th,
+.table-borderless > thead > tr > td,
+.table-borderless > thead > tr > th {
+    border: none;
+}

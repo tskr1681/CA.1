@@ -12,6 +12,7 @@ import chemaxon.struc.Molecule;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -22,6 +23,8 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate>{
 
+    private final long identifier;
+    private static AtomicLong currentValue = new AtomicLong(0L);
     private static Double MAX_HYDROGEN_BOND_DONORS = null;
     private static Double MAX_HYDROGEN_BOND_ACCEPTORS = null;
     private static Double MAX_MOLECULAR_MASS = null;
@@ -55,6 +58,11 @@ public class Candidate implements Comparable<Candidate>{
                 throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
             }
         }
+        this.identifier = currentValue.getAndIncrement();
+    }
+
+    public long getIdentifier() {
+        return identifier;
     }
 
     public static void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {

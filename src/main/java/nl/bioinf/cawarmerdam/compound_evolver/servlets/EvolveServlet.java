@@ -85,8 +85,8 @@ public class EvolveServlet extends HttpServlet {
         initialPopulation.setMutationRate(mutationRate);
 
         // Get elitist rate
-        double elitistRate = getDoubleParameterFromRequest(request, "elitistRate");
-        initialPopulation.setElitistRate(elitistRate);
+        double elitismRate = getDoubleParameterFromRequest(request, "elitismRate");
+        initialPopulation.setElitismRate(elitismRate);
 
         // Get random immigrant rate
         double randomImmigrantRate = getDoubleParameterFromRequest(request, "randomImmigrantRate");
@@ -118,7 +118,8 @@ public class EvolveServlet extends HttpServlet {
             Path outputFileLocation = Paths.get(
                     getServletContext().getInitParameter("upload.location"), generateRandomToken());
             if (! outputFileLocation.toFile().exists()){
-                outputFileLocation.toFile().mkdir();
+                boolean mkdir = outputFileLocation.toFile().mkdir();
+                System.out.println("mkdir = " + mkdir);
             }
             Path receptorLocation = outputFileLocation.resolve("rec.mab");
             copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);

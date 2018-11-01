@@ -6,7 +6,7 @@
 
     <context-param>
         <param-name>upload.location</param-name>
-        <param-value>X:/uploads</param-value>
+        <param-value>C:\Users\P286514\uploads</param-value>
     </context-param>
 
     <context-param>

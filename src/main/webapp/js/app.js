@@ -1,9 +1,8 @@
 var app = angular.module('compoundEvolver', ['fileReadBinding']);
 
 app.run(function ($rootScope) {
-    $rootScope.app = {hasSummary: false, hasProbes:false};
-    $rootScope.summary = {};
-    $rootScope.probes = {};
+    $rootScope.app = {hasData:false};
+    $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
 });
 
 app.controller('FormInputCtrl' , function ($scope, $rootScope) {
@@ -13,7 +12,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         selectionSize: 0.4,
         mutationRate: 0.1,
         crossoverRate: 0.8,
-        elitistRate: 0.1,
+        elitismRate: 0.1,
         randomImmigrantRate:0.1,
         selectionMethod:'Fitness proportionate selection',
         mutationMethod:'Distance dependent',
@@ -156,4 +155,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             console.log("Invalid Form!");
         }
     }
+});
+
+app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
+    $scope.getGenerations = function() {
+        return $rootScope.generations
+    };
 });

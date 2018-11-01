@@ -9,21 +9,19 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ThreeDimensionalConverterStep implements PipelineStep<Molecule, Path> {
+public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Path> {
 
-    private int i;
     private Path filePath;
 
     public ThreeDimensionalConverterStep(Path filePath) {
         this.filePath = filePath;
-        this.i = 0;
     }
 
     @Override
-    public Path execute(Molecule molecule) {
-        Path conformerFileName = getConformerFileName();
+    public Path execute(Candidate candidate) {
+        Path conformerFileName = getConformerFileName(candidate);
         try {
-            Molecule[] conformers = createConformers(molecule);
+            Molecule[] conformers = createConformers(candidate.getPhenotype());
             MolExporter exporter = new MolExporter(conformerFileName.toString(), "sdf");
             for (Molecule conformer : conformers) {
                 exporter.write(conformer);
@@ -34,8 +32,8 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Molecule, Pat
         return conformerFileName;
     }
 
-    private Path getConformerFileName() {
-        return Paths.get(filePath.toString(), String.format("%s.sdf", i++)).toAbsolutePath();
+    private Path getConformerFileName(Candidate candidate) {
+        return Paths.get(filePath.toString(), String.format("%s.sdf", candidate.getIdentifier())).toAbsolutePath();
     }
 
     private Molecule[] createConformers(Molecule molecule) throws PluginException {
