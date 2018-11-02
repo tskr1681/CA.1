@@ -1,20 +1,20 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import javax.servlet.http.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@MultipartConfig(maxFileSize = 10000000)    // upload file's size up to 10MB
 @WebServlet(name = "EvolveServlet", urlPatterns = "/evolve.do")
-@MultipartConfig
 public class EvolveServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -55,13 +55,12 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
-    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException {
+    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException {
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
         // Get reaction
         Reactor reaction = ReactionFileHandler.loadReaction(getFileFromRequest(request, "reactionFile"));
-        System.out.println(reaction.getReactantCount());
 
         // Get reactants
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getReactantFilesFromRequest(request));
@@ -108,15 +107,21 @@ public class EvolveServlet extends HttpServlet {
         Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
                 request.getParameter("selectionMethod"));
 
+        SessionEvolutionProgressConnector progressConnector = new SessionEvolutionProgressConnector();
+
         initialPopulation.setSelectionMethod(selectionMethod);
         CompoundEvolver evolver = new CompoundEvolver(
-                initialPopulation);
+                initialPopulation, progressConnector);
 
+        HttpSession session = request.getSession();
+        session.setAttribute("progress_connector", progressConnector);
+
+        String sessionID = getSessionId(request);
         System.out.println("dummy : " + getInitParameter("dummy.fitness"));
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
         if (!evolver.isDummyFitness()) {
             Path outputFileLocation = Paths.get(
-                    getServletContext().getInitParameter("upload.location"), generateRandomToken());
+                    getServletContext().getInitParameter("upload.location"), sessionID);
             if (! outputFileLocation.toFile().exists()){
                 boolean mkdir = outputFileLocation.toFile().mkdir();
                 System.out.println("mkdir = " + mkdir);
@@ -147,6 +152,19 @@ public class EvolveServlet extends HttpServlet {
         evolver.setTerminationCondition(terminationCondition);
 
         return evolver;
+    }
+
+    private String getSessionId(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String sessionID;
+        if (session.isNew() || session.getAttribute("session_id") == null) {
+            // No session id
+            // Create new session id
+            sessionID = generateRandomToken();
+            session.setAttribute("session_id", sessionID);
+        }
+        sessionID = (String) session.getAttribute("session_id");
+        return sessionID;
     }
 
     private List<List<Molecule>> reorderReactantsLists(List<List<Molecule>> reactantLists, List<Integer> reactantsFileOrder) {

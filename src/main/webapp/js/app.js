@@ -82,27 +82,90 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         }
     }
 
+    function extractFormData() {
+        let fileOrder = [];
+
+        $("#sortable").sortable("toArray").forEach(function (id) {
+            let splitted_id = id.split("-");
+            fileOrder.push(splitted_id[splitted_id.length - 1]);
+        });
+
+        // Get form
+        let form = $('form')[0];
+
+        // Create an FormData object
+        let formData = new FormData(form);
+        // Append the file order as form data to the existing data
+        formData.append("fileOrder", JSON.stringify(fileOrder));
+        return formData;
+    }
+
+    function getProgressUpdate() {
+        jQuery.ajax({
+            method: 'POST',
+            type: 'POST',
+            url: './progress.update',
+            processData: false,
+            contentType: false,
+            responseType: "application/json",
+            success: function (data, textStatus, jqXHR) {
+                // log data to the console so we can see
+                console.log(data);
+                let jsonData = $.parseJSON(jqXHR.responseJSON);
+                console.log(jsonData);
+                // update variables with new data
+                // function getSum(total, num) {
+                //     return total + num;
+                // }
+                // var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
+                // var maxScores = data.map(arr => Math.max.apply(Math, arr));
+                // var minScores = data.map(arr => Math.min.apply(Math, arr));
+
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Check which error was thrown
+                // If progress was stopped due to an exception set big error
+                // Reset form fields and output error to the page
+                getErrorResponse(jqXHR);
+                setPristine();
+                $scope.response.hasError = true;
+                $scope.$apply();
+            }
+        })
+    }
+
+    function addData(chart, label, data) {
+        chart.data.labels.push(label);
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data.push(data);
+        });
+        chart.update();
+    }
+
+    function initializeChart(avgScores, minScores, maxScores) {
+        var chartData = {labels: [...Array(avgScores.length).keys()],
+            datasets: [
+                {data: avgScores, label: "average", borderColor: "#000000", fill: "false"},
+                {data: minScores, label: "minimum", borderColor: "#00ffaa", fill: "false"},
+                {data: maxScores, label: "maximum", borderColor: "#ff0055", fill: "false"}]};
+
+        var ctx = document.getElementById("myChart").getContext('2d');
+
+        if (myChart !== null) {myChart.destroy();}
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+        });
+    }
+
     /**
      * Gets called when the submit button is clicked
      * @param valid Boolean true when the form is valid
      */
     $scope.onSubmit = function (valid) {
         if (valid) {
-
-            var fileOrder = [];
-
-            $("#sortable").sortable("toArray").forEach(function (id) {
-                let splitted_id = id.split("-");
-                fileOrder.push(splitted_id[splitted_id.length - 1]);
-            });
-
-            var form = $('form')[0];
-
-            // Create an FormData object
-            var formData = new FormData(form);
-            formData.append("fileOrder", JSON.stringify(fileOrder));
-
-            console.log(formData);
+            var formData = extractFormData();
 
             // process the form
             jQuery.ajax({
@@ -117,27 +180,13 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
                     // log data to the console so we can see
                     console.log(data);
-                    function getSum(total, num) {
-                        return total + num;
-                    }
-                    var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
-                    var maxScores = data.map(arr => Math.max.apply(Math, arr));
-                    var minScores = data.map(arr => Math.min.apply(Math, arr));
-                    console.log(minScores, maxScores);
-                    var chartData = {labels: [...Array(avgScores.length).keys()],
-                        datasets: [
-                            {data: avgScores, label: "average", borderColor: "#000000", fill: "false"},
-                            {data: minScores, label: "minimum", borderColor: "#00ffaa", fill: "false"},
-                            {data: maxScores, label: "maximum", borderColor: "#ff0055", fill: "false"}]};
-
-                    var ctx = document.getElementById("myChart").getContext('2d');
-
-                    if (myChart !== null) {myChart.destroy();}
-
-                    myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: chartData,
-                    });
+                    // function getSum(total, num) {
+                    //     return total + num;
+                    // }
+                    // var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
+                    // var maxScores = data.map(arr => Math.max.apply(Math, arr));
+                    // var minScores = data.map(arr => Math.min.apply(Math, arr));
+                    // initializeChart(minScores, avgScores, maxScores);
                     $scope.response.hasError = false;
                     $scope.$apply();
                 },
@@ -149,12 +198,25 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                     $scope.response.hasError = true;
                     $scope.$apply();
                 }
-            })
+            });
+            initializeChart([], [], []);
+
+            var counter = 0;
+            var i = setInterval(function(){
+                // do your thing
+                getProgressUpdate();
+                counter++;
+                if(counter === 10) {
+                    clearInterval(i);
+                }
+            }, 200);
+
         } else {
             // Form is not valid. Keep quiet.
             console.log("Invalid Form!");
         }
     }
+
 });
 
 app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {

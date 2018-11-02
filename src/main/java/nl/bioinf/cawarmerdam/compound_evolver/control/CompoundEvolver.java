@@ -13,8 +13,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -30,6 +29,7 @@ public class CompoundEvolver {
     private Random random = new Random();
     private PipelineStep<Candidate, Double> pipe;
     private Population population;
+    private EvolutionProgressConnector evolutionProgressConnector;
     private double nonImprovingGenerationAmountFactor;
 
     public boolean isDummyFitness() {
@@ -64,8 +64,9 @@ public class CompoundEvolver {
             throw new IllegalArgumentException("No constant with text " + text + " found");
         }}
 
-    public CompoundEvolver(Population population) {
+    public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
+        this.evolutionProgressConnector = evolutionProgressConnector;
         this.maxNumberOfGenerations = 5;
         this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
@@ -127,6 +128,7 @@ public class CompoundEvolver {
      */
     public void evolve() {
         scoreCandidates();
+        evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         // Evolve
         while (!shouldTerminate()) {
             System.out.println(this.population.toString());
@@ -134,36 +136,68 @@ public class CompoundEvolver {
             this.population.produceOffspring();
             // Score the candidates
             scoreCandidates();
+            evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         }
     }
 
     private void scoreCandidates() {
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        for (Candidate candidate : this.population) {
-            Runnable pipelineExecutor = new PipelineExecutor(pipe, candidate);
-            executor.execute(pipelineExecutor);
+        if (!dummyFitness) {
+            // Check if pipe is present
+            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
+            // Get executorService with thread pool size 4
+            ExecutorService executor = Executors.newFixedThreadPool(4);
+            // Create list to hold future object associated with Callable
+            List<Future<Void>> futures = new ArrayList<>();
+            // Loop through candidates to produce and submit new tasks
+            for (Candidate candidate : this.population) {
+                // Setup callable
+                Callable<Void> pipelineExecutor = new PipelineTask(pipe, candidate);
+                // Add future, which the executor will return to the list
+                futures.add(executor.submit(pipelineExecutor));
+            }
+            // Loop through futures to handle thrown exceptions
+            for(Future<Void> future : futures){
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    // Handle exception
+                    e.printStackTrace();
+                }
+            }
+            executor.shutdown();
+            System.out.println("Finished all threads");
+        } else {
+            for (Candidate candidate : this.population) {
+                // Set dummy fitness
+                double score = candidate.getPhenotype().getExactMass();
+                candidate.setScore(score);
+            }
         }
-        executor.shutdown();
-        while (!executor.isTerminated()) {
-        }
-        System.out.println("Finished all threads");
     }
 
     private boolean shouldTerminate() {
-        int generationNumber = this.population.getGeneration();
+        int generationNumber = this.population.getGenerationNumber();
         if (this.terminationCondition == TerminationCondition.CONVERGENCE && generationNumber > 5) {
             return this.hasConverged(generationNumber);
         }
-        return generationNumber == this.maxNumberOfGenerations;
+        return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
 
     private boolean hasConverged(int generationNumber) {
+        // Get all fitness scores so far
         List<List<Double>> populationFitness = this.getPopulationFitness();
+
+        // Initialize highestScore and it's generation number
         double highestScore = 0;
         int highestScoringGenerationNumber = 0;
+
+        // Initialize maximum of the generation.
         double max = 0;
         for (int i = 0; i < populationFitness.size(); i++) {
+            // Get maximum of the generation
             max = Collections.max(populationFitness.get(i));
+
+            // If maximum of the generation is larger than the highest score overall, set new highest score
             if (max > highestScore) {
                 highestScore = max;
                 highestScoringGenerationNumber = i;
@@ -173,28 +207,6 @@ public class CompoundEvolver {
         double nonImprovingGenerationNumber = highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber;
         System.out.printf("%f < %d = %s%n", nonImprovingGenerationNumber, generationNumber, nonImprovingGenerationNumber < generationNumber);
         return nonImprovingGenerationNumber < generationNumber;
-    }
-
-    /**
-     * Score set the fitness score of each candidate
-     *
-     * @param candidate Candidate instance
-     * @throws PipeLineException if an error occurred in the pipeline
-     */
-    private void scoreCandidate(Candidate candidate) throws PipeLineException {
-        // Execute pipeline
-        double score = 0;
-        if (!dummyFitness) {
-            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-            score = -pipe.execute(candidate);
-            candidate.setScore(score);
-        } else {
-            score = candidate.getPhenotype().getExactMass();
-            candidate.setScore(score);
-        }
-//        System.out.println("score = " + score);
-        // Assign score to candidate
-//        candidate.setScore(random.nextDouble());
     }
 
     private void setupPipeline(Path outputFileLocation) {
@@ -253,7 +265,7 @@ public class CompoundEvolver {
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(population);
+        CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
         compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"));
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds

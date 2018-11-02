@@ -37,7 +37,7 @@ public class Population implements Iterable<Candidate> {
     private double randomImmigrantRate;
     private double elitismRate;
     private int populationSize;
-    private int generation;
+    private int generationNumber;
     private List<List<Double>> scores;
 
 
@@ -88,12 +88,12 @@ public class Population implements Iterable<Candidate> {
         }
     }
 
-    public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) {
+    public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
         this.random = new Random();
         this.reaction = reaction;
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
-        this.generation = 0;
+        this.generationNumber = 0;
         this.mutationRate = 0.1;
         this.selectionFraction = 0.3;
         this.crossoverRate = 0;
@@ -101,21 +101,34 @@ public class Population implements Iterable<Candidate> {
         this.randomImmigrantRate = 0.0;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
-        this.candidateList = new RandomCompoundReactor(this.reaction, initialGenerationSize).execute(this.reactantLists);
+        initializePopulation();
         this.scores = new ArrayList<>();
     }
 
-    /**
-     * Getter for the current generation number.
-     *
-     * @return the current generation number.
-     */
-    public int getGeneration() {
-        return generation;
+    private void initializePopulation() throws MisMatchedReactantCount, ReactionException {
+        int reactantCount = this.reaction.getReactantCount();
+        if (reactantCount != reactantLists.size()) {
+            // Throw exception
+            throw new MisMatchedReactantCount(reactantCount, reactantLists.size());
+        }
+        this.candidateList = new RandomCompoundReactor(this.reaction, this.populationSize).randReact(this.reactantLists);
+    }
+
+    public Generation getCurrentGeneration() {
+        return new Generation(candidateList);
     }
 
     /**
-     * Getter for the fitness of candidates in every generation so far.
+     * Getter for the current generationNumber number.
+     *
+     * @return the current generationNumber number.
+     */
+    public int getGenerationNumber() {
+        return generationNumber;
+    }
+
+    /**
+     * Getter for the fitness of candidates in every generationNumber so far.
      *
      * @return a list of lists of fitness scores
      */
@@ -440,7 +453,7 @@ public class Population implements Iterable<Candidate> {
             }
         }
         candidateList = offspring;
-        generation++;
+        generationNumber++;
     }
 
     /**
@@ -498,7 +511,11 @@ public class Population implements Iterable<Candidate> {
      * @return a new individual (random immigrant).
      */
     private Candidate introduceRandomImmigrant() {
-        return new RandomCompoundReactor(this.reaction, 1).execute(this.reactantLists).get(0);
+        try {
+            return new RandomCompoundReactor(this.reaction, 1).randReact(this.reactantLists).get(0);
+        } catch (ReactionException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
@@ -623,7 +640,7 @@ public class Population implements Iterable<Candidate> {
         return String.format(
                 "Generation %d, individual count = %d %n" +
                         " agv | min | max %n %3.0f | %3.0f | %3.0f ",
-                generation, candidateList.size(),
+                generationNumber, candidateList.size(),
                 average.isPresent() ? average.getAsDouble() : Double.NaN,
                 Collections.min(scores), Collections.max(scores));
     }
