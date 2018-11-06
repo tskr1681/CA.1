@@ -46,38 +46,52 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         String line = null;
 
         // Build command
-        String command = String.format("%s -e \"%s\" \"-w0.01\" -E \"%s\"",
+        String command = String.format("%s -e \"%s\" \"-w0.01\" \"%s\"",
                 molocExecutable,
                 receptorFilePath,
                 inputFile);
         System.out.println("command = " + command);
         try {
-            // Build process with the command
-            Process p = Runtime.getRuntime().exec(command);
+            // Build process
+            ProcessBuilder builder = new ProcessBuilder(
+                    molocExecutable,
+                    "-e", receptorFilePath.toString(),
+                    "-w0.01",
+                    inputFile.toString());
 
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
+            // Print process
+            System.out.println("pb.toString() = " + builder.command().toString());
 
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
+            // Start the process
+            final Process p = builder.start();
 
-            // read the output from the command
-            System.out.println("Here is the standard output of the command:\n");
-            while ((line = stdInput.readLine()) != null) {
-                System.out.println(line);
-            }
+            p.waitFor();
 
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((line = stdError.readLine()) != null) {
-                System.out.println(line);
-            }
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
+//
+//            // read the output from the command
+//            System.out.println("Here is the standard output of the command:\n");
+//            while ((line = stdInput.readLine()) != null) {
+//                System.out.println(line);
+//            }
+//
+//            // read any errors from the attempted command
+//            System.out.println("Here is the standard error of the command (if any):\n");
+//            while ((line = stdError.readLine()) != null) {
+//                System.out.println(line);
+//            }
 
         } catch (IOException e) {
             throw new PipeLineException(String.format(
                     "minimizing energy with command: '%s' failed with the following exception: %s",
                     command,
                     e.toString()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

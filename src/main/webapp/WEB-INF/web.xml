@@ -4,21 +4,6 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
-    <context-param>
-        <param-name>upload.location</param-name>
-        <param-value>C:\Users\P286514\uploads</param-value>
-    </context-param>
-
-    <context-param>
-        <param-name>obfit.executable</param-name>
-        <param-value>obfit.exe</param-value>
-    </context-param>
-
-    <context-param>
-        <param-name>mol3d.executable</param-name>
-        <param-value>C:\Program Files (x86)\moloc\bin\Mol3d.exe</param-value>
-    </context-param>
-
     <servlet>
         <servlet-name>ApplicationServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.ApplicationServlet</servlet-class>
@@ -26,6 +11,15 @@
     <servlet-mapping>
         <servlet-name>ApplicationServlet</servlet-name>
         <url-pattern>/app</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProgressUpdateServlet</servlet-name>
+        <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.ProgressUpdateServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProgressUpdateServlet</servlet-name>
+        <url-pattern>/progress.update</url-pattern>
     </servlet-mapping>
 
     <servlet>

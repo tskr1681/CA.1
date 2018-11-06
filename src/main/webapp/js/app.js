@@ -108,20 +108,25 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             processData: false,
             contentType: false,
             responseType: "application/json",
+            dataType: 'json',
             success: function (data, textStatus, jqXHR) {
                 // log data to the console so we can see
                 console.log(data);
-                let jsonData = $.parseJSON(jqXHR.responseJSON);
-                console.log(jsonData);
                 // update variables with new data
-                // function getSum(total, num) {
-                //     return total + num;
-                // }
-                // var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
-                // var maxScores = data.map(arr => Math.max.apply(Math, arr));
-                // var minScores = data.map(arr => Math.min.apply(Math, arr));
+                function getSum(total, num) {
+                    return total + num;
+                }
 
-            },
+                var fitnesses = data.map(arr => arr.candidateList.map(candidate => candidate.score));
+
+                fitnesses.forEach(function (generationFitnesses) {
+                    addData(myChart, "h", [
+                        generationFitnesses.reduce(getSum) / generationFitnesses.length,
+                        Math.min.apply(Math, generationFitnesses),
+                        Math.max.apply(Math, generationFitnesses)
+                    ]);
+                });
+                },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Check which error was thrown
                 // If progress was stopped due to an exception set big error
@@ -136,8 +141,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
     function addData(chart, label, data) {
         chart.data.labels.push(label);
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data.push(data);
+        console.log(data);
+        data.forEach(function (value, datasetIndex) {
+            console.log(value, datasetIndex);
+            chart.data.datasets[datasetIndex].data.push(value);
         });
         chart.update();
     }
@@ -206,10 +213,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 // do your thing
                 getProgressUpdate();
                 counter++;
-                if(counter === 10) {
+                if(counter === 1000) {
                     clearInterval(i);
                 }
-            }, 200);
+            }, 2000);
 
         } else {
             // Form is not valid. Keep quiet.

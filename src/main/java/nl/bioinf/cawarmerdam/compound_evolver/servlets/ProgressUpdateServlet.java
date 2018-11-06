@@ -22,19 +22,25 @@ import java.util.List;
 @WebServlet(name = "ProgressUpdateServlet", urlPatterns = "/progress.update")
 public class ProgressUpdateServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Set response type
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        SessionEvolutionProgressConnector progressConnector = handleProgressUpdateRequest(request);
-        List<Generation> generations = progressConnector.emptyGenerationBuffer();
-        // Get object mapper
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Candidate.class, new CandidateSerializer());
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(module);
+        try {
+            // Set response type
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            SessionEvolutionProgressConnector progressConnector = handleProgressUpdateRequest(request);
+            List<Generation> generations = progressConnector.emptyGenerationBuffer();
+            // Get object mapper
+            SimpleModule module = new SimpleModule();
+            module.addSerializer(Candidate.class, new CandidateSerializer());
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(module);
 
-        // Write new generations
-        mapper.writeValue(response.getOutputStream(), generations);
+            // Write new generations
+            mapper.writeValue(response.getOutputStream(), generations);
+        } catch (Exception e) {
+            ObjectMapper mapper = new ObjectMapper();
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
+        }
     }
 
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) {
@@ -58,7 +64,6 @@ public class ProgressUpdateServlet extends HttpServlet {
         String sessionID;
         if (session.isNew() || session.getAttribute("session_id") == null) {
             // No session id
-            // Throw exception
         }
         sessionID = (String) session.getAttribute("session_id");
         return sessionID;

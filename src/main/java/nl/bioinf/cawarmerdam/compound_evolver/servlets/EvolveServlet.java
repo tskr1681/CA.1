@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.license.LicenseManager;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
@@ -121,7 +122,7 @@ public class EvolveServlet extends HttpServlet {
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
         if (!evolver.isDummyFitness()) {
             Path outputFileLocation = Paths.get(
-                    getServletContext().getInitParameter("upload.location"), sessionID);
+                    System.getenv("PL_TARGET_DIR"), sessionID);
             if (! outputFileLocation.toFile().exists()){
                 boolean mkdir = outputFileLocation.toFile().mkdir();
                 System.out.println("mkdir = " + mkdir);

@@ -156,7 +156,7 @@
                     </div>
                     <div class="form-group row">
                         <label for="anchor-fragment-file" class="col-sm-3 col-form-label">Anchor fragment file
-                            (.pdb)</label>
+                            (.sdf)</label>
                         <div class="col-sm-9">
                             <label for="anchor-fragment-file" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose file</strong>
@@ -178,7 +178,7 @@
                             </small>
                             <small class="form-text text-danger"
                                    ng-show="anchorFragmentFile.wrongExtension">
-                                Only a pdb file (.sdf) is accepted
+                                Only an sdf file (.sdf) is accepted
                             </small>
                         </div>
                     </div>

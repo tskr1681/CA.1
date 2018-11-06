@@ -145,7 +145,7 @@ public class CompoundEvolver {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
             // Get executorService with thread pool size 4
-            ExecutorService executor = Executors.newFixedThreadPool(4);
+            ExecutorService executor = Executors.newFixedThreadPool(16);
             // Create list to hold future object associated with Callable
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
@@ -222,7 +222,7 @@ public class CompoundEvolver {
         this.setPipelineOutputFileLocation(outputFileLocation);
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
                 this.pipelineOutputFileLocation);
-        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, "obfit.exe");
+        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile);
         PipelineStep<Candidate, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
@@ -233,9 +233,17 @@ public class CompoundEvolver {
             return new MolocEnergyMinimizationStep(
                     "",
                     receptorFile,
-                    "C:\\Program Files (x86)\\moloc\\bin\\Mol3d.exe");
+                    System.getenv("MOL3D_EXE"));
         } else if (this.forceField == ForceField.MMFF94) {
-            return new VinaEnergyMinimizationStep(
+            String sminaExecutable = System.getenv("SMINA_EXE");
+
+            // Check if the smina executable was entered in the environment variables
+            if (sminaExecutable == null) {
+                // Throw an exception because the executable was not given in the environment variables
+                throw new RuntimeException("Environment variable 'SMINA_EXE' was null");
+            }
+
+            return new SminaEnergyMinimizationStep(
                     "",
                     Paths.get("X:\\Internship\\receptor\\rec.pdbqt"),
                     "C:\\Program Files (x86)\\The Scripps Research Institute\\Vina\\vina.exe");

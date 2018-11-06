@@ -76,7 +76,7 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
         String line = null;
 
         // Build command
-        String command = String.format("cmd /c %s %s %s %s > %s",
+        String command = String.format("%s %s %s %s > %s",
                 obfitExecutable,
                 smartsPattern,
                 referenceMolecule,
@@ -84,8 +84,14 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
                 outFile);
 
         try {
-            // Build process with the command
-            Process p = Runtime.getRuntime().exec(command);
+            ProcessBuilder builder = new
+                    ProcessBuilder(obfitExecutable, smartsPattern, referenceMolecule.toString(), conformerLib);
+            builder.redirectOutput(new File(outFile));
+
+            // Start the process
+            final Process p = builder.start();
+
+            p.waitFor();
 
 //            BufferedReader stdInput = new BufferedReader(new
 //                    InputStreamReader(p.getInputStream()));
@@ -104,12 +110,8 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
 //            while ((line = stdError.readLine()) != null) {
 //                System.out.println(line);
 //            }
-
-        } catch (IOException e) {
-            throw new PipeLineException(String.format(
-                    "fixating confomers with command: '%s' failed with the following exception: %s",
-                    command,
-                    e.toString()));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
