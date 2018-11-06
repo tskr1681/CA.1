@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.marvin.plugin.PluginException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,8 +88,21 @@ class CandidateSerializer extends StdSerializer<Candidate> {
 
         jgen.writeStartObject();
         jgen.writeNumberField("id", candidate.getIdentifier());
-        jgen.writeStringField("iupacName", candidate.getPhenotype().getName());
-        jgen.writeNumberField("score", candidate.getScore());
+        String phenotypeName = null;
+        try {
+            phenotypeName = candidate.getPhenotypeName();
+        } catch (PluginException e) {
+            phenotypeName = "Anonymous compound";
+        }
+        String smilesString = null;
+        try {
+            smilesString = candidate.getPhenotypeSmiles();
+        } catch (IOException e) {
+            smilesString = "";
+        }
+        jgen.writeStringField("smiles", smilesString);
+        jgen.writeStringField("iupacName", phenotypeName);
+        jgen.writeNumberField("fitness", candidate.getScore());
         jgen.writeEndObject();
     }
 }

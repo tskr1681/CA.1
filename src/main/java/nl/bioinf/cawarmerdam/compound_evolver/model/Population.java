@@ -115,7 +115,7 @@ public class Population implements Iterable<Candidate> {
     }
 
     public Generation getCurrentGeneration() {
-        return new Generation(candidateList);
+        return new Generation(candidateList, generationNumber);
     }
 
     /**

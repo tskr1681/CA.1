@@ -230,26 +230,44 @@ public class CompoundEvolver {
 
     private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) {
         if (this.forceField == ForceField.MAB) {
+            String molocExecutable = getExecutable("MOL3D_EXE");
+            // Convert receptor .pdb to .mab
+
+            // Return Moloc implementation of the energy minimization step
             return new MolocEnergyMinimizationStep(
                     "",
                     receptorFile,
-                    System.getenv("MOL3D_EXE"));
+                    molocExecutable);
         } else if (this.forceField == ForceField.MMFF94) {
-            String sminaExecutable = System.getenv("SMINA_EXE");
+            String sminaExecutable = getExecutable("SMINA_EXE");
+            // Convert receptor .pdb to .pdbqt
+//            throw new RuntimeException("Conversion to pdbqt not implemented!");
 
-            // Check if the smina executable was entered in the environment variables
-            if (sminaExecutable == null) {
-                // Throw an exception because the executable was not given in the environment variables
-                throw new RuntimeException("Environment variable 'SMINA_EXE' was null");
-            }
-
+            // Return Smina implementation of the energy minimization step
             return new SminaEnergyMinimizationStep(
                     "",
-                    Paths.get("X:\\Internship\\receptor\\rec.pdbqt"),
-                    "C:\\Program Files (x86)\\The Scripps Research Institute\\Vina\\vina.exe");
+                    receptorFile,
+                    sminaExecutable);
         } else {
             throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
+    }
+
+    /**
+     * Method responsible for obtaining an executable path from the environment variables
+     * @param variableName The name of the environment variable containing the executable path
+     * @return path to the executable as a String
+     */
+    private String getExecutable(String variableName) {
+        // Try to get the variable
+        String sminaExecutable = System.getenv(variableName);
+
+        // Check if the smina executable was entered in the environment variables
+        if (sminaExecutable == null) {
+            // Throw an exception because the executable was not given in the environment variables
+            throw new RuntimeException("Environment variable 'SMINA_EXE' was null");
+        }
+        return sminaExecutable;
     }
 
     /**

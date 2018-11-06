@@ -601,16 +601,14 @@
                             <tr>
                                 <th>GENERATION</th>
                                 <th>COMPOUND</th>
-                                <th>REACTANTS</th>
                                 <th class="text-muted">FITNESS</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr>
                                 <td><a href="#">{{generation.number}}</a></td>
-                                <td>{{generation.mostFitCompound.iupacName}}</td>
-                                <td>{{generation.mostFitCompound.bb}}</td>
-                                <td class="text-muted">{{generation.mostFitCompound.fitness}}</td>
+                                <td>{{getMostFitCompound(generation).smiles}}</td>
+                                <td class="text-muted">{{getMostFitCompound(generation).fitness}}</td>
                             </tr>
                             </tbody>
                         </table>

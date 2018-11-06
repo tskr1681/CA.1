@@ -6,8 +6,10 @@ import java.util.stream.Collectors;
 
 public class Generation {
     private List<Candidate> candidateList;
+    private int number;
 
-    Generation(List<Candidate> candidateList) {
+    Generation(List<Candidate> candidateList, int number) {
+        this.number = number;
         this.candidateList = candidateList;
     }
 
@@ -21,5 +23,9 @@ public class Generation {
             return max.get();
         }
         throw new RuntimeException("max not present?");
+    }
+
+    public int getNumber() {
+        return number;
     }
 }

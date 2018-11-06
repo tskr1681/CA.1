@@ -27,7 +27,7 @@
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet</servlet-class>
         <init-param>
             <param-name>dummy.fitness</param-name>
-            <param-value>0</param-value>
+            <param-value>1</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>

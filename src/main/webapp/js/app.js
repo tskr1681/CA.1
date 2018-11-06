@@ -2,7 +2,8 @@ var app = angular.module('compoundEvolver', ['fileReadBinding']);
 
 app.run(function ($rootScope) {
     $rootScope.app = {hasData:false};
-    $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
+    // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
+    $rootScope.generations = [{number:0, candidateList: [{iupacName: "2-(1H-indol-3-yl)ethan-1-amine", fitness:-7.43}]}];
 });
 
 app.controller('FormInputCtrl' , function ($scope, $rootScope) {
@@ -117,15 +118,16 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                     return total + num;
                 }
 
-                var fitnesses = data.map(arr => arr.candidateList.map(candidate => candidate.score));
-
-                fitnesses.forEach(function (generationFitnesses) {
-                    addData(myChart, "h", [
+                data.forEach(function (generation) {
+                    generationFitnesses = generation.candidateList.map(candidate => candidate.fitness);
+                    addData(myChart, generation.number, [
                         generationFitnesses.reduce(getSum) / generationFitnesses.length,
                         Math.min.apply(Math, generationFitnesses),
                         Math.max.apply(Math, generationFitnesses)
                     ]);
+                    $rootScope.generations.push(generation);
                 });
+
                 },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Check which error was thrown
@@ -230,4 +232,12 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
     $scope.getGenerations = function() {
         return $rootScope.generations
     };
+
+    $scope.getMostFitCompound = function (generation) {
+        let candidates = generation.candidateList;
+        return candidates.reduce(function (l, e) {
+            return e.fitness > l.fitness ? e : l;
+        });
+    };
+
 });

@@ -4,11 +4,14 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import chemaxon.formats.MolExporter;
 import chemaxon.marvin.calculations.HBDAPlugin;
+import chemaxon.marvin.calculations.IUPACNamingPlugin;
 import chemaxon.marvin.calculations.logPPlugin;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -111,6 +114,27 @@ public class Candidate implements Comparable<Candidate>{
      */
     public Molecule getPhenotype() {
         return phenotype;
+    }
+
+    /**
+     * Getter for the name of the phenotype
+     * @return phenotype name
+     * @throws PluginException if the name could not be obtained
+     */
+    public String getPhenotypeName() throws PluginException {
+        // Initialize plugin
+        IUPACNamingPlugin plugin = new IUPACNamingPlugin();
+
+        // Set molecule and run the plugin
+        plugin.setMolecule(this.getPhenotype());
+        plugin.run();
+
+        // Return the preferred IUPAC name. Can also be the traditional name
+        return plugin.getPreferredIUPACName();
+    }
+
+    public String getPhenotypeSmiles() throws IOException {
+        return MolExporter.exportToFormat(this.getPhenotype(), "smiles");
     }
 
     /**
