@@ -27,7 +27,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         maxPartitionCoefficient: 5
     };
     $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["mrv"]};
-    $scope.receptorFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["mab"]};
+    $scope.receptorFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["pdb"]};
     $scope.anchorFragmentFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["sdf"]};
     $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, files:[], permittedExtensions: ["smiles", "smi"]};
 
@@ -36,7 +36,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     var myChart = null;
 
     $( function() {
-        $("#sortable").sortable();
+        $("#sortableReactantList").sortable({
+            handle: 'span',
+            cursor: 'grabbing'
+        });
     });
 
     /**
@@ -86,7 +89,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     function extractFormData() {
         let fileOrder = [];
 
-        $("#sortable").sortable("toArray").forEach(function (id) {
+        $("#sortableReactantList").sortable("toArray").forEach(function (id) {
             let splitted_id = id.split("-");
             fileOrder.push(splitted_id[splitted_id.length - 1]);
         });
@@ -121,9 +124,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 data.forEach(function (generation) {
                     generationFitnesses = generation.candidateList.map(candidate => candidate.fitness);
                     addData(myChart, generation.number, [
-                        generationFitnesses.reduce(getSum) / generationFitnesses.length,
-                        Math.min.apply(Math, generationFitnesses),
-                        Math.max.apply(Math, generationFitnesses)
+                        generationFitnesses
                     ]);
                     $rootScope.generations.push(generation);
                 });
@@ -151,20 +152,28 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         chart.update();
     }
 
-    function initializeChart(avgScores, minScores, maxScores) {
-        var chartData = {labels: [...Array(avgScores.length).keys()],
+    function initializeChart(scores) {
+        var chartData = {labels: [...Array(scores.length).keys()],
             datasets: [
-                {data: avgScores, label: "average", borderColor: "#000000", fill: "false"},
-                {data: minScores, label: "minimum", borderColor: "#00ffaa", fill: "false"},
-                {data: maxScores, label: "maximum", borderColor: "#ff0055", fill: "false"}]};
+                {data: scores, label: "fitness", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2},]};
 
         var ctx = document.getElementById("myChart").getContext('2d');
 
         if (myChart !== null) {myChart.destroy();}
 
         myChart = new Chart(ctx, {
-            type: 'line',
+            type: 'boxplot',
             data: chartData,
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'fitness of populations'
+                }
+            }
         });
     }
 
@@ -208,7 +217,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                     $scope.$apply();
                 }
             });
-            initializeChart([], [], []);
+            initializeChart([]);
 
             var counter = 0;
             var i = setInterval(function(){

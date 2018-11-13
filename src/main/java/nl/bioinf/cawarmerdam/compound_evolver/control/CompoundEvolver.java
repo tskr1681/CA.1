@@ -68,7 +68,7 @@ public class CompoundEvolver {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
         this.maxNumberOfGenerations = 5;
-        this.forceField = ForceField.MAB;
+        this.forceField = ForceField.MMFF94;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
 
@@ -219,35 +219,44 @@ public class CompoundEvolver {
      * Setup the pipeline for scoring candidates
      */
     public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) {
+        // Set the pipeline output location
         this.setPipelineOutputFileLocation(outputFileLocation);
+
+        // Get the step for converting 'flat' molecules into multiple 3d conformers
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
                 this.pipelineOutputFileLocation);
+        // Get the step for fixing conformers to an anchor point
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
+        // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile);
+        // Combine the steps and set the pipe.
         PipelineStep<Candidate, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
     private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) {
         if (this.forceField == ForceField.MAB) {
-            String molocExecutable = getExecutable("MOL3D_EXE");
-            // Convert receptor .pdb to .mab
+            String mol3dExecutable = getExecutable("MOL3D_EXE");
+            String esprntoExecutable = getExecutable("ESPRNTO_EXE");
 
             // Return Moloc implementation of the energy minimization step
             return new MolocEnergyMinimizationStep(
                     "",
                     receptorFile,
-                    molocExecutable);
+                    mol3dExecutable,
+                    esprntoExecutable);
         } else if (this.forceField == ForceField.MMFF94) {
             String sminaExecutable = getExecutable("SMINA_EXE");
-            // Convert receptor .pdb to .pdbqt
-//            throw new RuntimeException("Conversion to pdbqt not implemented!");
+            String pythonExecutable = getExecutable("MGL_PYTHON");
+            String prepareReceptorExecutable = getExecutable("PRPR_REC_EXE");
 
             // Return Smina implementation of the energy minimization step
             return new SminaEnergyMinimizationStep(
                     "",
                     receptorFile,
-                    sminaExecutable);
+                    sminaExecutable,
+                    pythonExecutable,
+                    prepareReceptorExecutable);
         } else {
             throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
@@ -265,7 +274,7 @@ public class CompoundEvolver {
         // Check if the smina executable was entered in the environment variables
         if (sminaExecutable == null) {
             // Throw an exception because the executable was not given in the environment variables
-            throw new RuntimeException("Environment variable 'SMINA_EXE' was null");
+            throw new RuntimeException(String.format("Environment variable '%s' was null", variableName));
         }
         return sminaExecutable;
     }

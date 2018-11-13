@@ -26,6 +26,7 @@
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot"></script>
     <%--load custom javascript--%>
     <script src="<c:url value = "js/app.js"/>"></script>
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
@@ -114,7 +115,7 @@
                     <div class="form-group row">
                         <label class="col-sm-3 col-form-label">Order of reactant files in reaction</label>
                         <div class="col-sm-9">
-                            <ul class="list-group" id="sortable">
+                            <ul class="list-group" id="sortableReactantList">
                                 <li class="list-group-item" id="file-list-item-{{$index}}"
                                     ng-repeat="file in reactantFiles.files track by $index">
                                     <span class=""
@@ -128,7 +129,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="receptor-file" class="col-sm-3 col-form-label">Receptor file (.mab)</label>
+                        <label for="receptor-file" class="col-sm-3 col-form-label">Receptor file (.pdb)</label>
                         <div class="col-sm-9">
                             <label for="receptor-file" class="custom-file-upload">
                                 <strong class="btn btn-secondary">Choose file</strong>
@@ -150,7 +151,7 @@
                             </small>
                             <small class="form-text text-danger"
                                    ng-show="receptorFile.wrongExtension">
-                                Only a mab file (.mab) is accepted (use moloc to convert pdb to mab)
+                                Only a mab file (.pdb) is accepted (use moloc to convert pdb to mab)
                             </small>
                         </div>
                     </div>

@@ -12,6 +12,7 @@ import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -168,6 +169,8 @@ public class Candidate implements Comparable<Candidate>{
         }
         return arr;
     }
+
+
 
     @Override
     public boolean equals(Object o) {

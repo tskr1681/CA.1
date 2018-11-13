@@ -34,3 +34,7 @@ input[type="file"] {
 .table-borderless > thead > tr > th {
     border: none;
 }
+
+ul#sortableReactantList > li {
+    cursor: grab;
+}

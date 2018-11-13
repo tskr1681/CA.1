@@ -14,9 +14,9 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String molocExecutable;
 
-    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable) {
+    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) {
         super(forcefield);
-        this.receptorFilePath = receptorFilePath;
+        this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }
 
@@ -93,5 +93,52 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private Path convertToMabFile(Path receptorFile, String esprntoExecutable) {
+        String line = null;
+
+        try {
+            // Build process
+            ProcessBuilder builder = new ProcessBuilder(
+                    esprntoExecutable,
+                    "-pM", receptorFile.toString());
+
+            // Print process
+            System.out.println("pb.toString() = " + builder.command().toString());
+
+            // Start the process
+            final Process p = builder.start();
+
+            p.waitFor();
+
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
+//
+//            // read the output from the command
+//            System.out.println("Here is the standard output of the command:\n");
+//            while ((line = stdInput.readLine()) != null) {
+//                System.out.println(line);
+//            }
+//
+//            // read any errors from the attempted command
+//            System.out.println("Here is the standard error of the command (if any):\n");
+//            while ((line = stdError.readLine()) != null) {
+//                System.out.println(line);
+//            }
+
+        } catch (IOException e) {
+            throw new PipeLineException(String.format(
+                    "minimizing energy failed with the following exception: %s",
+                    e.toString()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return receptorFile.resolveSibling(
+                FilenameUtils.removeExtension(receptorFile.getFileName().toString()) +
+                        "_e.mab");
     }
 }

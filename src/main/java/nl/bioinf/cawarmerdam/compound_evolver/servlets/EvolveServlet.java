@@ -127,7 +127,7 @@ public class EvolveServlet extends HttpServlet {
                 boolean mkdir = outputFileLocation.toFile().mkdir();
                 System.out.println("mkdir = " + mkdir);
             }
-            Path receptorLocation = outputFileLocation.resolve("rec.mab");
+            Path receptorLocation = outputFileLocation.resolve("rec.pdb");
             copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);
             Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
             copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
