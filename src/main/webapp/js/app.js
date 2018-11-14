@@ -3,7 +3,8 @@ var app = angular.module('compoundEvolver', ['fileReadBinding']);
 app.run(function ($rootScope) {
     $rootScope.app = {hasData:false};
     // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
-    $rootScope.generations = [{number:0, candidateList: [{iupacName: "2-(1H-indol-3-yl)ethan-1-amine", fitness:-7.43}]}];
+    $rootScope.generations = [];
+    $rootScope.selectedGenerationNumber = null;
 });
 
 app.controller('FormInputCtrl' , function ($scope, $rootScope) {
@@ -39,7 +40,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         $("#sortableReactantList").sortable({
             handle: 'span',
             cursor: 'grabbing'
-        });
+        }).disableSelection();
     });
 
     /**
@@ -127,6 +128,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                         generationFitnesses
                     ]);
                     $rootScope.generations.push(generation);
+                    $rootScope.$apply();
                 });
 
                 },
@@ -155,7 +157,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     function initializeChart(scores) {
         var chartData = {labels: [...Array(scores.length).keys()],
             datasets: [
-                {data: scores, label: "fitness", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2},]};
+                {data: scores, label: "fitness", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},]};
 
         var ctx = document.getElementById("myChart").getContext('2d');
 
@@ -172,9 +174,41 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 title: {
                     display: true,
                     text: 'fitness of populations'
-                }
+                },
+                onClick: chartClickEvent
             }
         });
+    }
+
+    function chartClickEvent(event, array){
+        if (myChart === 'undefined' || myChart == null)
+        {
+            return;
+        }
+        if (event === 'undefined' || event == null)
+        {
+            return;
+        }
+        if (array === 'undefined' || array == null)
+        {
+            return;
+        }
+        if (array.length <= 0)
+        {
+            return;
+        }
+
+        var elementIndex = 0;
+
+        var chartData = array[elementIndex]['_chart'].config.data;
+        var idx = array[elementIndex]['_index'];
+
+        var label = chartData.labels[idx];
+        var value = chartData.datasets[elementIndex].data[idx];
+        var series = chartData.datasets[elementIndex].label;
+
+        $rootScope.selectedGenerationNumber = idx;
+        $rootScope.$apply();
     }
 
     /**
@@ -198,13 +232,6 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
                     // log data to the console so we can see
                     console.log(data);
-                    // function getSum(total, num) {
-                    //     return total + num;
-                    // }
-                    // var avgScores = data.map(arr => arr.reduce(getSum) / arr.length);
-                    // var maxScores = data.map(arr => Math.max.apply(Math, arr));
-                    // var minScores = data.map(arr => Math.min.apply(Math, arr));
-                    // initializeChart(minScores, avgScores, maxScores);
                     $scope.response.hasError = false;
                     $scope.$apply();
                 },
@@ -238,8 +265,8 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 });
 
 app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
-    $scope.getGenerations = function() {
-        return $rootScope.generations
+    $scope.getPopulation = function() {
+        return $rootScope.generations[$rootScope.selectedGenerationNumber].candidateList;
     };
 
     $scope.getMostFitCompound = function (generation) {
@@ -248,5 +275,28 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
             return e.fitness > l.fitness ? e : l;
         });
     };
+
+    $scope.downloadCompound = function (compoundId) {
+        // Set data
+        let formData = 'compoundId=' + compoundId;
+
+        jQuery.ajax({
+            url:'compound.download',
+            type:'POST',
+            method: 'POST',
+            data: formData,
+            cache: false,
+            responseType: "application/zip",
+            success: function (data, textStatus, jqXHR) {
+
+                // log data to the console so we can see
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+
+                console.log(jqXHR);
+            }
+        });
+    }
 
 });

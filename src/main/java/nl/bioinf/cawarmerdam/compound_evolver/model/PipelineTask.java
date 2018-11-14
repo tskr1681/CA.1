@@ -16,7 +16,7 @@ public class PipelineTask implements Callable<Void> {
     @Override
     public Void call() {
         System.out.println(Thread.currentThread().getName()+" Start. Candidate identifier = "+candidate.getIdentifier());
-        double score = -this.pipeline.execute(candidate);
+        double score = this.pipeline.execute(candidate);
         candidate.setScore(score);
         return null;
     }

@@ -105,6 +105,12 @@ public class Population implements Iterable<Candidate> {
         this.scores = new ArrayList<>();
     }
 
+    /**
+     * Initializes a population from the reactant lists and the reaction.
+     * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
+     * in the reaction.
+     * @throws ReactionException if an exception was thrown during a reaction.
+     */
     private void initializePopulation() throws MisMatchedReactantCount, ReactionException {
         int reactantCount = this.reaction.getReactantCount();
         if (reactantCount != reactantLists.size()) {
@@ -425,7 +431,7 @@ public class Population implements Iterable<Candidate> {
     private void produceOffspring(int offspringSize) {
         // Get scores
         scores.add(candidateList.stream()
-                .map(Candidate::getScore)
+                .map(Candidate::getFitness)
                 .collect(Collectors.toList()));
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
@@ -588,7 +594,7 @@ public class Population implements Iterable<Candidate> {
     private int rouletteSelect() {
         // Create a stream to get the score of every candidate and convert this to a double
         return makeWeightedChoice(candidateList.stream()
-                .map(Candidate::getScore)
+                .map(Candidate::getFitness)
                 .mapToDouble(v -> v)
                 .toArray());
     }

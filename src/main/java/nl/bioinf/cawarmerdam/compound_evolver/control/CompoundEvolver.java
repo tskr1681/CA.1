@@ -68,7 +68,7 @@ public class CompoundEvolver {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
         this.maxNumberOfGenerations = 5;
-        this.forceField = ForceField.MMFF94;
+        this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
 

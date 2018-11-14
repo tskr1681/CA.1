@@ -114,6 +114,7 @@ public class EvolveServlet extends HttpServlet {
         CompoundEvolver evolver = new CompoundEvolver(
                 initialPopulation, progressConnector);
 
+//        request.getSession(false).invalidate();
         HttpSession session = request.getSession();
         session.setAttribute("progress_connector", progressConnector);
 
@@ -165,6 +166,14 @@ public class EvolveServlet extends HttpServlet {
             session.setAttribute("session_id", sessionID);
         }
         sessionID = (String) session.getAttribute("session_id");
+        return sessionID;
+    }
+
+    private String SetSessionId(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String sessionID;
+        sessionID = generateRandomToken();
+        session.setAttribute("session_id", sessionID);
         return sessionID;
     }
 
@@ -277,7 +286,7 @@ public class EvolveServlet extends HttpServlet {
     private int getIntegerParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
         String parameter = request.getParameter(name);
         if (parameter == null) {
-            // Throw parameter
+            // Throw exception
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.NULL);
         } else if (parameter.length() == 0) {
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.EMPTY);

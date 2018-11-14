@@ -21,8 +21,9 @@ public class EneFileParser {
                 // If line starts with ' 1' the next text is the score
                 if (lineFromFile.startsWith(" 1")) {
                     // Get score after this
-                    String[] split = lineFromFile.split("\\s+");
-                    scores.add(Double.parseDouble(split[2]));
+                    // Only the characters 5 (0 based, inclusive) until the character 10 (exclusive) can contain a score
+                    String score = lineFromFile.substring(5, 10);
+                    scores.add(Double.parseDouble(score));
                 }
             }
         } catch (IOException e) {

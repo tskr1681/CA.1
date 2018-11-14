@@ -23,11 +23,20 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>DownloadZippedCompoundServlet</servlet-name>
+        <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.DownloadZippedCompoundServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DownloadZippedCompoundServlet</servlet-name>
+        <url-pattern>/compound.download</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>EvolveServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet</servlet-class>
         <init-param>
             <param-name>dummy.fitness</param-name>
-            <param-value>1</param-value>
+            <param-value>0</param-value>
         </init-param>
     </servlet>
     <servlet-mapping>

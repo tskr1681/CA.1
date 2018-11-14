@@ -38,3 +38,8 @@ input[type="file"] {
 ul#sortableReactantList > li {
     cursor: grab;
 }
+
+canvas#myChart {
+    width: 100% !important;
+    height: auto !important;
+}

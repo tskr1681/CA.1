@@ -596,24 +596,22 @@
             <div class="col-lg-12" ng-controller="CompoundsCtrl">
                 <div>
                     <h2>Compounds</h2>
-                    <div ng-repeat="generation in getGenerations()">
-                        <table class="table table-condensed table-borderless mono-font">
-                            <thead>
-                            <tr>
-                                <th>GENERATION</th>
-                                <th>COMPOUND</th>
-                                <th class="text-muted">FITNESS</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td><a href="#">{{generation.number}}</a></td>
-                                <td>{{getMostFitCompound(generation).smiles}}</td>
-                                <td class="text-muted">{{getMostFitCompound(generation).fitness}}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="table table-condensed table-borderless mono-font">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>COMPOUND</th>
+                            <th class="text-muted">FITNESS</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="candidate in getPopulation()">
+                            <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
+                            <td>{{candidate.smiles}}</td>
+                            <td class="text-muted">{{candidate.fitness}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

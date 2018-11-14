@@ -94,6 +94,15 @@ public class Candidate implements Comparable<Candidate>{
     }
 
     /**
+     * Getter for the fitness of this candidate.
+     * Higher is better.
+     * @return the fitness of this candidate.
+     */
+    public Double getFitness() {
+        return -score;
+    }
+
+    /**
      * Setter for the score attribute
      * @param score the score of this candidate
      */
@@ -187,7 +196,7 @@ public class Candidate implements Comparable<Candidate>{
 
     @Override
     public int compareTo(Candidate o) {
-        return -Double.compare(this.getScore(), o.getScore());
+        return -Double.compare(this.getFitness(), o.getFitness());
     }
 
     public void setEnvironment(double pHLower, double pHUpper, double pHStep) {
