@@ -19,12 +19,16 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
     }
 
     @Override
-    public Path execute(Candidate candidate) {
+    public Path execute(Candidate candidate) throws PipeLineException {
         Path conformerFileName = getConformerFileName(candidate);
         File directory = new File(String.valueOf(conformerFileName.getParent()));
         // Make directory if it does not exist
         if (! directory.exists()){
-            directory.mkdir();
+            boolean mkdirSuccess = directory.mkdir();
+            // Throw an exception if making a new directory failed.
+            if (!mkdirSuccess) {
+                throw new PipeLineException("Failed to make directory");
+            }
         }
         try {
             Molecule[] conformers = createConformers(candidate.getPhenotype());

@@ -458,9 +458,10 @@
                                 <select class="form-control"
                                         id="force-field"
                                         ng-model="formModel.forceField"
+                                        name="forceField"
                                         required="required">
-                                    <option>mmff94</option>
-                                    <option>mab(moloc)</option>
+                                    <option value="mmff94">mmff94</option>
+                                    <option value="mab">mab(moloc)</option>
                                 </select>
                             </div>
                         </div>
@@ -605,7 +606,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="candidate in getPopulation()">
+                        <tr ng-repeat="candidate in getPopulation() | orderBy:'fitness'">
                             <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
                             <td>{{candidate.smiles}}</td>
                             <td class="text-muted">{{candidate.fitness}}</td>

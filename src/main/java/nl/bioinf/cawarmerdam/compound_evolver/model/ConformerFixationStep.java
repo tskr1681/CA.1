@@ -21,7 +21,6 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
     private String smartsPattern;
     private Path referenceMolecule;
     private String obfitExecutable;
-    private static Path subPath = Paths.get("fixed");
 
     public ConformerFixationStep(Path referenceMolecule, String obfitExecutable) {
         this.referenceMolecule = referenceMolecule;
@@ -54,12 +53,8 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
     @Override
     public Path execute(Path targetMolecule) throws PipeLineException {
         Path outFile = targetMolecule.resolveSibling(
-                Paths.get(subPath.toString(), targetMolecule.getFileName().toString()));
-        File directory = new File(String.valueOf(outFile.getParent()));
-        // Make directory if it does not exist
-        if (! directory.exists()){
-            directory.mkdir();
-        }
+                Paths.get(String.format("fixed_%s", targetMolecule.getFileName().toString())));
+
         // Try to fixate conformers using obfit
         obFit(targetMolecule.toString(), outFile.toString());
         return outFile;

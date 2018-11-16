@@ -20,7 +20,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         mutationMethod:'Distance dependent',
         terminationCondition: 'fixed',
         nonImprovingGenerationQuantity: 0.3,
-        forceField: 'mmff94',
+        forceField: 'mab',
         useLipinski: false,
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
@@ -122,7 +122,9 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                     return total + num;
                 }
 
-                data.forEach(function (generation) {
+                let generations = data.generationBuffer;
+
+                generations.forEach(function (generation) {
                     generationFitnesses = generation.candidateList.map(candidate => candidate.fitness);
                     addData(myChart, generation.number, [
                         generationFitnesses
@@ -278,25 +280,12 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
 
     $scope.downloadCompound = function (compoundId) {
         // Set data
-        let formData = 'compoundId=' + compoundId;
+        let url = './compound.download?compoundId=' + compoundId;
 
-        jQuery.ajax({
-            url:'compound.download',
-            type:'POST',
-            method: 'POST',
-            data: formData,
-            cache: false,
-            responseType: "application/zip",
-            success: function (data, textStatus, jqXHR) {
-
-                // log data to the console so we can see
-                console.log(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-
-                console.log(jqXHR);
-            }
-        });
+        var iframe = document.createElement("iframe");
+        iframe.setAttribute("src", url);
+        iframe.setAttribute("style", "display: none");
+        document.body.appendChild(iframe);
     }
 
 });

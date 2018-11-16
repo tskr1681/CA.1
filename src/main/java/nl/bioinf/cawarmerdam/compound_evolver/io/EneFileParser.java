@@ -22,7 +22,7 @@ public class EneFileParser {
                 if (lineFromFile.startsWith(" 1")) {
                     // Get score after this
                     // Only the characters 5 (0 based, inclusive) until the character 10 (exclusive) can contain a score
-                    String score = lineFromFile.substring(5, 10);
+                    String score = lineFromFile.substring(2, 10);
                     scores.add(Double.parseDouble(score));
                 }
             }

@@ -10,12 +10,13 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(name = "DownloadZippedCompoundServlet", urlPatterns = "/compound.download")
 public class DownloadZippedCompoundServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         handlePost(request, response);
     }
 
@@ -36,6 +37,7 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
 
         // Checks to see if the directory contains some files.
         try {
+            System.out.println("files = " + Arrays.toString(files));
             if (files != null && files.length > 0) {
 
                 // Call the zipFiles method for creating a zip stream.

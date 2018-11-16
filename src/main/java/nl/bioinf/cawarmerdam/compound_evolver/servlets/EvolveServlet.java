@@ -7,10 +7,7 @@ import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
-import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
-import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
-import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
-import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
+import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -56,7 +53,7 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
-    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException {
+    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException, PipeLineException {
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
@@ -122,18 +119,7 @@ public class EvolveServlet extends HttpServlet {
         System.out.println("dummy : " + getInitParameter("dummy.fitness"));
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
         if (!evolver.isDummyFitness()) {
-            Path outputFileLocation = Paths.get(
-                    System.getenv("PL_TARGET_DIR"), sessionID);
-            if (! outputFileLocation.toFile().exists()){
-                boolean mkdir = outputFileLocation.toFile().mkdir();
-                System.out.println("mkdir = " + mkdir);
-            }
-            Path receptorLocation = outputFileLocation.resolve("rec.pdb");
-            copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);
-            Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
-            copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
-            evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation);
-            System.out.println("evolver.getPipelineOutputFileLocation() = " + evolver.getPipelineOutputFileLocation());
+            setPipelineParameters(request, evolver, sessionID);
         }
 
         // Get number of numberOfGenerations
@@ -154,6 +140,32 @@ public class EvolveServlet extends HttpServlet {
         evolver.setTerminationCondition(terminationCondition);
 
         return evolver;
+    }
+
+    private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, String sessionID) throws IOException, ServletException, PipeLineException {
+        Path outputFileLocation = Paths.get(
+                System.getenv("PL_TARGET_DIR"), sessionID);
+
+        // Check if the location already exists
+        if (! outputFileLocation.toFile().exists()){
+            boolean mkdir = outputFileLocation.toFile().mkdir();
+            System.out.println("mkdir = " + mkdir);
+        }
+
+        // Get and set force field that should be used
+        evolver.setForceField( CompoundEvolver.ForceField.fromString(
+                request.getParameter("forceField")));
+
+        // Copy files from request to the pipeline target directory
+        Path receptorLocation = outputFileLocation.resolve("rec.pdb");
+        copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);
+        Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
+        copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
+
+        // Setup the pipeline using the gathered locations paths
+        evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation);
+
+        System.out.println("evolver.getPipelineOutputFileLocation() = " + evolver.getPipelineOutputFileLocation());
     }
 
     private String getSessionId(HttpServletRequest request) {

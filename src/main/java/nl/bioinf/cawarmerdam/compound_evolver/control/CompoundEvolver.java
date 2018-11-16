@@ -31,18 +31,31 @@ public class CompoundEvolver {
     private Population population;
     private EvolutionProgressConnector evolutionProgressConnector;
     private double nonImprovingGenerationAmountFactor;
-
-    public boolean isDummyFitness() {
-        return dummyFitness;
-    }
-
     private boolean dummyFitness;
 
     public void setDummyFitness(boolean dummyFitness) {
         this.dummyFitness = dummyFitness;
     }
 
-    public enum ForceField {MAB, MMFF94}
+    public enum ForceField {
+        MAB("mab"),
+        MMFF94("mmff94");
+
+        private final String text;
+
+        ForceField(String text) {
+            this.text = text;
+        }
+
+        public static ForceField fromString(String text) {
+            for (ForceField condition : ForceField.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
 
     public enum TerminationCondition {
         FIXED_GENERATION_NUMBER("fixed"),
@@ -62,7 +75,8 @@ public class CompoundEvolver {
                 }
             }
             throw new IllegalArgumentException("No constant with text " + text + " found");
-        }}
+        }
+    }
 
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
@@ -72,12 +86,16 @@ public class CompoundEvolver {
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
 
+    public boolean isDummyFitness() {
+        return dummyFitness;
+    }
+
     public Path getPipelineOutputFileLocation() {
         return pipelineOutputFileLocation;
     }
 
-    public void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) {
-        if (!pipelineOutputFileLocation.toFile().exists()){
+    public void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) throws PipeLineException {
+        if (!pipelineOutputFileLocation.toFile().exists()) {
             boolean mkdir = pipelineOutputFileLocation.toFile().mkdir();
             if (!mkdir) {
                 throw new PipeLineException(String.format("Could not create directory '%s'",
@@ -127,6 +145,7 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     public void evolve() {
+        evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         // Evolve
@@ -138,6 +157,7 @@ public class CompoundEvolver {
             scoreCandidates();
             evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         }
+        evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
     }
 
     private void scoreCandidates() {
@@ -151,16 +171,18 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             for (Candidate candidate : this.population) {
                 // Setup callable
-                Callable<Void> pipelineExecutor = new PipelineTask(pipe, candidate);
+                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, candidate);
                 // Add future, which the executor will return to the list
-                futures.add(executor.submit(pipelineExecutor));
+                futures.add(executor.submit(PipelineContainer));
             }
             // Loop through futures to handle thrown exceptions
-            for(Future<Void> future : futures){
+            for (Future<Void> future : futures) {
                 try {
                     future.get();
                 } catch (InterruptedException | ExecutionException e) {
                     // Handle exception
+                    evolutionProgressConnector.putException(e);
+                    // Log exception
                     e.printStackTrace();
                 }
             }
@@ -209,7 +231,7 @@ public class CompoundEvolver {
         return nonImprovingGenerationNumber < generationNumber;
     }
 
-    private void setupPipeline(Path outputFileLocation) {
+    private void setupPipeline(Path outputFileLocation) throws PipeLineException {
         Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
         Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
         setupPipeline(outputFileLocation, receptor, anchor);
@@ -218,7 +240,7 @@ public class CompoundEvolver {
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) {
+    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) throws PipeLineException {
         // Set the pipeline output location
         this.setPipelineOutputFileLocation(outputFileLocation);
 
@@ -234,7 +256,7 @@ public class CompoundEvolver {
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
-    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) {
+    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) throws PipeLineException {
         if (this.forceField == ForceField.MAB) {
             String mol3dExecutable = getExecutable("MOL3D_EXE");
             String esprntoExecutable = getExecutable("ESPRNTO_EXE");
@@ -264,6 +286,7 @@ public class CompoundEvolver {
 
     /**
      * Method responsible for obtaining an executable path from the environment variables
+     *
      * @param variableName The name of the environment variable containing the executable path
      * @return path to the executable as a String
      */

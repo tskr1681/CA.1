@@ -28,7 +28,6 @@ public class ProgressUpdateServlet extends HttpServlet {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             SessionEvolutionProgressConnector progressConnector = handleProgressUpdateRequest(request);
-            List<Generation> generations = progressConnector.emptyGenerationBuffer();
             // Get object mapper
             SimpleModule module = new SimpleModule();
             module.addSerializer(Candidate.class, new CandidateSerializer());
@@ -36,7 +35,7 @@ public class ProgressUpdateServlet extends HttpServlet {
             mapper.registerModule(module);
 
             // Write new generations
-            mapper.writeValue(response.getOutputStream(), generations);
+            mapper.writeValue(response.getOutputStream(), progressConnector);
         } catch (Exception e) {
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
@@ -46,7 +45,6 @@ public class ProgressUpdateServlet extends HttpServlet {
 
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String sessionId = getSessionId(session);
         // get sessions new generations
         return getProgressConnector(session);
     }
@@ -59,15 +57,6 @@ public class ProgressUpdateServlet extends HttpServlet {
             // Throw exception
         }
         return progressConnector;
-    }
-
-    private String getSessionId(HttpSession session) {
-        String sessionID;
-        if (session.isNew() || session.getAttribute("session_id") == null) {
-            // No session id
-        }
-        sessionID = (String) session.getAttribute("session_id");
-        return sessionID;
     }
 }
 

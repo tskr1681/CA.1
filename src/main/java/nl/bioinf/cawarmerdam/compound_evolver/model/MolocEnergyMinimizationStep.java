@@ -14,14 +14,14 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String molocExecutable;
 
-    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) {
+    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipeLineException {
         super(forcefield);
         this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }
 
     @Override
-    public Double execute(Path inputFile) {
+    public Double execute(Path inputFile) throws PipeLineException {
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
         mol3d(inputFile);
@@ -41,7 +41,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         return 0.0;
     }
 
-    private void mol3d(Path inputFile) {
+    private void mol3d(Path inputFile) throws PipeLineException {
         // Initialize string line
         String line = null;
 
@@ -95,7 +95,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
-    private Path convertToMabFile(Path receptorFile, String esprntoExecutable) {
+    private Path convertToMabFile(Path receptorFile, String esprntoExecutable) throws PipeLineException {
         String line = null;
 
         try {

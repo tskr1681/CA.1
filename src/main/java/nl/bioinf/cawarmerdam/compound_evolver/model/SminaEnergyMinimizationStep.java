@@ -8,8 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
@@ -22,31 +21,34 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
     }
 
     @Override
-    public Double execute(Path inputFile) {
-        String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
-        String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
+    public Double execute(Path inputFile) throws PipeLineException {
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
-        smina(inputFile, conformerCoordinates);
+        List<String> smina = smina(inputFile, conformerCoordinates);
+        List<Double> conformerScores = getConformerScores(smina);
+        if (conformerScores.size() > 0) {
+            return Collections.min(conformerScores);
+        }
         return 0.0;
     }
 
-    private void smina(Path inputFile, Map<String, Double> conformerCoordinates) {
+    private List<Double> getConformerScores(List<String> smina) {
+        ArrayList<Double> conformerScores = new ArrayList<>();
+        for (String line : smina) {
+            if (line.startsWith("Affinity:")) {
+                String[] split = line.split("\\s+");
+                conformerScores.add(Double.parseDouble(split[1]));
+            }
+        }
+        return conformerScores;
+    }
+
+    private List<String> smina(Path inputFile, Map<String, Double> conformerCoordinates) throws PipeLineException {
         // Initialize string line
         String line = null;
 
-        // Build command
-        String command = String.format("%s --receptor \"%s\" --ligand \"%s\" " +
-                        "--center_x \"%s\" --center_y \"%s\" --center_z \"%s\" " +
-                        "--size_x \"%s\" --size_y \"%s\" --size_z \"%s\" --minimize",
-                sminaExecutable,
-                String.valueOf(receptorFilePath),
-                String.valueOf(inputFile),
-                conformerCoordinates.get("centerX"),
-                conformerCoordinates.get("centerY"),
-                conformerCoordinates.get("centerZ"),
-                conformerCoordinates.get("sizeX"),
-                conformerCoordinates.get("sizeY"),
-                conformerCoordinates.get("sizeZ"));
+        // Initialize smina output list.
+        List<String> sminaOutput = new ArrayList<String>();
+
         try {
             ProcessBuilder builder = new ProcessBuilder(
                     sminaExecutable,
@@ -58,7 +60,8 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                     "--size_x", conformerCoordinates.get("sizeX").toString(),
                     "--size_y", conformerCoordinates.get("sizeY").toString(),
                     "--size_z", conformerCoordinates.get("sizeZ").toString(),
-                    "--minimize");
+                    "--minimize", "--log", inputFile.resolveSibling("log.txt").toString(),
+                    "--out", inputFile.resolveSibling("smina.sdf").toString());
 
             // Build process with the command
             Process p = builder.start();
@@ -74,7 +77,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             // read the output from the command
             System.out.println("Here is the standard output of the command:\n");
             while ((line = stdInput.readLine()) != null) {
-                System.out.println(line);
+                sminaOutput.add(line);
             }
 
             // read any errors from the attempted command
@@ -82,11 +85,11 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             while ((line = stdError.readLine()) != null) {
                 System.out.println(line);
             }
+            return sminaOutput;
 
         } catch (IOException e) {
             throw new PipeLineException(String.format(
                     "minimizing energy with command: '%s' failed with the following exception: %s",
-                    command,
                     e.toString()));
         }
     }
@@ -133,7 +136,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         return pdbqtFilePath;
     }
 
-    public static Map<String, Double> getConformerCoordinates(Path ligandPath) {
+    public static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipeLineException {
         try {
 
             // Initialize new Lists for centers and sizes
@@ -177,10 +180,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             return coordinates;
 
         } catch (IOException e) {
-            e.printStackTrace();
-            // Throw exception
+            throw new PipeLineException(e.getMessage());
         }
-
-        return null;
     }
 }

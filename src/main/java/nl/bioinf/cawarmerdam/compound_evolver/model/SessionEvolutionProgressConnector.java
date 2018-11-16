@@ -1,46 +1,44 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SessionEvolutionProgressConnector implements EvolutionProgressConnector {
     private List<Exception> exceptions;
-    private boolean isRunning;
+    private Status status;
     private List<Generation> generationBuffer = new ArrayList<>();
+    private boolean terminationRequired = false;
 
     public SessionEvolutionProgressConnector() {
-        isRunning = true;
+        status = Status.STARTING;
     }
 
-    @Override
-    public void handleNewGeneration(Generation generation) {
-        // Initialize arraylist
-//        List<Generation> generationList = new ArrayList<>();
-
-        // We don't know if the session attribute really is a list of generations, but it should be.
-
-//        @SuppressWarnings("unchecked")
-//        List<Generation> generation_buffer = (List<Generation>) session.getAttribute("generation_buffer");
-
-//        // Include existing buffer if not null
-//        if (generation_buffer != null) {
-//            generationList.addAll(generation_buffer);
-//        }
-
-        // Add the new generation to the buffer
-        generationBuffer.add(generation);
-    }
-
-    public List<Generation> emptyGenerationBuffer() {
+    public List<Generation> getGenerationBuffer() {
         ArrayList<Generation> oldBuffer = new ArrayList<>(generationBuffer);
         generationBuffer.clear();
         return oldBuffer;
     }
 
+    public List<Exception> getExceptions() {
+        return exceptions;
+    }
+
+    public void terminateEvolutionProgress() {
+        this.terminationRequired = true;
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
+    @Override
+    public void handleNewGeneration(Generation generation) {
+        generationBuffer.add(generation);
+    }
+
     @Override
     public boolean isTerminationRequired() {
-        return false;
+        return terminationRequired;
     }
 
     @Override
@@ -49,7 +47,7 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
     }
 
     @Override
-    public void setStatus(boolean isRunning) {
-        this.isRunning = isRunning;
+    public void setStatus(Status isRunning) {
+        this.status = isRunning;
     }
 }

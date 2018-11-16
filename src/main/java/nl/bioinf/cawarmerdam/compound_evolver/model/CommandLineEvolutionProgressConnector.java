@@ -17,7 +17,7 @@ public class CommandLineEvolutionProgressConnector implements EvolutionProgressC
     }
 
     @Override
-    public void setStatus(boolean isRunning) {
+    public void setStatus(Status isRunning) {
         // Do something
     }
 }
