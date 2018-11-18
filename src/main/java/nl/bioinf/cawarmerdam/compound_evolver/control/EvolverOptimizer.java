@@ -7,7 +7,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.CommandLineEvolutionProgressConnector;
 import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
-import nl.bioinf.cawarmerdam.compound_evolver.model.PipeLineException;
+import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
 import java.nio.file.Path;
@@ -23,7 +23,7 @@ public class EvolverOptimizer {
         for (String permutation : permutations) {
             try {
                 run(reactantLists, reactor, receptorPath, anchorPath, 50);
-            } catch (MisMatchedReactantCount | ReactionException | PipeLineException misMatchedReactantCount) {
+            } catch (MisMatchedReactantCount | ReactionException | PipelineException misMatchedReactantCount) {
                 misMatchedReactantCount.printStackTrace();
             }
         }
@@ -43,7 +43,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private void run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipeLineException {
+    private void run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipelineException {
         Population population = new Population(reactantLists, reactor, initialGenerationSize);
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);

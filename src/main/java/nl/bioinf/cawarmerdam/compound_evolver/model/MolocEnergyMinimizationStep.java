@@ -14,14 +14,14 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String molocExecutable;
 
-    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipeLineException {
+    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
         super(forcefield);
         this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }
 
     @Override
-    public Double execute(Path inputFile) throws PipeLineException {
+    public Double execute(Path inputFile) throws PipelineException {
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
         mol3d(inputFile);
@@ -41,7 +41,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         return 0.0;
     }
 
-    private void mol3d(Path inputFile) throws PipeLineException {
+    private void mol3d(Path inputFile) throws PipelineException {
         // Initialize string line
         String line = null;
 
@@ -85,17 +85,18 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 //                System.out.println(line);
 //            }
 
-        } catch (IOException e) {
-            throw new PipeLineException(String.format(
-                    "minimizing energy with command: '%s' failed with the following exception: %s",
-                    command,
-                    e.toString()));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException | IOException e) {
+
+            // Throw pipeline exception
+            throw new PipelineException("Energy minimization with Smina failed.", e);
         }
     }
 
-    private Path convertToMabFile(Path receptorFile, String esprntoExecutable) throws PipeLineException {
+    private Path convertToMabFile(Path receptorFile, String esprntoExecutable) throws PipelineException {
+        Path mabFilePath = receptorFile.resolveSibling(
+                FilenameUtils.removeExtension(receptorFile.getFileName().toString()) +
+                        "_e.mab");
+
         String line = null;
 
         try {
@@ -129,16 +130,18 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 //            while ((line = stdError.readLine()) != null) {
 //                System.out.println(line);
 //            }
+            return mabFilePath;
 
-        } catch (IOException e) {
-            throw new PipeLineException(String.format(
-                    "minimizing energy failed with the following exception: %s",
-                    e.toString()));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException | IOException e) {
+
+            // Format exception message
+            String exceptionMessage = String.format(
+                    "The conversion of file '%s' to '%s' failed.",
+                    receptorFile.getFileName(),
+                    mabFilePath.getFileName());
+
+            // Throw pipeline exception
+            throw new PipelineException(exceptionMessage, e);
         }
-        return receptorFile.resolveSibling(
-                FilenameUtils.removeExtension(receptorFile.getFileName().toString()) +
-                        "_e.mab");
     }
 }

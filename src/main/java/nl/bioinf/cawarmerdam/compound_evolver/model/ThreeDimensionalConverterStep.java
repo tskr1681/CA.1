@@ -19,7 +19,7 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
     }
 
     @Override
-    public Path execute(Candidate candidate) throws PipeLineException {
+    public Path execute(Candidate candidate) throws PipelineException {
         Path conformerFileName = getConformerFileName(candidate);
         File directory = new File(String.valueOf(conformerFileName.getParent()));
         // Make directory if it does not exist
@@ -27,7 +27,7 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
             boolean mkdirSuccess = directory.mkdir();
             // Throw an exception if making a new directory failed.
             if (!mkdirSuccess) {
-                throw new PipeLineException("Failed to make directory");
+                throw new PipelineException("Failed to make directory");
             }
         }
         try {

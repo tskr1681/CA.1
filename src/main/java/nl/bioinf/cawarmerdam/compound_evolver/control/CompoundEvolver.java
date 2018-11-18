@@ -10,6 +10,8 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -94,12 +96,19 @@ public class CompoundEvolver {
         return pipelineOutputFileLocation;
     }
 
-    public void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) throws PipeLineException {
+    private void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) throws PipelineException {
         if (!pipelineOutputFileLocation.toFile().exists()) {
-            boolean mkdir = pipelineOutputFileLocation.toFile().mkdir();
-            if (!mkdir) {
-                throw new PipeLineException(String.format("Could not create directory '%s'",
-                        pipelineOutputFileLocation.toString()));
+            // Try to create the file output location
+            try {
+                Files.createDirectory(pipelineOutputFileLocation);
+            } catch (IOException e) {
+
+                // Format exception method
+                String exceptionMessage = String.format("Could not create directory '%s'",
+                        pipelineOutputFileLocation.toString());
+                // Throw pipeline exception
+                throw new PipelineException(
+                        exceptionMessage, e);
             }
         }
         this.pipelineOutputFileLocation = pipelineOutputFileLocation;
@@ -231,7 +240,7 @@ public class CompoundEvolver {
         return nonImprovingGenerationNumber < generationNumber;
     }
 
-    private void setupPipeline(Path outputFileLocation) throws PipeLineException {
+    private void setupPipeline(Path outputFileLocation) throws PipelineException {
         Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
         Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
         setupPipeline(outputFileLocation, receptor, anchor);
@@ -240,7 +249,7 @@ public class CompoundEvolver {
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) throws PipeLineException {
+    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFileLocation(outputFileLocation);
 
@@ -256,7 +265,7 @@ public class CompoundEvolver {
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
-    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) throws PipeLineException {
+    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) throws PipelineException {
         if (this.forceField == ForceField.MAB) {
             String mol3dExecutable = getExecutable("MOL3D_EXE");
             String esprntoExecutable = getExecutable("ESPRNTO_EXE");

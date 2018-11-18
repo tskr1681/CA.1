@@ -14,14 +14,18 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String sminaExecutable;
 
-    public SminaEnergyMinimizationStep(String forcefield, Path receptorFilePath, String sminaExecutable, String pythonExecutable, String prepareReceptorExecutable) {
+    public SminaEnergyMinimizationStep(String forcefield,
+                                       Path receptorFilePath,
+                                       String sminaExecutable,
+                                       String pythonExecutable,
+                                       String prepareReceptorExecutable) throws PipelineException {
         super(forcefield);
         this.receptorFilePath = convertToPdbQt(receptorFilePath, pythonExecutable, prepareReceptorExecutable);
         this.sminaExecutable = sminaExecutable;
     }
 
     @Override
-    public Double execute(Path inputFile) throws PipeLineException {
+    public Double execute(Path inputFile) throws PipelineException {
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
         List<String> smina = smina(inputFile, conformerCoordinates);
         List<Double> conformerScores = getConformerScores(smina);
@@ -42,7 +46,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         return conformerScores;
     }
 
-    private List<String> smina(Path inputFile, Map<String, Double> conformerCoordinates) throws PipeLineException {
+    private List<String> smina(Path inputFile, Map<String, Double> conformerCoordinates) throws PipelineException {
         // Initialize string line
         String line = null;
 
@@ -88,13 +92,13 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             return sminaOutput;
 
         } catch (IOException e) {
-            throw new PipeLineException(String.format(
-                    "minimizing energy with command: '%s' failed with the following exception: %s",
-                    e.toString()));
+
+            // Throw pipeline exception
+            throw new PipelineException("Energy minimization with Smina failed.", e);
         }
     }
 
-    private Path convertToPdbQt(Path pdbPath, String pythonExecutable, String prepareReceptorExecutable) {
+    private Path convertToPdbQt(Path pdbPath, String pythonExecutable, String prepareReceptorExecutable) throws PipelineException {
         String fileName = pdbPath.getFileName().toString();
         Path pdbqtFilePath = Paths.get(FilenameUtils.removeExtension(pdbPath.toString()) + ".pdbqt");
 
@@ -129,14 +133,21 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             while ((line = stdError.readLine()) != null) {
                 System.out.println(line);
             }
-
+            return pdbqtFilePath;
         } catch (IOException e) {
-            e.printStackTrace();
+
+            // Format exception message
+            String exceptionMessage = String.format(
+                    "The conversion of file '%s' to '%s' failed.",
+                    pdbPath.getFileName(),
+                    pdbqtFilePath.getFileName());
+
+            // Throw pipeline exception
+            throw new PipelineException(exceptionMessage, e);
         }
-        return pdbqtFilePath;
     }
 
-    public static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipeLineException {
+    private static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
         try {
 
             // Initialize new Lists for centers and sizes
@@ -180,7 +191,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             return coordinates;
 
         } catch (IOException e) {
-            throw new PipeLineException(e.getMessage());
+            throw new PipelineException("Conformer coordinates could not be obtained.", e);
         }
     }
 }

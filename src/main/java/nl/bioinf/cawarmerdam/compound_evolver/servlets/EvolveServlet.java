@@ -1,6 +1,5 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
-import chemaxon.license.LicenseManager;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
@@ -53,7 +52,7 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
-    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException, PipeLineException {
+    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException, PipelineException {
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
@@ -142,7 +141,7 @@ public class EvolveServlet extends HttpServlet {
         return evolver;
     }
 
-    private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, String sessionID) throws IOException, ServletException, PipeLineException {
+    private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, String sessionID) throws IOException, ServletException, PipelineException {
         Path outputFileLocation = Paths.get(
                 System.getenv("PL_TARGET_DIR"), sessionID);
 
