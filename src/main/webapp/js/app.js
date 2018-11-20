@@ -35,6 +35,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     $scope.response = {hasError: false};
 
     var myChart = null;
+    var evolveStatus = null;
 
     $( function() {
         $("#sortableReactantList").sortable({
@@ -123,6 +124,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 }
 
                 let generations = data.generationBuffer;
+                evolveStatus = data.status;
 
                 generations.forEach(function (generation) {
                     generationFitnesses = generation.candidateList.map(candidate => candidate.fitness);
@@ -248,15 +250,15 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             });
             initializeChart([]);
 
-            var counter = 0;
+            evolveStatus = null;
+
             var i = setInterval(function(){
                 // do your thing
                 getProgressUpdate();
-                counter++;
-                if(counter === 1000) {
+                if(["FAILED", "SUCCESS"].includes(evolveStatus)) {
                     clearInterval(i);
                 }
-            }, 2000);
+            }, 5000);
 
         } else {
             // Form is not valid. Keep quiet.

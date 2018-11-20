@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SessionEvolutionProgressConnector implements EvolutionProgressConnector {
-    private List<Exception> exceptions;
+    private List<Exception> exceptions = new ArrayList<>();
     private Status status;
     private List<Generation> generationBuffer = new ArrayList<>();
     private boolean terminationRequired = false;

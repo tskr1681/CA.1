@@ -147,7 +147,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
-    private static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
+    public static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
         try {
 
             // Initialize new Lists for centers and sizes

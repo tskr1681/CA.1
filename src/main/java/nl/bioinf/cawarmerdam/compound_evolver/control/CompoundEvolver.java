@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -34,10 +35,7 @@ public class CompoundEvolver {
     private EvolutionProgressConnector evolutionProgressConnector;
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
-
-    public void setDummyFitness(boolean dummyFitness) {
-        this.dummyFitness = dummyFitness;
-    }
+    private List<List<Double>> scores = new ArrayList<>();
 
     public enum ForceField {
         MAB("mab"),
@@ -83,9 +81,13 @@ public class CompoundEvolver {
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
-        this.maxNumberOfGenerations = 5;
+        this.maxNumberOfGenerations = 25;
         this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
+    }
+
+    public void setDummyFitness(boolean dummyFitness) {
+        this.dummyFitness = dummyFitness;
     }
 
     public boolean isDummyFitness() {
@@ -118,6 +120,15 @@ public class CompoundEvolver {
         return nonImprovingGenerationAmountFactor;
     }
 
+    /**
+     * Getter for the fitness of candidates in every generationNumber so far.
+     *
+     * @return a list of lists of fitness scores
+     */
+    public List<List<Double>> getFitness() {
+        return scores;
+    }
+
     public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
         this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
     }
@@ -146,10 +157,6 @@ public class CompoundEvolver {
         this.maxNumberOfGenerations = generations;
     }
 
-    public List<List<Double>> getPopulationFitness() {
-        return this.population.getFitness();
-    }
-
     /**
      * Evolve compounds
      */
@@ -174,7 +181,7 @@ public class CompoundEvolver {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
             // Get executorService with thread pool size 4
-            ExecutorService executor = Executors.newFixedThreadPool(16);
+            ExecutorService executor = Executors.newFixedThreadPool(32);
             // Create list to hold future object associated with Callable
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
@@ -204,6 +211,10 @@ public class CompoundEvolver {
                 candidate.setScore(score);
             }
         }
+        // Collect scores
+        scores.add(this.population.stream()
+                .map(Candidate::getFitness)
+                .collect(Collectors.toList()));
     }
 
     private boolean shouldTerminate() {
@@ -216,7 +227,7 @@ public class CompoundEvolver {
 
     private boolean hasConverged(int generationNumber) {
         // Get all fitness scores so far
-        List<List<Double>> populationFitness = this.getPopulationFitness();
+        List<List<Double>> populationFitness = this.getFitness();
 
         // Initialize highestScore and it's generation number
         double highestScore = 0;

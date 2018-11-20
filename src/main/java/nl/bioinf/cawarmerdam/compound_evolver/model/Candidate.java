@@ -158,11 +158,17 @@ public class Candidate implements Comparable<Candidate>{
         // Get crossover points to do uniform crossing over
         boolean[] crossoverPoints = generateCrossoverPoints();
         // Select the allele from this candidates genotype if true,
-        // otherwise select hte allele from the other candidate
+        // otherwise select the allele from the other candidate
         // Return the new genotype
         return IntStream.range(0, genomeSize)
         .mapToObj(i -> crossoverPoints[i]? this.getGenotype().get(i) : other.getGenotype().get(i))
         .collect(Collectors.toList());
+        // Should probably also return the child generated from the inverse of the crossover points:
+        // P1 = 2, 4, 8
+        // P2 = 1, 6, 7
+        // Crossover points = 1, 0, 1
+        // O1 = 2, 6, 8
+        // O2 = 1, 4, 7
     }
 
     /**

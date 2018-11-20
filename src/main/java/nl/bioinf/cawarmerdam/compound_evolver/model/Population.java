@@ -38,7 +38,6 @@ public class Population implements Iterable<Candidate> {
     private double elitismRate;
     private int populationSize;
     private int generationNumber;
-    private List<List<Double>> scores;
 
 
     private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
@@ -95,14 +94,13 @@ public class Population implements Iterable<Candidate> {
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
         this.mutationRate = 0.1;
-        this.selectionFraction = 0.3;
-        this.crossoverRate = 0;
-        this.elitismRate = 0.5;
-        this.randomImmigrantRate = 0.0;
+        this.selectionFraction = 0.4;
+        this.crossoverRate = 0.8;
+        this.elitismRate = 0.1;
+        this.randomImmigrantRate = 0.1;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         initializePopulation();
-        this.scores = new ArrayList<>();
     }
 
     /**
@@ -131,15 +129,6 @@ public class Population implements Iterable<Candidate> {
      */
     public int getGenerationNumber() {
         return generationNumber;
-    }
-
-    /**
-     * Getter for the fitness of candidates in every generationNumber so far.
-     *
-     * @return a list of lists of fitness scores
-     */
-    public List<List<Double>> getFitness() {
-        return scores;
     }
 
     /**
@@ -429,10 +418,6 @@ public class Population implements Iterable<Candidate> {
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
     private void produceOffspring(int offspringSize) {
-        // Get scores
-        scores.add(candidateList.stream()
-                .map(Candidate::getFitness)
-                .collect(Collectors.toList()));
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
         // Perform crossing over

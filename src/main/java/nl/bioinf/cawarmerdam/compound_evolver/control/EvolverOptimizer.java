@@ -9,22 +9,38 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.CommandLineEvolutionProgress
 import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
 import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
+import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class EvolverOptimizer {
-    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath) {
-        ArrayList<String> permutations = new ArrayList<>();
-        GeneratePermutations(new ArrayList<>(), permutations, 0, "");
-        for (String permutation : permutations) {
+    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath) {
+        // Get range
+        List<Integer> permutations = IntStream.iterate(5, n -> n + 5)
+                .limit(100)
+                .boxed()
+                .collect(Collectors.toList());
+
+//        GeneratePermutations(new ArrayList<>(), permutations, 0, "");
+        for (int i = 0; i < permutations.size(); i++) {
+            Integer permutation = permutations.get(i);
             try {
-                run(reactantLists, reactor, receptorPath, anchorPath, 50);
-            } catch (MisMatchedReactantCount | ReactionException | PipelineException misMatchedReactantCount) {
-                misMatchedReactantCount.printStackTrace();
+                List<List<Double>> run = run(reactantLists, reactor, receptorPath, anchorPath, uploadPath, permutation);
+                String csvData = GenerateCsv.generateCsvFile(run, System.lineSeparator());
+                try (PrintWriter out = new PrintWriter(String.format("%d-scores.csv", i))) {
+                    out.println(csvData);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } catch (MisMatchedReactantCount | ReactionException | PipelineException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -43,17 +59,18 @@ public class EvolverOptimizer {
         }
     }
 
-    private void run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipelineException {
+    private List<List<Double>> run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipelineException {
         Population population = new Population(reactantLists, reactor, initialGenerationSize);
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
-        compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"), receptorPath, anchorPath);
+        compoundEvolver.setupPipeline(uploadPath, receptorPath, anchorPath);
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();
+        return compoundEvolver.getFitness();
     }
 
     /**
@@ -68,10 +85,12 @@ public class EvolverOptimizer {
         String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 3);
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
         // Load receptor molecule path
-        Path receptorPath = Paths.get(args[args.length - 2]);
+        Path receptorPath = Paths.get(args[args.length - 3]);
         // Load anchor molecule path
-        Path anchorPath = Paths.get(args[args.length - 1]);
+        Path anchorPath = Paths.get(args[args.length - 2]);
         // Construct the initial population
-        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath);
+        Path uploadPath = Paths.get(args[args.length - 1]);
+        // Construct the initial population
+        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath);
     }
 }

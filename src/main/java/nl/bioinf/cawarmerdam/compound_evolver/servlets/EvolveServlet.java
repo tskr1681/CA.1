@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
+import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -34,7 +35,7 @@ public class EvolveServlet extends HttpServlet {
             // Create new compoundEvolver
             CompoundEvolver compoundEvolver = constructCompoundEvolver(request);
             compoundEvolver.evolve();
-            mapper.writeValue(response.getOutputStream(), compoundEvolver.getPopulationFitness());
+            mapper.writeValue(response.getOutputStream(), GenerateCsv.generateCsvFile(compoundEvolver.getFitness(), "\n"));
         } catch (FormFieldHandlingException exception) {
             response.setStatus(400);
             response.setContentType("application/json");

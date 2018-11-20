@@ -55,6 +55,7 @@ public class ProgressUpdateServlet extends HttpServlet {
                 (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
         if (progressConnector == null) {
             // Throw exception
+            throw new RuntimeException("progress connector is null");
         }
         return progressConnector;
     }

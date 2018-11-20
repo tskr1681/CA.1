@@ -1,12 +1,15 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import chemaxon.calculations.hydrogenize.Hydrogenize;
 import chemaxon.formats.MolExporter;
 import chemaxon.marvin.calculations.ConformerPlugin;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
+import chemaxon.struc.MoleculeGraph;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -21,13 +24,19 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
     @Override
     public Path execute(Candidate candidate) throws PipelineException {
         Path conformerFileName = getConformerFileName(candidate);
-        File directory = new File(String.valueOf(conformerFileName.getParent()));
+        Path directory = conformerFileName.getParent();
         // Make directory if it does not exist
-        if (! directory.exists()){
-            boolean mkdirSuccess = directory.mkdir();
-            // Throw an exception if making a new directory failed.
-            if (!mkdirSuccess) {
-                throw new PipelineException("Failed to make directory");
+        if (! directory.toFile().exists()){
+            try {
+                Files.createDirectory(directory);
+            } catch (IOException e) {
+
+                // Format exception method
+                String exceptionMessage = String.format("Could not create directory '%s' for docking files",
+                        directory.toString());
+                // Throw pipeline exception
+                throw new PipelineException(
+                        exceptionMessage, e);
             }
         }
         try {
