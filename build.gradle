@@ -35,6 +35,33 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
+jar {
+    description 'creates executable jar without dependencies'
+    baseName = 'CompoundEvolver-Jar'
+
+    manifest {
+        attributes 'Main-Class': mainClassName,
+                "Class-Path": configurations.compile.collect { "lib/" + it.getName() }.join(' ')
+    }
+}
+
+//create a single Jar with all dependencies
+// see https://www.mkyong.com/gradle/gradle-create-a-jar-file-with-dependencies/
+task fatJar(type: Jar) {
+    group 'build'
+    description 'fat jar building with dependencies'
+
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'nl.bioinf.cawarmerdam.compound_evolver.control.EvolverOptimizer'
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    baseName = 'optimizer-fatjar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 task install(type: Copy) {
     group 'build'
     dependsOn build
