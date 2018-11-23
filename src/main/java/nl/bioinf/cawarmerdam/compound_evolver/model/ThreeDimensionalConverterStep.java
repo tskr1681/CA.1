@@ -16,9 +16,11 @@ import java.nio.file.Paths;
 public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Path> {
 
     private Path filePath;
+    private int conformerCount;
 
-    public ThreeDimensionalConverterStep(Path filePath) {
+    public ThreeDimensionalConverterStep(Path filePath, int conformerCount) {
         this.filePath = filePath;
+        this.conformerCount = conformerCount;
     }
 
     @Override
@@ -46,7 +48,7 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
                 exporter.write(conformer);
             }
         } catch (IOException | PluginException e) {
-            e.printStackTrace();
+            throw new PipelineException("Could not create conformers", e);
         }
         return conformerFileName;
     }
@@ -62,7 +64,7 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
         ConformerPlugin conformerPlugin = new ConformerPlugin();
         // Set parameters
         conformerPlugin.setMolecule(molecule);
-        conformerPlugin.setMaxNumberOfConformers(15);
+        conformerPlugin.setMaxNumberOfConformers(conformerCount);
         // Run
         conformerPlugin.run();
         return conformerPlugin.getConformers();

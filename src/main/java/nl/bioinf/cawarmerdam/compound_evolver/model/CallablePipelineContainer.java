@@ -1,5 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import chemaxon.marvin.plugin.PluginException;
+
 import java.util.concurrent.Callable;
 
 public class CallablePipelineContainer implements Callable<Void> {
@@ -12,10 +14,11 @@ public class CallablePipelineContainer implements Callable<Void> {
     }
 
     @Override
-    public Void call() throws PipelineException {
+    public Void call() throws PipelineException, PluginException {
         System.out.println(Thread.currentThread().getName()+" Start. Candidate identifier = "+candidate.getIdentifier());
         double score = this.pipeline.execute(candidate);
-        candidate.setScore(score);
+        candidate.setRawScore(score);
+        candidate.calculateLigandEfficiency();
         return null;
     }
 }

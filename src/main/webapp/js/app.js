@@ -9,7 +9,7 @@ app.run(function ($rootScope) {
 
 app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     $scope.formModel = {
-        generationSize: 50,
+        generationSize: 16,
         numberOfGenerations: 20,
         selectionSize: 0.4,
         mutationRate: 0.1,
@@ -20,7 +20,9 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         mutationMethod:'Distance dependent',
         terminationCondition: 'fixed',
         nonImprovingGenerationQuantity: 0.3,
-        forceField: 'mab',
+        conformerCount: 15,
+        fitnessMeasure: 'ligandEfficiency',
+        forceField: 'smina',
         useLipinski: false,
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
@@ -50,13 +52,9 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     function setPristine() {
         $scope.compoundEvolverForm.$setPristine();
         $scope.reactionFile.pristine = true;
-        $scope.reactionFile.hasFile = false;
         $scope.reactantFiles.pristine = true;
-        $scope.reactantFiles.hasFile = false;
         $scope.receptorFile.pristine = true;
-        $scope.receptorFile.hasFile = false;
         $scope.anchorFragmentFile.pristine = true;
-        $scope.anchorFragmentFile.hasFile = false;
     }
 
     /**
@@ -76,10 +74,17 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         }
         if (ct.indexOf('json') > -1) {
             console.log(jqXHR.responseJSON);
-            let jsonData = $.parseJSON(jqXHR.responseJSON);
+            let exception = $.parseJSON(jqXHR.responseJSON);
 
             if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
-                $scope.response.error = jsonData.fieldName + ": "+ jsonData.cause
+                // $scope.response.error = exception.fieldName + ": "+ exception.cause
+                if ("offspringRejectionMessages" in exception) {
+                    console.log(exception.message);
+                    $scope.response.error = exception.message + exception.offspringRejectionMessages.toString()
+                } else {
+                    console.log(exception.message);
+                    $scope.response.error = exception.message;
+                }
             } else if (jqXHR.status === 0) {
                 $scope.response.error = "Connection failed"
             } else {
@@ -106,15 +111,13 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         return formData;
     }
 
-    function getProgressUpdate() {
+    $scope.getProgressUpdate = function(shouldTerminate=false) {
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
             url: './progress.update',
-            processData: false,
-            contentType: false,
             responseType: "application/json",
-            dataType: 'json',
+            data: { "terminationRequired": shouldTerminate },
             success: function (data, textStatus, jqXHR) {
                 // log data to the console so we can see
                 console.log(data);
@@ -127,7 +130,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 evolveStatus = data.status;
 
                 generations.forEach(function (generation) {
-                    generationFitnesses = generation.candidateList.map(candidate => candidate.fitness);
+                    generationFitnesses = generation.candidateList.map(candidate => candidate.ligandEfficiency);
                     addData(myChart, generation.number, [
                         generationFitnesses
                     ]);
@@ -146,7 +149,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 $scope.$apply();
             }
         })
-    }
+    };
 
     function addData(chart, label, data) {
         chart.data.labels.push(label);
@@ -221,6 +224,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
      */
     $scope.onSubmit = function (valid) {
         if (valid) {
+            // Reset response error status to remove the warning box
+            $scope.response.hasError = false;
+            $rootScope.generations = [];
+
             var formData = extractFormData();
 
             // process the form
@@ -236,7 +243,6 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
                     // log data to the console so we can see
                     console.log(data);
-                    $scope.response.hasError = false;
                     $scope.$apply();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -254,7 +260,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
             var i = setInterval(function(){
                 // do your thing
-                getProgressUpdate();
+                $scope.getProgressUpdate();
                 if(["FAILED", "SUCCESS"].includes(evolveStatus)) {
                     clearInterval(i);
                 }
@@ -289,5 +295,4 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
         iframe.setAttribute("style", "display: none");
         document.body.appendChild(iframe);
     }
-
 });

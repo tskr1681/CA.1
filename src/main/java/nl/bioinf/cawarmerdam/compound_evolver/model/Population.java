@@ -9,7 +9,9 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -38,7 +40,27 @@ public class Population implements Iterable<Candidate> {
     private double elitismRate;
     private int populationSize;
     private int generationNumber;
+    private Double maxHydrogenBondAcceptors = null;
+    private Double maxHydrogenBondDonors = null;
+    private Double maxMolecularMass = null;
+    private Double maxPartitionCoefficient = null;
+    private List<String> offspringRejectionMessages = new ArrayList<>();
 
+    public void setMaxHydrogenBondAcceptors(double maxHydrogenBondAcceptors) {
+        this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
+    }
+
+    public void setMaxHydrogenBondDonors(double maxHydrogenBondDonors) {
+        this.maxHydrogenBondDonors = maxHydrogenBondDonors;
+    }
+
+    public void setMaxMolecularMass(double maxMolecularMass) {
+        this.maxMolecularMass = maxMolecularMass;
+    }
+
+    public void setMaxPartitionCoefficient(double maxPartitionCoefficient) {
+        this.maxPartitionCoefficient = maxPartitionCoefficient;
+    }
 
     private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
 
@@ -302,11 +324,13 @@ public class Population implements Iterable<Candidate> {
      */
     public void computeAlleleSimilarities() {
         this.alleleSimilarities = new double[reactantLists.size()][][];
+
         // Loop through every reactant list (Acids, Amines, etc...)
         for (int i1 = 0; i1 < reactantLists.size(); i1++) {
             List<Molecule> reactants = reactantLists.get(i1);
             // Create a 2d matrix for the current reactant list
             alleleSimilarities[i1] = new double[reactants.size()][reactants.size()];
+
             // Loop through every reactant in the reactant list
             for (int i = 0; i < reactants.size(); i++) {
                 // Loop nested through reactants in the reactant list until the j is equal to i
@@ -318,6 +342,7 @@ public class Population implements Iterable<Candidate> {
                     alleleSimilarities[i1][i][j] = tanimoto;
                     alleleSimilarities[i1][j][i] = tanimoto;
                 }
+
                 // Set values at the diagonal
                 // Get the sum of all similarity values for the current reactant
                 // excluding the i,i location (because this is set to zero (0))
@@ -408,7 +433,7 @@ public class Population implements Iterable<Candidate> {
      * Overloaded produceOffspring method with default parameter value population size set to the instance field
      * population size.
      */
-    public void produceOffspring() {
+    public void produceOffspring() throws OffspringFailureOverflow {
         produceOffspring(this.populationSize);
     }
 
@@ -417,7 +442,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
-    private void produceOffspring(int offspringSize) {
+    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow {
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
         // Perform crossing over
@@ -426,9 +451,11 @@ public class Population implements Iterable<Candidate> {
         // Select parents
         selectParents();
         ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
+        // Count the number of times one offspring could not be created. (Reset when an offspring could be created)
+        int failureCounter = 0;
         // Loop to fill offspring list to offspring size
         for (int i = 0; offspring.size() < offspringSize; i++) {
-//            System.out.println("i = " + i);
+
             // Get some genomes by crossing over according to crossover probability
             if (offspringChoice == ReproductionMethod.CLEAR) {
                 offspringChoice = ReproductionMethod.values()[makeWeightedChoice(new double[]{
@@ -436,11 +463,22 @@ public class Population implements Iterable<Candidate> {
                         this.elitismRate,
                         this.randomImmigrantRate})];
             }
-//            System.out.println("offspringChoice = " + offspringChoice);
+
+            // Try to produce offspring
             Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
             if (newOffspring != null) {
                 offspring.add(newOffspring);
                 offspringChoice = ReproductionMethod.CLEAR;
+                this.offspringRejectionMessages.clear();
+                failureCounter = 0;
+            } else {
+                // Count this failure
+                failureCounter++;
+                if (failureCounter >= this.candidateList.size()*24) {
+                    throw new OffspringFailureOverflow(
+                            String.format("Tried to create a new candidate %s times without a viable results", failureCounter),
+                            this.offspringRejectionMessages);
+                }
             }
         }
         candidateList = offspring;
@@ -465,7 +503,6 @@ public class Population implements Iterable<Candidate> {
             // Get the recombined genome by crossing over
             List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
             // Mutate the recombined genome
-//            System.out.println(this.candidateList.get(i % this.candidateList.size()));
             mutate(newGenome);
             return finalizeOffspring(newGenome);
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
@@ -485,14 +522,20 @@ public class Population implements Iterable<Candidate> {
             // Try to produce a product
             if ((products = reaction.react()) != null) {
                 Candidate newCandidate = new Candidate(newGenome, products[0]);
+                newCandidate.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
+                newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
+                newCandidate.setMaxMolecularMass(this.maxMolecularMass);
+                newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
                 if (newCandidate.isValid()) {
                     return newCandidate;
+                } else {
+                    this.offspringRejectionMessages.add(newCandidate.getRejectionMessage());
                 }
             }
         } catch (ReactionException e) {
-            // Should log this
-            e.printStackTrace();
+            this.offspringRejectionMessages.add(e.getMessage());
         }
+        this.offspringRejectionMessages.add("Reactor could not produce a reaction product");
         return null;
     }
 
@@ -515,10 +558,10 @@ public class Population implements Iterable<Candidate> {
      */
     private void selectParents() {
         // Assert that the candidates have a score
-        assert (candidateList.size() > 0) && candidateList.get(0).getScore() != null;
+        assert (candidateList.size() > 0) && candidateList.get(0).getRawScore() != null;
         // Select the parents according to the method that is set
         List<Double> scores = candidateList.stream()
-                .map(Candidate::getScore).collect(Collectors.toList());
+                .map(Candidate::getRawScore).collect(Collectors.toList());
         System.out.println("Parents         = " + scores);
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
             candidateList = this.fitnessProportionateSelection();
@@ -526,7 +569,7 @@ public class Population implements Iterable<Candidate> {
             candidateList = this.truncatedSelection();
         }
         scores = candidateList.stream()
-                .map(Candidate::getScore).collect(Collectors.toList());
+                .map(Candidate::getRawScore).collect(Collectors.toList());
         System.out.println("SelectedParents = " + scores);
         // Do nothing if the flag is cleared
     }
@@ -579,7 +622,7 @@ public class Population implements Iterable<Candidate> {
     private int rouletteSelect() {
         // Create a stream to get the score of every candidate and convert this to a double
         return makeWeightedChoice(candidateList.stream()
-                .map(Candidate::getFitness)
+                .map(Candidate::getNormFitness)
                 .mapToDouble(v -> v)
                 .toArray());
     }
@@ -625,7 +668,7 @@ public class Population implements Iterable<Candidate> {
     @Override
     public String toString() {
         List<Double> scores = candidateList.stream()
-                .map(Candidate::getScore)
+                .map(Candidate::getRawScore)
                 .collect(Collectors.toList());
         OptionalDouble average = scores.stream().mapToDouble(v -> v).average();
         return String.format(

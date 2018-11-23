@@ -36,10 +36,11 @@ public class CompoundEvolver {
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
     private List<List<Double>> scores = new ArrayList<>();
+    private FitnessMeasure fitnessMeasure;
 
     public enum ForceField {
         MAB("mab"),
-        MMFF94("mmff94");
+        SMINA("smina");
 
         private final String text;
 
@@ -49,6 +50,26 @@ public class CompoundEvolver {
 
         public static ForceField fromString(String text) {
             for (ForceField condition : ForceField.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    public enum FitnessMeasure {
+        LIGAND_EFFICIENCY("ligandEfficiency"),
+        AFFINITY("affinity");
+
+        private final String text;
+
+        FitnessMeasure(String text) {
+            this.text = text;
+        }
+
+        public static FitnessMeasure fromString(String text) {
+            for (FitnessMeasure condition : FitnessMeasure.values()) {
                 if (condition.text.equalsIgnoreCase(text)) {
                     return condition;
                 }
@@ -141,6 +162,14 @@ public class CompoundEvolver {
         this.forceField = forceField;
     }
 
+    public void setFitnessMeasure(FitnessMeasure fitnessMeasure) {
+        this.fitnessMeasure = fitnessMeasure;
+    }
+
+    public FitnessMeasure getFitnessMeasure() {
+        return fitnessMeasure;
+    }
+
     public TerminationCondition getTerminationCondition() {
         return terminationCondition;
     }
@@ -160,20 +189,26 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() {
+    public void evolve() throws OffspringFailureOverflow {
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
-        // Evolve
-        while (!shouldTerminate()) {
-            System.out.println(this.population.toString());
-            // Produce offspring
-            this.population.produceOffspring();
-            // Score the candidates
-            scoreCandidates();
-            evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
+        try {
+            // Evolve
+            while (!shouldTerminate()) {
+                System.out.println(this.population.toString());
+                // Try to produce offspring
+
+                this.population.produceOffspring();
+                // Score the candidates
+                scoreCandidates();
+                evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
+            }
+            evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
+        } catch (OffspringFailureOverflow offspringFailureOverflow) {
+            evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
+            throw offspringFailureOverflow;
         }
-        evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
     }
 
     private void scoreCandidates() {
@@ -203,18 +238,39 @@ public class CompoundEvolver {
                 }
             }
             executor.shutdown();
+            // Log completed scoring round
             System.out.println("Finished all threads");
         } else {
             for (Candidate candidate : this.population) {
                 // Set dummy fitness
                 double score = candidate.getPhenotype().getExactMass();
-                candidate.setScore(score);
+                candidate.setRawScore(score);
             }
         }
+        processRawScores();
+    }
+
+    private void processRawScores() {
+        System.out.println("this.fitnessMeasure = " + this.fitnessMeasure);
+        for (Candidate candidate : this.population) {
+            // Ligand efficiency
+            candidate.setFitnessMeasure(this.fitnessMeasure);
+        }
         // Collect scores
-        scores.add(this.population.stream()
+        List<Double> fitnesses = this.population.stream()
                 .map(Candidate::getFitness)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        // Add scores for the archive
+        scores.add(fitnesses);
+
+        // Get min and max
+        Double maxFitness = Collections.max(fitnesses);
+        Double minFitness = Collections.min(fitnesses);
+        // We whould like to calculate the fitness with the heavy atom
+        for (Candidate candidate : this.population) {
+            // Ligand efficiency
+            candidate.setNormFitness(minFitness, maxFitness);
+        }
     }
 
     private boolean shouldTerminate() {
@@ -257,16 +313,21 @@ public class CompoundEvolver {
         setupPipeline(outputFileLocation, receptor, anchor);
     }
 
+    public void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
+        int conformerCount = 15;
+        setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount);
+    }
+
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor) throws PipelineException {
+    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor, int conformerCount) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFileLocation(outputFileLocation);
 
         // Get the step for converting 'flat' molecules into multiple 3d conformers
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
-                this.pipelineOutputFileLocation);
+                this.pipelineOutputFileLocation, conformerCount);
         // Get the step for fixing conformers to an anchor point
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         // Get the step for energy minimization
@@ -287,7 +348,7 @@ public class CompoundEvolver {
                     receptorFile,
                     mol3dExecutable,
                     esprntoExecutable);
-        } else if (this.forceField == ForceField.MMFF94) {
+        } else if (this.forceField == ForceField.SMINA) {
             String sminaExecutable = getExecutable("SMINA_EXE");
             String pythonExecutable = getExecutable("MGL_PYTHON");
             String prepareReceptorExecutable = getExecutable("PRPR_REC_EXE");

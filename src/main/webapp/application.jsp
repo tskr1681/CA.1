@@ -43,7 +43,7 @@
                 Lead
             </p>
             <p>
-                Paragraph
+                Last update: 23-11-2018, 16:05
             </p>
         </div>
     </div>
@@ -451,7 +451,36 @@
                 <%--</button>--%>
                 <div id="docking-settings">
                     <div class="card card-body">
-                        <h5 class="card-title"><b>Docking</b></h5>
+                        <h5 class="card-title"><b>Scoring</b></h5>
+                        <div class="form-group row">
+                            <label for="conformer-count" class="col-sm-3 col-form-label">
+                                Maximum number of conformers to generate
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.conformerCount"
+                                       id="conformer-count"
+                                       name="conformerCount"
+                                       required="required"
+                                       min="1"
+                                       max="100"
+                                       step="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.conformerCount.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.conformerCount.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.conformerCount.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.conformerCount.$error.number || compoundEvolverForm.conformerCount.$error.min || compoundEvolverForm.conformerCount.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    An integer value (whole number) between 1 and 100 is required
+                                </small>
+                            </div>
+                        </div>
                         <div class="form-group row">
                             <label for="force-field" class="col-sm-3 col-form-label">Force field</label>
                             <div class="col-sm-9">
@@ -460,8 +489,21 @@
                                         ng-model="formModel.forceField"
                                         name="forceField"
                                         required="required">
-                                    <option value="mmff94">mmff94</option>
+                                    <option value="smina">smina</option>
                                     <option value="mab">mab(moloc)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="fitness-measure" class="col-sm-3 col-form-label">Fitness measure</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="fitness-measure"
+                                        ng-model="formModel.fitnessMeasure"
+                                        name="fitnessMeasure"
+                                        required="required">
+                                    <option value="ligandEfficiency">Ligand efficiency</option>
+                                    <option value="affinity">Affinity</option>
                                 </select>
                             </div>
                         </div>
@@ -583,8 +625,17 @@
                 <div class="form-group row">
                     <div class="col-sm-9 offset-sm-3">
                         <button type="submit" class="btn btn-default"
-                                ng-click="onSubmit((!reactionFile.wrongExtension) && (reactionFile.hasFile) && compoundEvolverForm.$valid)">
+                                ng-click="onSubmit(
+                                (!reactionFile.wrongExtension && reactionFile.hasFile) &&
+                                (!reactantFiles.wrongExtension && reactantFiles.hasFile) &&
+                                (!receptorFile.wrongExtension && receptorFile.hasFile) &&
+                                (!anchorFragmentFile.wrongExtension && anchorFragmentFile.hasFile) &&
+                                compoundEvolverForm.$valid)">
                             Submit
+                        </button>
+                        <button type="button" class="btn btn-danger"
+                                ng-click="getProgressUpdate(true)">
+                            Terminate
                         </button>
                     </div>
                 </div>
@@ -602,14 +653,16 @@
                         <tr>
                             <th>ID</th>
                             <th>COMPOUND</th>
-                            <th class="text-muted">FITNESS</th>
+                            <th class="text-muted">SCORE</th>
+                            <th>LIGAND EFFICIENCY</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="candidate in getPopulation() | orderBy:'fitness'">
+                        <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
                             <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
                             <td>{{candidate.smiles}}</td>
                             <td class="text-muted">{{candidate.fitness}}</td>
+                            <td>{{candidate.ligandEfficiency | number:4}}</td>
                         </tr>
                         </tbody>
                     </table>

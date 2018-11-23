@@ -40,17 +40,18 @@ public class EvolveServlet extends HttpServlet {
             response.setStatus(400);
             response.setContentType("application/json");
             mapper.writeValue(response.getOutputStream(), exception.toJSON());
-        } catch (IllegalArgumentException | IOException | ReactantFileHandlingException | ReactantFileFormatException e) {
-            response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getMessage());
-        } catch (ReactionFileHandlerException e) {
-            response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getMessage());
         } catch (Exception e) {
             response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getMessage());
-            e.printStackTrace();
+            response.setContentType("application/json");
+            mapper.writeValue(response.getOutputStream(), exceptionToJSON(e));
         }
+    }
+
+    private String exceptionToJSON(Exception e) {
+        String jsonFormat =
+                "{" +
+                        "\"message\": \"%s\"}";
+        return String.format(jsonFormat, e.getMessage());
     }
 
     private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, FormFieldHandlingException, MisMatchedReactantCount, ReactionException, PipelineException {
@@ -91,7 +92,7 @@ public class EvolveServlet extends HttpServlet {
 
         // If use lipinski is set to true, handle the filter options.
         boolean useLipinski = getBooleanParameterFromRequest(request, "useLipinski");
-        if (useLipinski) handleFilterOptions(request);
+        if (useLipinski) handleFilterOptions(request, initialPopulation);
 
         // Get mutation method
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
@@ -142,7 +143,7 @@ public class EvolveServlet extends HttpServlet {
         return evolver;
     }
 
-    private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, String sessionID) throws IOException, ServletException, PipelineException {
+    private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, String sessionID) throws IOException, ServletException, PipelineException, FormFieldHandlingException {
         Path outputFileLocation = Paths.get(
                 System.getenv("PL_TARGET_DIR"), sessionID);
 
@@ -153,8 +154,15 @@ public class EvolveServlet extends HttpServlet {
         }
 
         // Get and set force field that should be used
-        evolver.setForceField( CompoundEvolver.ForceField.fromString(
+        evolver.setForceField(CompoundEvolver.ForceField.fromString(
                 request.getParameter("forceField")));
+
+        // Get and set fitness measure that should be used
+        evolver.setFitnessMeasure(CompoundEvolver.FitnessMeasure.fromString(
+                request.getParameter("fitnessMeasure")));
+
+        // Get conformer count
+        int conformerCount = this.getIntegerParameterFromRequest(request, "conformerCount");
 
         // Copy files from request to the pipeline target directory
         Path receptorLocation = outputFileLocation.resolve("rec.pdb");
@@ -163,7 +171,7 @@ public class EvolveServlet extends HttpServlet {
         copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
 
         // Setup the pipeline using the gathered locations paths
-        evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation);
+        evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount);
 
         System.out.println("evolver.getPipelineOutputFileLocation() = " + evolver.getPipelineOutputFileLocation());
     }
@@ -201,11 +209,11 @@ public class EvolveServlet extends HttpServlet {
         return Arrays.asList(mapper.readValue(fileOrder, Integer[].class));
     }
 
-    private void handleFilterOptions(HttpServletRequest request) throws FormFieldHandlingException {
+    private void handleFilterOptions(HttpServletRequest request, Population initialPopulation) throws FormFieldHandlingException {
         // Get maximum hydrogen bond acceptors
         try {
             double maxHydrogenBondAcceptors = getDoubleParameterFromRequest(request, "maxHydrogenBondAcceptors");
-            Candidate.setMaxHydrogenBondAcceptors(maxHydrogenBondAcceptors);
+            initialPopulation.setMaxHydrogenBondAcceptors(maxHydrogenBondAcceptors);
         } catch (FormFieldHandlingException e) {
             if (e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
             // Continue if it is not present
@@ -214,7 +222,7 @@ public class EvolveServlet extends HttpServlet {
         // Get maximum hydrogen bond acceptors
         try {
             double maxHydrogenBondDonors = getDoubleParameterFromRequest(request, "maxHydrogenBondDonors");
-            Candidate.setMaxHydrogenBondDonors(maxHydrogenBondDonors);
+            initialPopulation.setMaxHydrogenBondDonors(maxHydrogenBondDonors);
         } catch (FormFieldHandlingException e) {
             if (e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
             // Continue if it is not present
@@ -223,7 +231,7 @@ public class EvolveServlet extends HttpServlet {
         // Get maximum molecular mass
         try {
             double maxMolecularMass = getDoubleParameterFromRequest(request, "maxMolecularMass");
-            Candidate.setMaxMolecularMass(maxMolecularMass);
+            initialPopulation.setMaxMolecularMass(maxMolecularMass);
         } catch (FormFieldHandlingException e) {
             if (e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
             // Continue if it is not present
@@ -232,7 +240,7 @@ public class EvolveServlet extends HttpServlet {
         // Get maximum partition coefficient
         try {
             double maxPartitionCoefficient = getDoubleParameterFromRequest(request, "maxPartitionCoefficient");
-            Candidate.setMaxPartitionCoefficient(maxPartitionCoefficient);
+            initialPopulation.setMaxPartitionCoefficient(maxPartitionCoefficient);
         } catch (FormFieldHandlingException e) {
             if (e.cause != FormFieldHandlingException.Cause.EMPTY) throw e;
             // Continue if it is not present
@@ -242,16 +250,6 @@ public class EvolveServlet extends HttpServlet {
     private boolean getBooleanParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
         String parameter = request.getParameter(name);
         return parameter != null;
-    }
-
-    private List<List<Molecule>> getReactants() throws ReactantFileHandlingException, ReactantFileFormatException {
-        List<List<Molecule>> reactantLists = null;
-        reactantLists = ReactantFileHandler.loadMolecules(new String[]{
-                "X:\\Internship\\reactants\\aldehyde_small.smiles",
-                "X:\\Internship\\reactants\\amine_tryptamine.smiles",
-                "X:\\Internship\\reactants\\acids_small.smiles",
-                "X:\\Internship\\reactants\\isocyanide_small.smiles"});
-        return reactantLists;
     }
 
     private Part getFileFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
@@ -306,10 +304,6 @@ public class EvolveServlet extends HttpServlet {
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.BAD_INTEGER);
         }
         return Integer.parseInt(parameter);
-    }
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.sendRedirect("./app");
     }
 
     public static boolean isInteger(String s, int radix) {
@@ -402,6 +396,7 @@ public class EvolveServlet extends HttpServlet {
         enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER, BAD_BOOLEAN}
 
         FormFieldHandlingException(String fieldName, String fieldValue, Cause cause) {
+            super(String.format("Field '%s', ('%s') returned '%s'", fieldName, fieldValue, cause));
             this.fieldName = fieldName;
             this.fieldValue = fieldValue;
             this.cause = cause;

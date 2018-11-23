@@ -83,12 +83,12 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             while ((line = stdInput.readLine()) != null) {
                 sminaOutput.add(line);
             }
-
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((line = stdError.readLine()) != null) {
-                System.out.println(line);
-            }
+//
+//            // read any errors from the attempted command
+//            System.out.println("Here is the standard error of the command (if any):\n");
+//            while ((line = stdError.readLine()) != null) {
+//                System.out.println(line);
+//            }
             return sminaOutput;
 
         } catch (IOException e) {

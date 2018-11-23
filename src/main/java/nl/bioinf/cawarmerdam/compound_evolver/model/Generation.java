@@ -2,7 +2,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Generation {
     private List<Candidate> candidateList;
@@ -18,7 +17,7 @@ public class Generation {
     }
 
     public double getFittestCandidate() {
-        Optional<Double> max = candidateList.stream().map(Candidate::getScore).max(Double::compare);
+        Optional<Double> max = candidateList.stream().map(Candidate::getRawScore).max(Double::compare);
         if (max.isPresent()) {
             return max.get();
         }

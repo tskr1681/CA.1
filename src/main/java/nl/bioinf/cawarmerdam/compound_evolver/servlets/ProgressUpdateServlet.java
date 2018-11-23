@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
-import nl.bioinf.cawarmerdam.compound_evolver.model.Generation;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
 
 import javax.servlet.ServletException;
@@ -18,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.List;
 
 @WebServlet(name = "ProgressUpdateServlet", urlPatterns = "/progress.update")
 public class ProgressUpdateServlet extends HttpServlet {
@@ -36,6 +34,10 @@ public class ProgressUpdateServlet extends HttpServlet {
 
             // Write new generations
             mapper.writeValue(response.getOutputStream(), progressConnector);
+        } catch (UnknownProgressException e) {
+            ObjectMapper mapper = new ObjectMapper();
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
         } catch (Exception e) {
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
@@ -43,21 +45,34 @@ public class ProgressUpdateServlet extends HttpServlet {
         }
     }
 
-    private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) {
+    private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) throws UnknownProgressException {
+        // Get the termination required value from the request to see if
+        // we should terminate by using the progress connector.
+        String terminationRequiredString = request.getParameter("terminationRequired");
+        boolean terminationRequired = (Boolean.parseBoolean(terminationRequiredString));
+
         HttpSession session = request.getSession();
         // get sessions new generations
-        return getProgressConnector(session);
+        SessionEvolutionProgressConnector progressConnector = getProgressConnector(session);
+        if (terminationRequired) progressConnector.terminateEvolutionProgress();
+        return progressConnector;
     }
 
-    private SessionEvolutionProgressConnector getProgressConnector(HttpSession session) {
+    private SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
         @SuppressWarnings("unchecked")
         SessionEvolutionProgressConnector progressConnector =
                 (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
         if (progressConnector == null) {
             // Throw exception
-            throw new RuntimeException("progress connector is null");
+            throw new UnknownProgressException("progress connector is null");
         }
         return progressConnector;
+    }
+}
+
+class UnknownProgressException extends Exception {
+    UnknownProgressException(String message) {
+        super(message);
     }
 }
 
@@ -92,7 +107,8 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         }
         jgen.writeStringField("smiles", smilesString);
         jgen.writeStringField("iupacName", phenotypeName);
-        jgen.writeNumberField("fitness", candidate.getScore());
+        jgen.writeNumberField("fitness", candidate.getRawScore());
+        jgen.writeNumberField("ligandEfficiency", candidate.getLigandEfficiency());
         jgen.writeEndObject();
     }
 }

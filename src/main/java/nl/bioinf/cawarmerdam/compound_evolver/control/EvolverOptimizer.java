@@ -5,10 +5,7 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
-import nl.bioinf.cawarmerdam.compound_evolver.model.CommandLineEvolutionProgressConnector;
-import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
-import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineException;
-import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
+import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 
 import java.io.FileNotFoundException;
@@ -39,7 +36,7 @@ public class EvolverOptimizer {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-            } catch (MisMatchedReactantCount | ReactionException | PipelineException e) {
+            } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow e) {
                 e.printStackTrace();
             }
         }
@@ -59,7 +56,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private List<List<Double>> run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipelineException {
+    private List<List<Double>> run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow {
         Population population = new Population(reactantLists, reactor, initialGenerationSize);
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);

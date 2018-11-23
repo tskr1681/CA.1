@@ -83,6 +83,8 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
                     ProcessBuilder(obfitExecutable, smartsPattern, referenceMolecule.toString(), conformerLib);
             builder.redirectOutput(new File(outFile));
 
+            System.out.println("Obfit command = " + builder.command().toString());
+
             // Start the process
             final Process p = builder.start();
 

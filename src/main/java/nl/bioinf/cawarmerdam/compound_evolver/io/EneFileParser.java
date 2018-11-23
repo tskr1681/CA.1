@@ -1,5 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.io;
 
+import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,8 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EneFileParser {
-    public static List<Double> parseEneFile(InputStream eneFileInputStream, String fastaFileName)
-            throws IllegalArgumentException {
+    public static List<Double> parseEneFile(InputStream eneFileInputStream, String eneFileName)
+            throws PipelineException {
         // Prepare list of DNA sequences, and variable to record what sequence is handled at all times
         List<Double> scores = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(
@@ -27,7 +29,7 @@ public class EneFileParser {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new PipelineException(String.format("Could not read ENE file %s", eneFileName), e);
         }
         return scores;
     }
