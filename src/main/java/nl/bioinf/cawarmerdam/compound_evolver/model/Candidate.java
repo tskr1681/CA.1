@@ -5,6 +5,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.formats.MolExporter;
+import chemaxon.marvin.alignment.Alignment;
 import chemaxon.marvin.calculations.ElementalAnalyserPlugin;
 import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.IUPACNamingPlugin;
@@ -14,6 +15,7 @@ import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -44,6 +46,8 @@ public class Candidate implements Comparable<Candidate> {
     private double ligandEfficiency;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
     private String rejectionMessage;
+    private Path conformersFile;
+    private Path fixedConformersFile;
 
     Candidate(List<Integer> genotype, Molecule phenotype) {
         this.genotype = genotype;
@@ -93,7 +97,7 @@ public class Candidate implements Comparable<Candidate> {
     }
 
     public void setNormFitness(double minFitness, double maxFitness) {
-        this.normFitness = -(getFitness() - minFitness) / (maxFitness - minFitness);
+        this.normFitness = (getFitness() - minFitness) / (maxFitness - minFitness);
     }
 
     /**
@@ -276,7 +280,7 @@ public class Candidate implements Comparable<Candidate> {
         double logPTrue = this.logPPlugin.getlogPTrue();
         boolean valid = logPTrue <= maxPartitionCoefficient;
         // Write why this molecule was invalid to create a descriptive error
-        if (valid) this.rejectionMessage = String.format("PartitionCoefficient was %s, should be <= %s",
+        if (!valid) this.rejectionMessage = String.format("PartitionCoefficient was %s, should be <= %s",
                 logPTrue,
                 maxPartitionCoefficient);
         return valid;
@@ -286,7 +290,7 @@ public class Candidate implements Comparable<Candidate> {
         double mass = this.phenotype.getExactMass();
         boolean valid = mass <= maxMolecularMass;
         // Write why this molecule was invalid to create a descriptive error
-        if (valid) this.rejectionMessage = String.format("Molecular mass was %s, should be <= %s",
+        if (!valid) this.rejectionMessage = String.format("Molecular mass was %s, should be <= %s",
                 mass,
                 maxMolecularMass);
         return valid;
@@ -296,7 +300,7 @@ public class Candidate implements Comparable<Candidate> {
         int acceptorAtomCount = hydrogenBondPlugin.getAcceptorAtomCount();
         boolean valid = acceptorAtomCount <= maxHydrogenBondAcceptors;
         // Write why this molecule was invalid to create a descriptive error
-        if (valid) this.rejectionMessage = String.format("Maximum hydrogen bond acceptor count was %s, should be <= %s",
+        if (!valid) this.rejectionMessage = String.format("Hydrogen bond acceptor count was %s, should be <= %s",
                 acceptorAtomCount,
                 maxHydrogenBondAcceptors);
         return valid;
@@ -306,7 +310,7 @@ public class Candidate implements Comparable<Candidate> {
         int donorAtomCount = hydrogenBondPlugin.getDonorAtomCount();
         boolean valid = donorAtomCount <= maxHydrogenBondDonors;
         // Write why this molecule was invalid to create a descriptive error
-        if (valid) this.rejectionMessage = String.format("Maximum hydrogen bond donor count was %s, should be <= %s",
+        if (!valid) this.rejectionMessage = String.format("Hydrogen bond donor count was %s, should be <= %s",
                 donorAtomCount,
                 maxHydrogenBondDonors);
         return valid;
@@ -330,6 +334,8 @@ public class Candidate implements Comparable<Candidate> {
         int hydrogenAtomCount = plugin.getAtomCount(1);
         return allAtomCount - hydrogenAtomCount;
     }
+
+
 
     @Override
     public String toString() {

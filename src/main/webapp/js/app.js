@@ -74,13 +74,13 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         }
         if (ct.indexOf('json') > -1) {
             console.log(jqXHR.responseJSON);
-            let exception = $.parseJSON(jqXHR.responseJSON);
+            let exception = jqXHR.responseJSON;
 
             if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
                 // $scope.response.error = exception.fieldName + ": "+ exception.cause
+                console.log(exception);
                 if ("offspringRejectionMessages" in exception) {
-                    console.log(exception.message);
-                    $scope.response.error = exception.message + exception.offspringRejectionMessages.toString()
+                    $scope.response.error = exception.message + " " + exception.offspringRejectionMessages.toString()
                 } else {
                     console.log(exception.message);
                     $scope.response.error = exception.message;
@@ -111,13 +111,12 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         return formData;
     }
 
-    $scope.getProgressUpdate = function(shouldTerminate=false) {
+    $scope.getProgressUpdate = function() {
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
             url: './progress.update',
             responseType: "application/json",
-            data: { "terminationRequired": shouldTerminate },
             success: function (data, textStatus, jqXHR) {
                 // log data to the console so we can see
                 console.log(data);
@@ -149,6 +148,18 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 $scope.$apply();
             }
         })
+    };
+
+    $scope.terminateEvolution = function () {
+        $.post("./evolution.terminate", function () {
+            console.log("terminating evolution");
+        })
+            .done(function () {
+                alert("Terminating after current generation...");
+            })
+            .fail(function () {
+                alert("Failed to terminate evolution");
+            });
     };
 
     function addData(chart, label, data) {
@@ -286,13 +297,24 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
         });
     };
 
-    $scope.downloadCompound = function (compoundId) {
-        // Set data
-        let url = './compound.download?compoundId=' + compoundId;
-
+    function download(url) {
         var iframe = document.createElement("iframe");
         iframe.setAttribute("src", url);
         iframe.setAttribute("style", "display: none");
         document.body.appendChild(iframe);
     }
+
+    $scope.downloadCompound = function (compoundId) {
+        // Set data
+        let url = './compound.download?compoundId=' + compoundId;
+
+        download(url);
+    };
+
+    $scope.downloadCsv = function () {
+        // Set data
+        let url = './csv.download?generationNumber=' + $rootScope.selectedGenerationNumber;
+
+        download(url);
+    };
 });

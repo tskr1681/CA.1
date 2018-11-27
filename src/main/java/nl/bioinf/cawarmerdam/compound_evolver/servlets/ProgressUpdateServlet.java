@@ -46,16 +46,9 @@ public class ProgressUpdateServlet extends HttpServlet {
     }
 
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) throws UnknownProgressException {
-        // Get the termination required value from the request to see if
-        // we should terminate by using the progress connector.
-        String terminationRequiredString = request.getParameter("terminationRequired");
-        boolean terminationRequired = (Boolean.parseBoolean(terminationRequiredString));
-
         HttpSession session = request.getSession();
         // get sessions new generations
-        SessionEvolutionProgressConnector progressConnector = getProgressConnector(session);
-        if (terminationRequired) progressConnector.terminateEvolutionProgress();
-        return progressConnector;
+        return getProgressConnector(session);
     }
 
     private SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {

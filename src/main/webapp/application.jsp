@@ -38,13 +38,6 @@
     </div>
     <div class="row">
         <div class="col-lg-12">
-            <h2>Introduction</h2>
-            <p class="lead">
-                Lead
-            </p>
-            <p>
-                Last update: 23-11-2018, 16:05
-            </p>
         </div>
     </div>
     <%--Setup dynamic form using angularjs--%>
@@ -634,7 +627,7 @@
                             Submit
                         </button>
                         <button type="button" class="btn btn-danger"
-                                ng-click="getProgressUpdate(true)">
+                                ng-click="terminateEvolution()">
                             Terminate
                         </button>
                     </div>
@@ -646,27 +639,36 @@
                 <canvas id="myChart" width="400" height="400"></canvas>
             </div>
             <div class="col-lg-12" ng-controller="CompoundsCtrl">
-                <div>
-                    <h2>Compounds</h2>
-                    <table class="table table-condensed table-borderless mono-font">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>COMPOUND</th>
-                            <th class="text-muted">SCORE</th>
-                            <th>LIGAND EFFICIENCY</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
-                            <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
-                            <td>{{candidate.smiles}}</td>
-                            <td class="text-muted">{{candidate.fitness}}</td>
-                            <td>{{candidate.ligandEfficiency | number:4}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <h2>Compounds</h2>
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href>Download current generation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href>Download all</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href ng-click="downloadCsv()">Download csv</a>
+                    </li>
+                </ul>
+                <table class="table table-condensed table-borderless mono-font">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>COMPOUND</th>
+                        <th class="text-muted">SCORE</th>
+                        <th>LIGAND EFFICIENCY</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
+                        <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
+                        <td>{{candidate.smiles}}</td>
+                        <td class="text-muted">{{candidate.fitness | number:4}}</td>
+                        <td>{{candidate.ligandEfficiency | number:4}}</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

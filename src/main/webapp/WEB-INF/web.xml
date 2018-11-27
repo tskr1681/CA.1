@@ -32,6 +32,24 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>DownloadCsvServlet</servlet-name>
+        <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.DownloadCsvServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DownloadCsvServlet</servlet-name>
+        <url-pattern>/csv.download</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TerminateEvolutionServlet</servlet-name>
+        <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.TerminateEvolutionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TerminateEvolutionServlet</servlet-name>
+        <url-pattern>/evolution.terminate</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>EvolveServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet</servlet-class>
         <init-param>

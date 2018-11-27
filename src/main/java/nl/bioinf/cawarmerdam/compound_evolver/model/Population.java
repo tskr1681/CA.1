@@ -9,15 +9,11 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static java.util.stream.DoubleStream.of;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -26,6 +22,7 @@ import static java.util.stream.DoubleStream.of;
  */
 public class Population implements Iterable<Candidate> {
 
+    private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Reactor reaction;
     private final List<List<Molecule>> reactantLists;
     private final Random random;
@@ -44,70 +41,6 @@ public class Population implements Iterable<Candidate> {
     private Double maxHydrogenBondDonors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    private List<String> offspringRejectionMessages = new ArrayList<>();
-
-    public void setMaxHydrogenBondAcceptors(double maxHydrogenBondAcceptors) {
-        this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
-    }
-
-    public void setMaxHydrogenBondDonors(double maxHydrogenBondDonors) {
-        this.maxHydrogenBondDonors = maxHydrogenBondDonors;
-    }
-
-    public void setMaxMolecularMass(double maxMolecularMass) {
-        this.maxMolecularMass = maxMolecularMass;
-    }
-
-    public void setMaxPartitionCoefficient(double maxPartitionCoefficient) {
-        this.maxPartitionCoefficient = maxPartitionCoefficient;
-    }
-
-    private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
-
-    public enum SelectionMethod {
-        CLEAR("Clear"),
-        FITNESS_PROPORTIONATE_SELECTION("Fitness proportionate selection"),
-        TRUNCATED_SELECTION("Truncated selection");
-
-        private final String text;
-
-        SelectionMethod(String text) {
-            this.text = text;
-        }
-
-        public static SelectionMethod fromString(String text) {
-            for (SelectionMethod method : SelectionMethod.values()) {
-                if (method.text.equalsIgnoreCase(text)) {
-                    return method;
-                }
-            }
-            throw new IllegalArgumentException("No constant with text " + text + " found");
-        }
-    }
-
-    public enum MutationMethod {
-        DISTANCE_DEPENDENT("Distance dependent"),
-        DISTANCE_INDEPENDENT("Distance independent");
-
-        private final String text;
-
-        MutationMethod(String text) {
-            this.text = text;
-        }
-
-        public String getText() {
-            return this.text;
-        }
-
-        public static MutationMethod fromString(String text) {
-            for (MutationMethod method : MutationMethod.values()) {
-                if (method.text.equalsIgnoreCase(text)) {
-                    return method;
-                }
-            }
-            throw new IllegalArgumentException("No constant with text " + text + " found");
-        }
-    }
 
     public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
         this.random = new Random();
@@ -126,6 +59,42 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
+     * Setter for the maximum hydrogen bond acceptors that a new candidate must comply with.
+     *
+     * @param maxHydrogenBondAcceptors, the maximum hydrogen bond acceptors that new candidates must comply with.
+     */
+    public void setMaxHydrogenBondAcceptors(double maxHydrogenBondAcceptors) {
+        this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
+    }
+
+    /**
+     * Setter for the maximum hydrogen bond donors that a new candidate must comply with.
+     *
+     * @param maxHydrogenBondDonors, the maximum hydrogen bond donors that new candidates must comply with.
+     */
+    public void setMaxHydrogenBondDonors(double maxHydrogenBondDonors) {
+        this.maxHydrogenBondDonors = maxHydrogenBondDonors;
+    }
+
+    /**
+     * Setter for the maximum molecular mass that a new candidate must comply with.
+     *
+     * @param maxMolecularMass, the maximum molecular mass that new candidates must comply with.
+     */
+    public void setMaxMolecularMass(double maxMolecularMass) {
+        this.maxMolecularMass = maxMolecularMass;
+    }
+
+    /**
+     * Setter for the maximum partition coefficient that a new candidate must comply with.
+     *
+     * @param maxPartitionCoefficient, the maximum partition coefficient that new candidates must comply with.
+     */
+    public void setMaxPartitionCoefficient(double maxPartitionCoefficient) {
+        this.maxPartitionCoefficient = maxPartitionCoefficient;
+    }
+
+    /**
      * Initializes a population from the reactant lists and the reaction.
      * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
      * in the reaction.
@@ -140,6 +109,11 @@ public class Population implements Iterable<Candidate> {
         this.candidateList = new RandomCompoundReactor(this.reaction, this.populationSize).randReact(this.reactantLists);
     }
 
+    /**
+     * Getter for the current generation.
+     *
+     * @return the current generation
+     */
     public Generation getCurrentGeneration() {
         return new Generation(candidateList, generationNumber);
     }
@@ -199,15 +173,6 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Setter for selection method.
-     *
-     * @param selectionMethod for use in selecting new offspring.
-     */
-    public void setSelectionMethod(SelectionMethod selectionMethod) {
-        this.selectionMethod = selectionMethod;
-    }
-
-    /**
      * Getter for the selection fraction.
      *
      * @return fraction off population that will be selected.
@@ -226,15 +191,6 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Setter for the mutation method.
-     *
-     * @param mutationMethod for use in introducing mutations.
-     */
-    public void setMutationMethod(MutationMethod mutationMethod) {
-        this.mutationMethod = mutationMethod;
-    }
-
-    /**
      * Getter for the selection method.
      *
      * @return the method that is set to select new offspring.
@@ -244,12 +200,30 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
+     * Setter for selection method.
+     *
+     * @param selectionMethod for use in selecting new offspring.
+     */
+    public void setSelectionMethod(SelectionMethod selectionMethod) {
+        this.selectionMethod = selectionMethod;
+    }
+
+    /**
      * Getter for the mutation method.
      *
      * @return the method that is set to introduce mutations.
      */
     public MutationMethod getMutationMethod() {
         return mutationMethod;
+    }
+
+    /**
+     * Setter for the mutation method.
+     *
+     * @param mutationMethod for use in introducing mutations.
+     */
+    public void setMutationMethod(MutationMethod mutationMethod) {
+        this.mutationMethod = mutationMethod;
     }
 
     /**
@@ -433,7 +407,7 @@ public class Population implements Iterable<Candidate> {
      * Overloaded produceOffspring method with default parameter value population size set to the instance field
      * population size.
      */
-    public void produceOffspring() throws OffspringFailureOverflow {
+    public void produceOffspring() throws OffspringFailureOverflow, UnSelectablePopulationException {
         produceOffspring(this.populationSize);
     }
 
@@ -442,7 +416,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
-    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow {
+    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, UnSelectablePopulationException {
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
         // Perform crossing over
@@ -476,7 +450,7 @@ public class Population implements Iterable<Candidate> {
                 failureCounter++;
                 if (failureCounter >= this.candidateList.size()*24) {
                     throw new OffspringFailureOverflow(
-                            String.format("Tried to create a new candidate %s times without a viable results", failureCounter),
+                            String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
                             this.offspringRejectionMessages);
                 }
             }
@@ -513,6 +487,15 @@ public class Population implements Iterable<Candidate> {
         throw new RuntimeException("Reproduction method '" + offspringChoice.toString() + "' is not yet implemented!");
     }
 
+    /**
+     * Finalize a candidate by converting the given new genome, which is a list of indices representing reactants,
+     * to a full candidate with Chemaxon's Reactor API.
+     *
+     * @param newGenome, a list of indices representing reactants
+     * @return the new, finalized candidate when this was created successfully. If either Reactor did not produce a
+     * product or if the produced candidate was not valid null is returned. Why the offspring was rejected is added
+     * to the offSpringRejectionMessages field.
+     */
     private Candidate finalizeOffspring(List<Integer> newGenome) {
         try {
             // get Reactants from the indices
@@ -556,21 +539,20 @@ public class Population implements Iterable<Candidate> {
      * Select the parents according to the method that is set.
      * If the method flag was set to cleared, do nothing.
      */
-    private void selectParents() {
-        // Assert that the candidates have a score
-        assert (candidateList.size() > 0) && candidateList.get(0).getRawScore() != null;
+    private void selectParents() throws UnSelectablePopulationException {
+        // Check that the candidates exist and have a score
+        if (candidateList.size() == 0) {
+            throw new UnSelectablePopulationException("The population is empty");
+        }
+        if (candidateList.get(0).getFitness() == null) {
+            throw new UnSelectablePopulationException("The first candidate score is null");
+        }
         // Select the parents according to the method that is set
-        List<Double> scores = candidateList.stream()
-                .map(Candidate::getRawScore).collect(Collectors.toList());
-        System.out.println("Parents         = " + scores);
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
             candidateList = this.fitnessProportionateSelection();
         } else if (this.selectionMethod == SelectionMethod.TRUNCATED_SELECTION) {
             candidateList = this.truncatedSelection();
         }
-        scores = candidateList.stream()
-                .map(Candidate::getRawScore).collect(Collectors.toList());
-        System.out.println("SelectedParents = " + scores);
         // Do nothing if the flag is cleared
     }
 
@@ -634,10 +616,9 @@ public class Population implements Iterable<Candidate> {
      * @return the index of the item in the array that was chosen.
      */
     private int makeWeightedChoice(double[] weights) {
-        double weightsSum = 0;
-        // Get sum of fitness scores
-        weightsSum = DoubleStream.of(weights).sum();
-        // get a random value
+        // Get sum of fitness scores.
+        double weightsSum = DoubleStream.of(weights).sum();
+        // get a random value.
         double value = this.random.nextDouble() * weightsSum;
         // locate the random value based on the weights
         for (int i = 0; i < weights.length; i++) {
@@ -692,11 +673,6 @@ public class Population implements Iterable<Candidate> {
             int allele = genome.get(i);
             int reactantIndex = getMutationSubstitute(i, allele);
             genome.set(i, reactantIndex);
-            if (alleleSimilarities != null) {
-//                System.out.println(String.format("%3s (%1.2f) -> %3s (%1.2f)", allele, alleleSimilarities[i][allele][allele] / DoubleStream.of(alleleSimilarities[i][allele]).sum(), reactantIndex, alleleSimilarities[i][allele][reactantIndex] / DoubleStream.of(alleleSimilarities[i][allele]).sum()));
-            } else {
-//                System.out.println(String.format("%3s        -> %3s       ", allele, reactantIndex));
-            }
         }
     }
 
@@ -749,10 +725,20 @@ public class Population implements Iterable<Candidate> {
             return allele;
     }
 
+    /**
+     * Method making the list of candidates publicly available as a stream.
+     *
+     * @return the population stream
+     */
     public Stream<Candidate> stream() {
         return candidateList.stream();
     }
 
+    /**
+     * Method returning the current size of the list of candidates.
+     *
+     * @return the size of the list of candidates
+     */
     public int size() {
         return candidateList.size();
     }
@@ -760,5 +746,61 @@ public class Population implements Iterable<Candidate> {
     @Override
     public Iterator<Candidate> iterator() {
         return this.candidateList.iterator();
+    }
+
+    /**
+     * Reproduction methods that can be chosen.
+     */
+    private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
+
+    /**
+     * Selection methods that can be chosen.
+     */
+    public enum SelectionMethod {
+        CLEAR("Clear"),
+        FITNESS_PROPORTIONATE_SELECTION("Fitness proportionate selection"),
+        TRUNCATED_SELECTION("Truncated selection");
+
+        private final String text;
+
+        SelectionMethod(String text) {
+            this.text = text;
+        }
+
+        public static SelectionMethod fromString(String text) {
+            for (SelectionMethod method : SelectionMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    /**
+     * Mutation methods that can be chosen.
+     */
+    public enum MutationMethod {
+        DISTANCE_DEPENDENT("Distance dependent"),
+        DISTANCE_INDEPENDENT("Distance independent");
+
+        private final String text;
+
+        MutationMethod(String text) {
+            this.text = text;
+        }
+
+        public static MutationMethod fromString(String text) {
+            for (MutationMethod method : MutationMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+
+        public String getText() {
+            return this.text;
+        }
     }
 }

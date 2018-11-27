@@ -17,10 +17,10 @@ import java.util.zip.ZipOutputStream;
 @WebServlet(name = "DownloadZippedCompoundServlet", urlPatterns = "/compound.download")
 public class DownloadZippedCompoundServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        handlePost(request, response);
+        handleGet(request, response);
     }
 
-    private void handlePost(HttpServletRequest request, HttpServletResponse response) {
+    private void handleGet(HttpServletRequest request, HttpServletResponse response) {
         String pipelineTargetDirectory = System.getenv("PL_TARGET_DIR");
         String sessionId = getSessionId(request);
         String compoundId = request.getParameter("compoundId");
