@@ -37,82 +37,60 @@ public class CompoundEvolver {
     private boolean dummyFitness;
     private List<List<Double>> scores = new ArrayList<>();
     private FitnessMeasure fitnessMeasure;
-
-    public enum ForceField {
-        MAB("mab"),
-        SMINA("smina");
-
-        private final String text;
-
-        ForceField(String text) {
-            this.text = text;
-        }
-
-        public static ForceField fromString(String text) {
-            for (ForceField condition : ForceField.values()) {
-                if (condition.text.equalsIgnoreCase(text)) {
-                    return condition;
-                }
-            }
-            throw new IllegalArgumentException("No constant with text " + text + " found");
-        }
-    }
-
-    public enum FitnessMeasure {
-        LIGAND_EFFICIENCY("ligandEfficiency"),
-        AFFINITY("affinity");
-
-        private final String text;
-
-        FitnessMeasure(String text) {
-            this.text = text;
-        }
-
-        public static FitnessMeasure fromString(String text) {
-            for (FitnessMeasure condition : FitnessMeasure.values()) {
-                if (condition.text.equalsIgnoreCase(text)) {
-                    return condition;
-                }
-            }
-            throw new IllegalArgumentException("No constant with text " + text + " found");
-        }
-    }
-
-    public enum TerminationCondition {
-        FIXED_GENERATION_NUMBER("fixed"),
-        CONVERGENCE("convergence"),
-        DURATION("duration");
-
-        private final String text;
-
-        TerminationCondition(String text) {
-            this.text = text;
-        }
-
-        public static TerminationCondition fromString(String text) {
-            for (TerminationCondition condition : TerminationCondition.values()) {
-                if (condition.text.equalsIgnoreCase(text)) {
-                    return condition;
-                }
-            }
-            throw new IllegalArgumentException("No constant with text " + text + " found");
-        }
-    }
+    private long startTime;
+    private long maximumAllowedDuration;
 
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
         this.maxNumberOfGenerations = 25;
+        this.maximumAllowedDuration = 60000;
         this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
 
-    public void setDummyFitness(boolean dummyFitness) {
-        this.dummyFitness = dummyFitness;
+    /**
+     * main for cli
+     *
+     * @param args An array of strings being the command line input
+     */
+    public static void main(String[] args) throws Exception {
+        // Load reactor from argument
+        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
+        // Get maximum amount of product
+        int maxSamples = Integer.parseInt(args[args.length - 1]);
+        // Load molecules
+        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
+        // Load anchor molecule
+        Path anchor = Paths.get(args[args.length - 2]);
+        // Construct the initial population
+        Population population = new Population(reactantLists, reactor, maxSamples);
+        population.initializeAlleleSimilaritiesMatrix();
+        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
+        population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
+        // Create new CompoundEvolver
+        CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
+        compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"));
+        compoundEvolver.setDummyFitness(false);
+        // Evolve compounds
+        compoundEvolver.evolve();
+    }
+
+    public long getMaximumAllowedDuration() {
+        return maximumAllowedDuration;
+    }
+
+    public void setMaximumAllowedDuration(long maximumAllowedDuration) {
+        this.maximumAllowedDuration = maximumAllowedDuration;
     }
 
     public boolean isDummyFitness() {
         return dummyFitness;
+    }
+
+    public void setDummyFitness(boolean dummyFitness) {
+        this.dummyFitness = dummyFitness;
     }
 
     public Path getPipelineOutputFileLocation() {
@@ -141,6 +119,10 @@ public class CompoundEvolver {
         return nonImprovingGenerationAmountFactor;
     }
 
+    public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
+        this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
+    }
+
     /**
      * Getter for the fitness of candidates in every generationNumber so far.
      *
@@ -148,10 +130,6 @@ public class CompoundEvolver {
      */
     public List<List<Double>> getFitness() {
         return scores;
-    }
-
-    public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
-        this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
     }
 
     public ForceField getForceField() {
@@ -162,12 +140,12 @@ public class CompoundEvolver {
         this.forceField = forceField;
     }
 
-    public void setFitnessMeasure(FitnessMeasure fitnessMeasure) {
-        this.fitnessMeasure = fitnessMeasure;
-    }
-
     public FitnessMeasure getFitnessMeasure() {
         return fitnessMeasure;
+    }
+
+    public void setFitnessMeasure(FitnessMeasure fitnessMeasure) {
+        this.fitnessMeasure = fitnessMeasure;
     }
 
     public TerminationCondition getTerminationCondition() {
@@ -189,7 +167,9 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() throws OffspringFailureOverflow {
+    public void evolve() throws OffspringFailureOverflow, UnSelectablePopulationException {
+        // Set startTime and signal that the evolution procedure has started
+        startTime = System.currentTimeMillis();
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
@@ -205,9 +185,9 @@ public class CompoundEvolver {
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
-        } catch (OffspringFailureOverflow offspringFailureOverflow) {
+        } catch (OffspringFailureOverflow | UnSelectablePopulationException e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
-            throw offspringFailureOverflow;
+            throw e;
         }
     }
 
@@ -277,6 +257,10 @@ public class CompoundEvolver {
         int generationNumber = this.population.getGenerationNumber();
         if (this.terminationCondition == TerminationCondition.CONVERGENCE && generationNumber > 5) {
             return this.hasConverged(generationNumber);
+        } else if (this.terminationCondition == TerminationCondition.DURATION) {
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            return this.maximumAllowedDuration >= duration;
         }
         return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
@@ -383,31 +367,64 @@ public class CompoundEvolver {
         return sminaExecutable;
     }
 
-    /**
-     * main for cli
-     *
-     * @param args An array of strings being the command line input
-     */
-    public static void main(String[] args) throws Exception {
-        // Load reactor from argument
-        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
-        // Get maximum amount of product
-        int maxSamples = Integer.parseInt(args[args.length - 1]);
-        // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
-        // Load anchor molecule
-        Path anchor = Paths.get(args[args.length - 2]);
-        // Construct the initial population
-        Population population = new Population(reactantLists, reactor, maxSamples);
-        population.initializeAlleleSimilaritiesMatrix();
-        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
-        population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
-        // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
-        compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"));
-        compoundEvolver.setDummyFitness(false);
-        // Evolve compounds
-        compoundEvolver.evolve();
+    public enum ForceField {
+        MAB("mab"),
+        SMINA("smina");
+
+        private final String text;
+
+        ForceField(String text) {
+            this.text = text;
+        }
+
+        public static ForceField fromString(String text) {
+            for (ForceField condition : ForceField.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    public enum FitnessMeasure {
+        LIGAND_EFFICIENCY("ligandEfficiency"),
+        AFFINITY("affinity");
+
+        private final String text;
+
+        FitnessMeasure(String text) {
+            this.text = text;
+        }
+
+        public static FitnessMeasure fromString(String text) {
+            for (FitnessMeasure condition : FitnessMeasure.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    public enum TerminationCondition {
+        FIXED_GENERATION_NUMBER("fixed"),
+        CONVERGENCE("convergence"),
+        DURATION("duration");
+
+        private final String text;
+
+        TerminationCondition(String text) {
+            this.text = text;
+        }
+
+        public static TerminationCondition fromString(String text) {
+            for (TerminationCondition condition : TerminationCondition.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
     }
 }
