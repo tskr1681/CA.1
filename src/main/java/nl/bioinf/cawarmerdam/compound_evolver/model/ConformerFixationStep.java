@@ -16,7 +16,7 @@ import java.nio.file.Paths;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class ConformerFixationStep implements PipelineStep<Path, Path> {
+public class ConformerFixationStep implements PipelineStep<Candidate, Candidate> {
 
     private String smartsPattern;
     private Path referenceMolecule;
@@ -51,13 +51,15 @@ public class ConformerFixationStep implements PipelineStep<Path, Path> {
     }
 
     @Override
-    public Path execute(Path targetMolecule) throws PipelineException {
-        Path outFile = targetMolecule.resolveSibling(
-                Paths.get(String.format("fixed_%s", targetMolecule.getFileName().toString())));
+    public Candidate execute(Candidate candidate) throws PipelineException {
+        Path targetMoleculePath = candidate.getConformersFile();
+        Path outFile = targetMoleculePath.resolveSibling(
+                Paths.get(String.format("fixed_%s", targetMoleculePath.getFileName().toString())));
 
         // Try to fixate conformers using obfit
-        obFit(targetMolecule.toString(), outFile.toString());
-        return outFile;
+        obFit(targetMoleculePath.toString(), outFile.toString());
+        candidate.setFixedConformersFile(outFile);
+        return candidate;
     }
 
     /**

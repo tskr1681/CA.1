@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Path> {
+public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Candidate> {
 
     private Path filePath;
     private int conformerCount;
@@ -24,9 +24,9 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
     }
 
     @Override
-    public Path execute(Candidate candidate) throws PipelineException {
-        Path conformerFileName = getConformerFileName(candidate);
-        Path directory = conformerFileName.getParent();
+    public Candidate execute(Candidate candidate) throws PipelineException {
+        Path conformerFilePath = getConformerFileName(candidate);
+        Path directory = conformerFilePath.getParent();
         // Make directory if it does not exist
         if (! directory.toFile().exists()){
             try {
@@ -43,14 +43,16 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Pa
         }
         try {
             Molecule[] conformers = createConformers(candidate.getPhenotype());
-            MolExporter exporter = new MolExporter(conformerFileName.toString(), "sdf");
+            MolExporter exporter = new MolExporter(conformerFilePath.toString(), "sdf");
             for (Molecule conformer : conformers) {
                 exporter.write(conformer);
             }
+            exporter.close();
         } catch (IOException | PluginException e) {
             throw new PipelineException("Could not create conformers", e);
         }
-        return conformerFileName;
+        candidate.setConformersFile(conformerFilePath);
+        return candidate;
     }
 
     private Path getConformerFileName(Candidate candidate) {

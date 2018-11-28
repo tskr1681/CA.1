@@ -26,6 +26,7 @@ public class Population implements Iterable<Candidate> {
     private final Reactor reaction;
     private final List<List<Molecule>> reactantLists;
     private final Random random;
+    private double maxAnchorMinimizedRmsd;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
     private List<Candidate> candidateList;
@@ -56,6 +57,26 @@ public class Population implements Iterable<Candidate> {
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         initializePopulation();
+    }
+
+    /**
+     * Getter for the maximum allowed rmsd between the anchor and
+     * its matching substructure in the candidates best conformer.
+     *
+     * @return the maximum allowed rmsd
+     */
+    public double getMaxAnchorMinimizedRmsd() {
+        return maxAnchorMinimizedRmsd;
+    }
+
+    /**
+     * Getter for the maximum allowed rmsd between the anchor and
+     * its matching substructure in the candidates best conformer.
+     *
+     * @param maxAnchorMinimizedRmsd, the maximum allowed rmsd
+     */
+    public void setMaxAnchorMinimizedRmsd(double maxAnchorMinimizedRmsd) {
+        this.maxAnchorMinimizedRmsd = maxAnchorMinimizedRmsd;
     }
 
     /**
@@ -96,9 +117,10 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Initializes a population from the reactant lists and the reaction.
+     *
      * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
-     * in the reaction.
-     * @throws ReactionException if an exception was thrown during a reaction.
+     *                                 in the reaction.
+     * @throws ReactionException       if an exception was thrown during a reaction.
      */
     private void initializePopulation() throws MisMatchedReactantCount, ReactionException {
         int reactantCount = this.reaction.getReactantCount();
@@ -448,7 +470,7 @@ public class Population implements Iterable<Candidate> {
             } else {
                 // Count this failure
                 failureCounter++;
-                if (failureCounter >= this.candidateList.size()*24) {
+                if (failureCounter >= this.candidateList.size() * 24) {
                     throw new OffspringFailureOverflow(
                             String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
                             this.offspringRejectionMessages);
@@ -463,7 +485,7 @@ public class Population implements Iterable<Candidate> {
      * Produces a novel candidate to by applying the given reproduction method.
      *
      * @param offspringChoice, The choice of reproducing method; use crossover, elitism, or random immigrant.
-     * @param i an index of the current list of candidates at which to pick parents for new offspring.
+     * @param i                an index of the current list of candidates at which to pick parents for new offspring.
      * @return the produced
      */
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
@@ -540,6 +562,7 @@ public class Population implements Iterable<Candidate> {
      * If the method flag was set to cleared, do nothing.
      */
     private void selectParents() throws UnSelectablePopulationException {
+        this.filterTooDeviantParents();
         // Check that the candidates exist and have a score
         if (candidateList.size() == 0) {
             throw new UnSelectablePopulationException("The population is empty");
@@ -554,6 +577,17 @@ public class Population implements Iterable<Candidate> {
             candidateList = this.truncatedSelection();
         }
         // Do nothing if the flag is cleared
+    }
+
+    /**
+     * Filters the parents with an rmsd larger than the max set rmsd.
+     * The rmsd stands for the deviation between the anchor and
+     * its matching substructure in the candidates best conformer.
+     */
+    private void filterTooDeviantParents() {
+        candidateList = candidateList.stream()
+                .filter(parent -> parent.getCommonSubstructureToAnchorRmsd() <= this.maxAnchorMinimizedRmsd)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -681,7 +715,7 @@ public class Population implements Iterable<Candidate> {
      * or a distance independent method.
      *
      * @param reactants_list_index, the index of the reactants list
-     * @param allele the index of the allele in the reactant list
+     * @param allele                the index of the allele in the reactant list
      * @return the index of the chosen reactant from the reactant list
      */
     private int getMutationSubstitute(int reactants_list_index, int allele) {
@@ -690,7 +724,7 @@ public class Population implements Iterable<Candidate> {
 //            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
             if (this.alleleSimilarities == null) {
                 throw new RuntimeException("Allele similarity matrices should be defined " +
-                    "for distance dependant mutation!");
+                        "for distance dependant mutation!");
             }
             // If the similarities for this allele with other alleles has not yet been calculated, calculate these now
             if (alleleSimilarities[reactants_list_index][allele][allele] == 0) {
@@ -751,7 +785,9 @@ public class Population implements Iterable<Candidate> {
     /**
      * Reproduction methods that can be chosen.
      */
-    private enum ReproductionMethod {CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR}
+    private enum ReproductionMethod {
+        CROSSOVER, ELITISM, RANDOM_IMMIGRANT, CLEAR
+    }
 
     /**
      * Selection methods that can be chosen.

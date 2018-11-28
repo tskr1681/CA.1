@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import org.apache.commons.io.FilenameUtils;
 
@@ -14,31 +15,48 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String molocExecutable;
 
-    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
-        super(forcefield);
+    public MolocEnergyMinimizationStep(String forcefield, Path receptorFilePath, Path anchorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
+        super(forcefield, anchorFilePath);
         this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }
 
     @Override
-    public Double execute(Path inputFile) throws PipelineException {
+    public Void execute(Candidate candidate) throws PipelineException {
+        Path inputFile = candidate.getFixedConformersFile();
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
         mol3d(inputFile);
+        List<Double> conformerScores = getConformerScores(inputFile, ligandName, receptorName);
+        double score = 0.0;
+        if (conformerScores.size() > 0) {
+            score = Collections.min(conformerScores);
+            File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
+            Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
+            minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
+            Molecule bestConformer = getBestConformer(newMinimizedConformersFilePath, conformerScores.indexOf(score));
+            candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
+            exportConformer(bestConformer, inputFile.resolveSibling("best-conformer.sdf"));
+        }
+        candidate.setRawScore(score);
+        return null;
+    }
+
+    private List<Double> getConformerScores(Path inputFile, String ligandName, String receptorName) throws PipelineException {
+        // Get the ene file path: according to documentation and experience the ene file path will
+        // be created in the dir where the .sd file is also created.
+        //
+        // The name is only OFTEN <ligandName>_<receptorName>.ene
         Path eneFilePath = Paths.get(String.format("%s_%s.ene", ligandName, receptorName));
         File eneFile = inputFile.resolveSibling(String.valueOf(eneFilePath)).toFile();
-        FileInputStream fastaFileInputStream = null;
+
+        // Return the output from the parser if no error occurred.
         try {
-            fastaFileInputStream = new FileInputStream(eneFile);
+            FileInputStream eneFileInputStream = new FileInputStream(eneFile);
+            return EneFileParser.parseEneFile(eneFileInputStream, eneFile.getName());
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            throw new PipelineException("Could not read ENE score file from moloc", e);
         }
-        List<Double> conformerScores = EneFileParser.parseEneFile(fastaFileInputStream, eneFile.getName());
-        System.out.println("conformerScores = " + conformerScores);
-        if (conformerScores.size() > 0) {
-            return Collections.min(conformerScores);
-        }
-        return 0.0;
     }
 
     private void mol3d(Path inputFile) throws PipelineException {

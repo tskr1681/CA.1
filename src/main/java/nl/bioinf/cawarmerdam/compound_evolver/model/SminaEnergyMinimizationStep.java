@@ -16,26 +16,33 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
 
     public SminaEnergyMinimizationStep(String forcefield,
                                        Path receptorFilePath,
+                                       Path anchorFilePath,
                                        String sminaExecutable,
                                        String pythonExecutable,
                                        String prepareReceptorExecutable) throws PipelineException {
-        super(forcefield);
+        super(forcefield, anchorFilePath);
         this.receptorFilePath = convertToPdbQt(receptorFilePath, pythonExecutable, prepareReceptorExecutable);
         this.sminaExecutable = sminaExecutable;
     }
 
     @Override
-    public Double execute(Path inputFile) throws PipelineException {
+    public Void execute(Candidate candidate) throws PipelineException {
+        Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
-        List<String> smina = smina(inputFile, conformerCoordinates);
+        Path outputPath = inputFile.resolveSibling("smina.sdf");
+        ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath);
         List<Double> conformerScores = getConformerScores(smina);
+        double score = 0.0;
         if (conformerScores.size() > 0) {
-            return Collections.min(conformerScores);
+            score = Collections.min(conformerScores);
+            Molecule bestConformer = getBestConformer(outputPath, conformerScores.indexOf(score));
+            candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
         }
-        return 0.0;
+        candidate.setRawScore(score);
+        return null;
     }
 
-    private List<Double> getConformerScores(List<String> smina) {
+    private List<Double> getConformerScores(ArrayList<String> smina) {
         ArrayList<Double> conformerScores = new ArrayList<>();
         for (String line : smina) {
             if (line.startsWith("Affinity:")) {
@@ -46,12 +53,12 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         return conformerScores;
     }
 
-    private List<String> smina(Path inputFile, Map<String, Double> conformerCoordinates) throws PipelineException {
+    private ArrayList<String> smina(Path inputFile, Map<String, Double> conformerCoordinates, Path outputPath) throws PipelineException {
         // Initialize string line
         String line = null;
 
         // Initialize smina output list.
-        List<String> sminaOutput = new ArrayList<String>();
+        ArrayList<String> sminaOutput = new ArrayList<>();
 
         try {
             ProcessBuilder builder = new ProcessBuilder(
@@ -65,7 +72,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                     "--size_y", conformerCoordinates.get("sizeY").toString(),
                     "--size_z", conformerCoordinates.get("sizeZ").toString(),
                     "--minimize", "--log", inputFile.resolveSibling("log.txt").toString(),
-                    "--out", inputFile.resolveSibling("smina.sdf").toString());
+                    "--out", outputPath.toString());
 
             // Build process with the command
             Process p = builder.start();

@@ -30,7 +30,7 @@ public class CompoundEvolver {
     private TerminationCondition terminationCondition;
     private int maxNumberOfGenerations;
     private Random random = new Random();
-    private PipelineStep<Candidate, Double> pipe;
+    private PipelineStep<Candidate, Void> pipe;
     private Population population;
     private EvolutionProgressConnector evolutionProgressConnector;
     private double nonImprovingGenerationAmountFactor;
@@ -315,13 +315,13 @@ public class CompoundEvolver {
         // Get the step for fixing conformers to an anchor point
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         // Get the step for energy minimization
-        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile);
+        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile, anchor);
         // Combine the steps and set the pipe.
-        PipelineStep<Candidate, Path> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
+        PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
-    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile) throws PipelineException {
+    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
         if (this.forceField == ForceField.MAB) {
             String mol3dExecutable = getExecutable("MOL3D_EXE");
             String esprntoExecutable = getExecutable("ESPRNTO_EXE");
@@ -330,6 +330,7 @@ public class CompoundEvolver {
             return new MolocEnergyMinimizationStep(
                     "",
                     receptorFile,
+                    anchorFilePath,
                     mol3dExecutable,
                     esprntoExecutable);
         } else if (this.forceField == ForceField.SMINA) {
@@ -341,6 +342,7 @@ public class CompoundEvolver {
             return new SminaEnergyMinimizationStep(
                     "",
                     receptorFile,
+                    anchorFilePath,
                     sminaExecutable,
                     pythonExecutable,
                     prepareReceptorExecutable);

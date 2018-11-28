@@ -506,6 +506,32 @@
                     <div class="card card-body">
                         <h5 class="card-title"><b>Filters</b></h5>
                         <div class="form-group row">
+                            <label for="max-anchor-minimized-rmsd" class="col-sm-3 col-form-label">
+                                Maximum RMSD allowed from the anchor
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxAnchorMinimizedRmsd"
+                                       id="max-anchor-minimized-rmsd"
+                                       name="maxAnchorMinimizedRmsd"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxAnchorMinimizedRmsd.$valid && (!compoundEvolverForm.maxAnchorMinimizedRmsd.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxAnchorMinimizedRmsd.$valid && (!compoundEvolverForm.maxAnchorMinimizedRmsd.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.maxAnchorMinimizedRmsd.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.maxAnchorMinimizedRmsd.$error.number || compoundEvolverForm.maxAnchorMinimizedRmsd.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A positive numeric value is required
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Filer application
                             </label>
                             <div class="col-sm-9">

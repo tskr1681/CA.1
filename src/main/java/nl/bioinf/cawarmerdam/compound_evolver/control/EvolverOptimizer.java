@@ -48,7 +48,7 @@ public class EvolverOptimizer {
                     System.out.printf("Failed writing %s%n", csvFileName);
                     e.printStackTrace();
                 }
-            } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow e) {
+            } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException e) {
                 System.out.printf("Run %d failed%n", i);
                 e.printStackTrace();
             }
@@ -119,7 +119,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private List<List<Double>> run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow {
+    private List<List<Double>> run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
         Population population = new Population(reactantLists, reactor, parameters.getGenerationSize());
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

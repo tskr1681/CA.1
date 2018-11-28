@@ -41,6 +41,7 @@ public class Candidate implements Comparable<Candidate> {
     private logPPlugin logPPlugin = new logPPlugin();
     private List<Integer> genotype;
     private Molecule phenotype;
+    private double CommonSubstructureToAnchorRmsd;
     private Double rawScore;
     private double normFitness;
     private double ligandEfficiency;
@@ -351,5 +352,29 @@ public class Candidate implements Comparable<Candidate> {
 
     public String getRejectionMessage() {
         return rejectionMessage;
+    }
+
+    public Path getConformersFile() {
+        return conformersFile;
+    }
+
+    public void setConformersFile(Path conformersFile) {
+        this.conformersFile = conformersFile;
+    }
+
+    public Path getFixedConformersFile() {
+        return fixedConformersFile;
+    }
+
+    public void setFixedConformersFile(Path fixedConformersFile) {
+        this.fixedConformersFile = fixedConformersFile;
+    }
+
+    public double getCommonSubstructureToAnchorRmsd() {
+        return CommonSubstructureToAnchorRmsd;
+    }
+
+    public void setCommonSubstructureToAnchorRmsd(double commonSubstructureToAnchorRmsd) {
+        CommonSubstructureToAnchorRmsd = commonSubstructureToAnchorRmsd;
     }
 }

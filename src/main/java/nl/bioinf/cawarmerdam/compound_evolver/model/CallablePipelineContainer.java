@@ -5,10 +5,10 @@ import chemaxon.marvin.plugin.PluginException;
 import java.util.concurrent.Callable;
 
 public class CallablePipelineContainer implements Callable<Void> {
-    private PipelineStep<Candidate, Double> pipeline;
+    private PipelineStep<Candidate, Void> pipeline;
     private Candidate candidate;
 
-    public CallablePipelineContainer(PipelineStep<Candidate, Double> pipeline, Candidate candidate) {
+    public CallablePipelineContainer(PipelineStep<Candidate, Void> pipeline, Candidate candidate) {
         this.pipeline = pipeline;
         this.candidate = candidate;
     }
@@ -16,8 +16,7 @@ public class CallablePipelineContainer implements Callable<Void> {
     @Override
     public Void call() throws PipelineException, PluginException {
         System.out.println(Thread.currentThread().getName()+" Start. Candidate identifier = "+candidate.getIdentifier());
-        double score = this.pipeline.execute(candidate);
-        candidate.setRawScore(score);
+        this.pipeline.execute(candidate);
         candidate.calculateLigandEfficiency();
         return null;
     }

@@ -23,6 +23,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         conformerCount: 15,
         fitnessMeasure: 'ligandEfficiency',
         forceField: 'smina',
+        maxAnchorMinimizedRmsd: 2,
         useLipinski: false,
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,

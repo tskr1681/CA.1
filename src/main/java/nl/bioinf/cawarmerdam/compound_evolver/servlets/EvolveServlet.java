@@ -163,6 +163,10 @@ public class EvolveServlet extends HttpServlet {
         double randomImmigrantRate = getDoubleParameterFromRequest(request, "randomImmigrantRate");
         initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
 
+        // Get the maximum allowed rmsd from the anchor
+        double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
+        initialPopulation.setMaxAnchorMinimizedRmsd(maxAnchorMinimizedRmsd);
+
         // If use lipinski is set to true, handle the filter options.
         boolean useLipinski = getBooleanParameterFromRequest(request, "useLipinski");
         if (useLipinski) handleFilterOptions(request, initialPopulation);
