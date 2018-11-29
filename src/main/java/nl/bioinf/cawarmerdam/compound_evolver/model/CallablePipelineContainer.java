@@ -3,8 +3,10 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 import chemaxon.marvin.plugin.PluginException;
 
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
 public class CallablePipelineContainer implements Callable<Void> {
+    private static final Logger LOGGER = Logger.getLogger(CallablePipelineContainer.class.getName());
     private PipelineStep<Candidate, Void> pipeline;
     private Candidate candidate;
 
