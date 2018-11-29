@@ -23,7 +23,7 @@ public class DownloadCsvServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String sessionID;
         if (session.isNew() || session.getAttribute("session_id") == null) {
-            // No session id
+            throw new NullPointerException("Session was null");
         }
         sessionID = (String) session.getAttribute("session_id");
         return sessionID;

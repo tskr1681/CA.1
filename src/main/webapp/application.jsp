@@ -683,15 +683,17 @@
                         <th>ID</th>
                         <th>COMPOUND</th>
                         <th class="text-muted">SCORE</th>
-                        <th>LIGAND EFFICIENCY</th>
+                        <th><abbr title="Ligand Efficiency">LE</abbr></th>
+                        <th><abbr title="Ligand Lipophilicity Efficiency">LEE</abbr></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
                         <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
                         <td>{{candidate.smiles}}</td>
-                        <td class="text-muted">{{candidate.fitness | number:4}}</td>
+                        <td>{{candidate.rawScore | number:4}}</td>
                         <td>{{candidate.ligandEfficiency | number:4}}</td>
+                        <td>{{candidate.ligandLipophilicityEfficiency | number:4}}</td>
                     </tr>
                     </tbody>
                 </table>

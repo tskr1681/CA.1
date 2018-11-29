@@ -1,4 +1,4 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 public class PipelineException extends Exception {
     public PipelineException(String message) {

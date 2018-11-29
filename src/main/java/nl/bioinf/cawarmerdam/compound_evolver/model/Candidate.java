@@ -5,7 +5,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.formats.MolExporter;
-import chemaxon.marvin.alignment.Alignment;
 import chemaxon.marvin.calculations.ElementalAnalyserPlugin;
 import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.IUPACNamingPlugin;
@@ -31,49 +30,51 @@ import java.util.stream.IntStream;
 public class Candidate implements Comparable<Candidate> {
 
     private final long identifier;
+    private final int genomeSize;
     private static AtomicLong currentValue = new AtomicLong(0L);
+    private CompoundEvolver.FitnessMeasure fitnessMeasure;
+    private Path conformersFile;
+    private Path fixedConformersFile;
+    private Double rawScore;
+    private Double ligandLipophilicityEfficiency;
     private Double maxHydrogenBondDonors = null;
     private Double maxHydrogenBondAcceptors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    private final int genomeSize;
     private HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
     private logPPlugin logPPlugin = new logPPlugin();
     private List<Integer> genotype;
     private Molecule phenotype;
+    private String rejectionMessage;
     private double CommonSubstructureToAnchorRmsd;
-    private Double rawScore;
     private double normFitness;
     private double ligandEfficiency;
-    private CompoundEvolver.FitnessMeasure fitnessMeasure;
-    private String rejectionMessage;
-    private Path conformersFile;
-    private Path fixedConformersFile;
 
-    Candidate(List<Integer> genotype, Molecule phenotype) {
+    public Candidate(List<Integer> genotype, Molecule phenotype) {
         this.genotype = genotype;
         this.phenotype = phenotype;
         this.genomeSize = this.genotype.size();
         this.identifier = currentValue.getAndIncrement();
+        this.runLogPPluginIfNotRan();
     }
 
     public long getIdentifier() {
         return identifier;
     }
 
-    public void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {
+    void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {
         this.maxHydrogenBondDonors = maxHydrogenBondDonors;
     }
 
-    public void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
+    void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
         this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
     }
 
-    public void setMaxMolecularMass(Double maxMolecularMass) {
+    void setMaxMolecularMass(Double maxMolecularMass) {
         this.maxMolecularMass = maxMolecularMass;
     }
 
-    public void setMaxPartitionCoefficient(Double maxPartitionCoefficient) {
+    void setMaxPartitionCoefficient(Double maxPartitionCoefficient) {
         this.maxPartitionCoefficient = maxPartitionCoefficient;
     }
 
@@ -92,6 +93,8 @@ public class Candidate implements Comparable<Candidate> {
             return (-rawScore);
         } else if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY) {
             return (-ligandEfficiency);
+        } else if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.LIGAND_LIPOPHILICITY_EFFICIENCY) {
+            return (-ligandLipophilicityEfficiency);
         } else {
             throw new RuntimeException("Not implemented");
         }
@@ -130,8 +133,29 @@ public class Candidate implements Comparable<Candidate> {
         return ligandEfficiency;
     }
 
+    /**
+     * Method for calculating and setting the ligand efficiency.
+     *
+     * @throws PluginException if the heavy atom count could not be determined.
+     */
     public void calculateLigandEfficiency() throws PluginException {
         this.ligandEfficiency = this.getRawScore() / this.getHeavyAtomCount();
+    }
+
+    /**
+     * Getter for the ligand lipophilicity efficiency.
+     *
+     * @return The ligand lipophilicity efficiency.
+     */
+    public Double getLigandLipophilicityEfficiency() {
+        return ligandLipophilicityEfficiency;
+    }
+
+    /**
+     * Method responsible for calculating and setting the ligand lipophilicity efficiency.
+     */
+    public void calculateLigandLipophilicityEfficiency() {
+        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()) - logPPlugin.getlogPTrue();
     }
 
     /**
@@ -267,13 +291,14 @@ public class Candidate implements Comparable<Candidate> {
                 throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
             }
         }
-        if (maxPartitionCoefficient != null) {
-            try {
-                this.logPPlugin.setMolecule(this.phenotype);
-                this.logPPlugin.run();
-            } catch (PluginException e) {
-                throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
-            }
+    }
+
+    private void runLogPPluginIfNotRan() {
+        try {
+            this.logPPlugin.setMolecule(this.phenotype);
+            this.logPPlugin.run();
+        } catch (PluginException e) {
+            throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
         }
     }
 

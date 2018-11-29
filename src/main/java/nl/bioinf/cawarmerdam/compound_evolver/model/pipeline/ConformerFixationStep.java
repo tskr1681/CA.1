@@ -2,9 +2,10 @@
  * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
  * All rights reserved.
  */
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolConverter;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

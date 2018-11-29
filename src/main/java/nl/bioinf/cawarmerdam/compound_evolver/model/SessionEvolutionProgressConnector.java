@@ -8,6 +8,7 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
     private Status status;
     private List<Generation> generationBuffer = new ArrayList<>();
     private boolean terminationRequired = false;
+    private List<List<Double>> scores = new ArrayList<>();
 
     public SessionEvolutionProgressConnector() {
         status = Status.STARTING;
@@ -29,6 +30,15 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
 
     public Status getStatus() {
         return this.status;
+    }
+
+    @Override
+    public void addScores(List<Double> normFitnesses) {
+        this.scores.add(normFitnesses);
+    }
+
+    public List<List<Double>> getScores() {
+        return this.scores;
     }
 
     @Override

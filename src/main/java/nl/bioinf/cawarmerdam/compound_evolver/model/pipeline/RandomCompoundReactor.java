@@ -1,8 +1,9 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -18,7 +19,7 @@ public class RandomCompoundReactor {
         this.maxSamples = maxSamples;
     }
 
-    List<Candidate> randReact(List<List<Molecule>> reactantLists)
+    public List<Candidate> randReact(List<List<Molecule>> reactantLists)
             throws ReactionException {
         // Amount of products generated
         int nSampled = 0;

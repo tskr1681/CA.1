@@ -1,7 +1,8 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;

@@ -1,13 +1,11 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
-import chemaxon.calculations.hydrogenize.Hydrogenize;
 import chemaxon.formats.MolExporter;
 import chemaxon.marvin.calculations.ConformerPlugin;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
-import chemaxon.struc.MoleculeGraph;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

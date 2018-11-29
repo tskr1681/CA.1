@@ -8,6 +8,7 @@ import chemaxon.descriptors.*;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.RandomCompoundReactor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,6 +55,7 @@ public class Population implements Iterable<Candidate> {
         this.crossoverRate = 0.8;
         this.elitismRate = 0.1;
         this.randomImmigrantRate = 0.1;
+        this.maxAnchorMinimizedRmsd = 1;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         initializePopulation();
@@ -441,11 +443,15 @@ public class Population implements Iterable<Candidate> {
     private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, UnSelectablePopulationException {
         // Create list of offspring
         List<Candidate> offspring = new ArrayList<>();
-        // Perform crossing over
+
         // Shuffle parents
         Collections.shuffle(this.candidateList);
         // Select parents
         selectParents();
+
+        // Set the offspring choice to clear. For every new individual (offspring) to create a new offspring choice
+        // is selected according to the set crossover, random immigrant, and elitist parameters.
+        // (A random weighted choice is performed each time. )
         ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
         // Count the number of times one offspring could not be created. (Reset when an offspring could be created)
         int failureCounter = 0;
@@ -560,6 +566,9 @@ public class Population implements Iterable<Candidate> {
     /**
      * Select the parents according to the method that is set.
      * If the method flag was set to cleared, do nothing.
+     *
+     * @throws UnSelectablePopulationException if the population was either empty or if the first candidate has a
+     * fitness of 0.
      */
     private void selectParents() throws UnSelectablePopulationException {
         this.filterTooDeviantParents();
@@ -585,6 +594,7 @@ public class Population implements Iterable<Candidate> {
      * its matching substructure in the candidates best conformer.
      */
     private void filterTooDeviantParents() {
+        // When the common substructure to anchor rmsd is lower or equal to the max, keep it.
         candidateList = candidateList.stream()
                 .filter(parent -> parent.getCommonSubstructureToAnchorRmsd() <= this.maxAnchorMinimizedRmsd)
                 .collect(Collectors.toList());

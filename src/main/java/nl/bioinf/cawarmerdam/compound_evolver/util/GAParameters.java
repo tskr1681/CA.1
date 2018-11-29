@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
@@ -7,6 +8,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GAParameters implements Serializable {
     private long maximumAllowedDuration;
     private int generationSize;
@@ -17,6 +19,7 @@ public class GAParameters implements Serializable {
     private Double randomImmigrantRate;
     private Double elitistRate;
     private Double nonImprovingGenerationAmountFactor;
+    private Double maxAnchorMinimizedRmsd;
     private CompoundEvolver.TerminationCondition terminationCondition;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
     private CompoundEvolver.ForceField forceField;
@@ -39,7 +42,7 @@ public class GAParameters implements Serializable {
         this.maxGenerations = maxGenerations;
     }
 
-    public double getSelectionRate() {
+    public Double getSelectionRate() {
         return selectionRate;
     }
 
@@ -47,7 +50,7 @@ public class GAParameters implements Serializable {
         this.selectionRate = selectionRate;
     }
 
-    public double getMutationRate() {
+    public Double getMutationRate() {
         return mutationRate;
     }
 
@@ -55,7 +58,7 @@ public class GAParameters implements Serializable {
         this.mutationRate = mutationRate;
     }
 
-    public double getCrossoverRate() {
+    public Double getCrossoverRate() {
         return crossoverRate;
     }
 
@@ -63,7 +66,7 @@ public class GAParameters implements Serializable {
         this.crossoverRate = crossoverRate;
     }
 
-    public double getRandomImmigrantRate() {
+    public Double getRandomImmigrantRate() {
         return randomImmigrantRate;
     }
 
@@ -71,7 +74,7 @@ public class GAParameters implements Serializable {
         this.randomImmigrantRate = randomImmigrantRate;
     }
 
-    public double getElitistRate() {
+    public Double getElitistRate() {
         if (elitistRate != null) return elitistRate;
         // If this is not explicitly set get the remaining bit from 1.
         else return 1 - getCrossoverRate() - getRandomImmigrantRate();
@@ -81,7 +84,7 @@ public class GAParameters implements Serializable {
         this.elitistRate = elitistRate;
     }
 
-    public double getNonImprovingGenerationAmountFactor() {
+    public Double getNonImprovingGenerationAmountFactor() {
         return nonImprovingGenerationAmountFactor;
     }
 
@@ -171,5 +174,13 @@ public class GAParameters implements Serializable {
                 ", mutationMethod=" + mutationMethod +
                 ", selectionMethod=" + selectionMethod +
                 '}';
+    }
+
+    public Double getMaxAnchorMinimizedRmsd() {
+        return maxAnchorMinimizedRmsd;
+    }
+
+    public void setMaxAnchorMinimizedRmsd(Double maxAnchorMinimizedRmsd) {
+        this.maxAnchorMinimizedRmsd = maxAnchorMinimizedRmsd;
     }
 }

@@ -130,9 +130,11 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 evolveStatus = data.status;
 
                 generations.forEach(function (generation) {
-                    generationFitnesses = generation.candidateList.map(candidate => candidate.ligandEfficiency);
+
                     addData(myChart, generation.number, [
-                        generationFitnesses
+                        generation.candidateList.map(candidate => candidate.rawScore),
+                        generation.candidateList.map(candidate => candidate.ligandEfficiency),
+                        generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
                     ]);
                     $rootScope.generations.push(generation);
                     $rootScope.$apply();
@@ -165,25 +167,26 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
     function addData(chart, label, data) {
         chart.data.labels.push(label);
-        console.log(data);
-        data.forEach(function (value, datasetIndex) {
-            console.log(value, datasetIndex);
-            chart.data.datasets[datasetIndex].data.push(value);
+        chart.data.datasets.forEach(function (dataset, datasetIndex) {
+            dataset.data.push(data[datasetIndex]);
         });
         chart.update();
     }
 
-    function initializeChart(scores) {
-        var chartData = {labels: [...Array(scores.length).keys()],
+    function initializeChart() {
+        var chartData = {labels: [],
             datasets: [
-                {data: scores, label: "fitness", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},]};
+                {data: [], label: "Raw Scores", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},
+                {data: [], label: "Ligand Efficiencies", borderColor: "#0055ff", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},
+                {data: [], label: "Lipophilic Efficiencies", borderColor: "#ff0055", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'}
+            ]};
 
         var ctx = document.getElementById("myChart").getContext('2d');
 
         if (myChart !== null) {myChart.destroy();}
 
         myChart = new Chart(ctx, {
-            type: 'boxplot',
+            type: 'violin',
             data: chartData,
             options: {
                 responsive: true,
@@ -266,7 +269,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                     $scope.$apply();
                 }
             });
-            initializeChart([]);
+            initializeChart();
 
             evolveStatus = null;
 

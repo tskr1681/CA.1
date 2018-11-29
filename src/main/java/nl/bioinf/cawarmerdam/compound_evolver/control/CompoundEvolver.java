@@ -9,6 +9,7 @@ import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,20 +26,20 @@ import java.util.stream.Collectors;
  */
 public class CompoundEvolver {
 
-    private Path pipelineOutputFileLocation;
+    private List<List<Double>> scores = new ArrayList<>();
+    private Path pipelineOutputFilePath;
     private ForceField forceField;
     private TerminationCondition terminationCondition;
-    private int maxNumberOfGenerations;
-    private Random random = new Random();
     private PipelineStep<Candidate, Void> pipe;
     private Population population;
     private EvolutionProgressConnector evolutionProgressConnector;
-    private double nonImprovingGenerationAmountFactor;
-    private boolean dummyFitness;
-    private List<List<Double>> scores = new ArrayList<>();
     private FitnessMeasure fitnessMeasure;
     private long startTime;
+    private long duration;
     private long maximumAllowedDuration;
+    private int maxNumberOfGenerations;
+    private double nonImprovingGenerationAmountFactor;
+    private boolean dummyFitness;
 
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
@@ -77,50 +78,13 @@ public class CompoundEvolver {
         compoundEvolver.evolve();
     }
 
-    public long getMaximumAllowedDuration() {
-        return maximumAllowedDuration;
-    }
-
-    public void setMaximumAllowedDuration(long maximumAllowedDuration) {
-        this.maximumAllowedDuration = maximumAllowedDuration;
-    }
-
-    public boolean isDummyFitness() {
-        return dummyFitness;
-    }
-
-    public void setDummyFitness(boolean dummyFitness) {
-        this.dummyFitness = dummyFitness;
-    }
-
-    public Path getPipelineOutputFileLocation() {
-        return pipelineOutputFileLocation;
-    }
-
-    private void setPipelineOutputFileLocation(Path pipelineOutputFileLocation) throws PipelineException {
-        if (!pipelineOutputFileLocation.toFile().exists()) {
-            // Try to create the file output location
-            try {
-                Files.createDirectory(pipelineOutputFileLocation);
-            } catch (IOException e) {
-
-                // Format exception method
-                String exceptionMessage = String.format("Could not create directory '%s'",
-                        pipelineOutputFileLocation.toString());
-                // Throw pipeline exception
-                throw new PipelineException(
-                        exceptionMessage, e);
-            }
-        }
-        this.pipelineOutputFileLocation = pipelineOutputFileLocation;
-    }
-
-    public double getNonImprovingGenerationAmountFactor() {
-        return nonImprovingGenerationAmountFactor;
-    }
-
-    public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
-        this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
+    /**
+     * Getter for the duration of the evolution procedure in ms.
+     *
+     * @return the duration of the evolution procudure in ms.
+     */
+    public double getDuration() {
+        return duration;
     }
 
     /**
@@ -132,18 +96,132 @@ public class CompoundEvolver {
         return scores;
     }
 
+    /**
+     * Getter for the maximum allowed duration of the evolution procedure. No new generation is made when this
+     * duration is surpassed by actual duration.
+     *
+     * @return the maximum allowed duration of the evolution procedure.
+     */
+    public long getMaximumAllowedDuration() {
+        return maximumAllowedDuration;
+    }
+
+    /**
+     * Getter for the maximum allowed duration of the evolution procedure. No new generation is made when this
+     * duration is surpassed by actual duration.
+     *
+     * @param maximumAllowedDuration, the maximum allowed duration of the evolution procedure.
+     */
+    public void setMaximumAllowedDuration(long maximumAllowedDuration) {
+        this.maximumAllowedDuration = maximumAllowedDuration;
+    }
+
+    /**
+     * Getter for the dummy fitness setting.
+     *
+     * @return true if the dummy fitness will be applied. (the molecular mass is the raw score)
+     */
+    public boolean isDummyFitness() {
+        return dummyFitness;
+    }
+
+    /**
+     * Setter for the dummy fitness setting.
+     *
+     * @param dummyFitness, true if the dummy fitness should be applied. (the molecular mass is the raw score)
+     */
+    public void setDummyFitness(boolean dummyFitness) {
+        this.dummyFitness = dummyFitness;
+    }
+
+    /**
+     * Getter for the output file path for the pipeline.
+     *
+     * @return the output file path for the pipeline.
+     */
+    public Path getPipelineOutputFilePath() {
+        return pipelineOutputFilePath;
+    }
+
+    /**
+     * Setter for the output file path for the pipeline.
+     *
+     * @param pipelineOutputFilePath the output file path for the pipeline.
+     * @throws PipelineException if the output file path does not exist and cannot be created.
+     */
+    private void setPipelineOutputFilePath(Path pipelineOutputFilePath) throws PipelineException {
+        if (!pipelineOutputFilePath.toFile().exists()) {
+            // Try to create the file output location
+            try {
+                Files.createDirectory(pipelineOutputFilePath);
+            } catch (IOException e) {
+
+                // Format exception method
+                String exceptionMessage = String.format("Could not create directory '%s'",
+                        pipelineOutputFilePath.toString());
+                // Throw pipeline exception
+                throw new PipelineException(
+                        exceptionMessage, e);
+            }
+        }
+        this.pipelineOutputFilePath = pipelineOutputFilePath;
+    }
+
+    /**
+     * Getter for the factor that the generation amount is multiplied with to get the generation number that
+     * up to which no improvement may be present to force termination.
+     *
+     * @return the generation multiplication factor that is used to determine the amount of generations that
+     * may show no improvement before termination is forced.
+     */
+    public double getNonImprovingGenerationAmountFactor() {
+        return nonImprovingGenerationAmountFactor;
+    }
+
+    /**
+     * Setter for the factor that the generation amount is multiplied with to get the generation number that
+     * up to which no improvement may be present to force termination.
+     *
+     * @param nonImprovingGenerationAmountFactor, the generation multiplication factor that is used to determine
+     *                                            the amount of generations that may show no improvement before
+     *                                            termination is forced.
+     */
+    public void setNonImprovingGenerationAmountFactor(double nonImprovingGenerationAmountFactor) {
+        this.nonImprovingGenerationAmountFactor = nonImprovingGenerationAmountFactor;
+    }
+
+    /**
+     * Getter for the force field that is used in scoring and minimization.
+     *
+     * @return the force field.
+     */
     public ForceField getForceField() {
         return forceField;
     }
 
+    /**
+     * Setter for the force field that is used in scoring and minimization.
+     *
+     * @param forceField, the force field.
+     */
     public void setForceField(ForceField forceField) {
         this.forceField = forceField;
     }
 
+    /**
+     * Getter for the fitness measure that is used.
+     *
+     * @return the fitness measure.
+     */
     public FitnessMeasure getFitnessMeasure() {
         return fitnessMeasure;
     }
 
+    /**
+     * Setter for the fitness measure that is used.
+     *
+     * @param fitnessMeasure, the fitness measure.
+     */
     public void setFitnessMeasure(FitnessMeasure fitnessMeasure) {
         this.fitnessMeasure = fitnessMeasure;
     }
@@ -173,9 +251,11 @@ public class CompoundEvolver {
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
+        updateDuration();
         try {
             // Evolve
             while (!shouldTerminate()) {
+
                 System.out.println(this.population.toString());
                 // Try to produce offspring
 
@@ -183,12 +263,18 @@ public class CompoundEvolver {
                 // Score the candidates
                 scoreCandidates();
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
+                updateDuration();
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | UnSelectablePopulationException e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
             throw e;
         }
+    }
+
+    private void updateDuration() {
+        long endTime = System.currentTimeMillis();
+        this.duration = endTime - startTime;
     }
 
     private void scoreCandidates() {
@@ -258,9 +344,7 @@ public class CompoundEvolver {
         if (this.terminationCondition == TerminationCondition.CONVERGENCE && generationNumber > 5) {
             return this.hasConverged(generationNumber);
         } else if (this.terminationCondition == TerminationCondition.DURATION) {
-            long endTime = System.currentTimeMillis();
-            long duration = endTime - startTime;
-            return this.maximumAllowedDuration >= duration;
+            return this.maximumAllowedDuration <= duration;
         }
         return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
@@ -307,11 +391,11 @@ public class CompoundEvolver {
      */
     public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor, int conformerCount) throws PipelineException {
         // Set the pipeline output location
-        this.setPipelineOutputFileLocation(outputFileLocation);
+        this.setPipelineOutputFilePath(outputFileLocation);
 
         // Get the step for converting 'flat' molecules into multiple 3d conformers
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
-                this.pipelineOutputFileLocation, conformerCount);
+                this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         // Get the step for energy minimization
@@ -321,6 +405,14 @@ public class CompoundEvolver {
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 
+    /**
+     * Gets the minimization step that should be included in the pipeline based on the set force field.
+     *
+     * @param receptorFile The receptor file path in pdb format.
+     * @param anchorFilePath the anchor file path in sdf format.
+     * @return The energy minimization step that complies with the set force field.
+     * @throws PipelineException if the minimization step could not be initialized.
+     */
     private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
         if (this.forceField == ForceField.MAB) {
             String mol3dExecutable = getExecutable("MOL3D_EXE");
@@ -389,7 +481,11 @@ public class CompoundEvolver {
         }
     }
 
+    /**
+     * Fitness measures that can be chosen.
+     */
     public enum FitnessMeasure {
+        LIGAND_LIPOPHILICITY_EFFICIENCY("ligandLipophilicityEfficiency"),
         LIGAND_EFFICIENCY("ligandEfficiency"),
         AFFINITY("affinity");
 
@@ -409,6 +505,9 @@ public class CompoundEvolver {
         }
     }
 
+    /**
+     * Termination conditions that can be chosen.
+     */
     public enum TerminationCondition {
         FIXED_GENERATION_NUMBER("fixed"),
         CONVERGENCE("convergence"),

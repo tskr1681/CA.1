@@ -1,5 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import java.util.List;
+
 public interface EvolutionProgressConnector {
 
     enum Status{RUNNING, FAILED, SUCCESS, STARTING}
@@ -11,5 +13,7 @@ public interface EvolutionProgressConnector {
     void putException(Exception exception);
 
     void setStatus(Status isRunning);
+
+    void addScores(List<Double> normFitnesses);
 
 }

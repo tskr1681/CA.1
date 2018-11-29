@@ -1,8 +1,9 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolImporter;
 import chemaxon.struc.DPoint3;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;

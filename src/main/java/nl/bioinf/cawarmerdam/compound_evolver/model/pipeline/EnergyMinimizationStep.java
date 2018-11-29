@@ -1,4 +1,4 @@
-package nl.bioinf.cawarmerdam.compound_evolver.model;
+package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolImporter;
@@ -7,6 +7,7 @@ import chemaxon.struc.Molecule;
 import com.chemaxon.search.mcs.MaxCommonSubstructure;
 import com.chemaxon.search.mcs.McsSearchOptions;
 import com.chemaxon.search.mcs.McsSearchResult;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.IOException;
 import java.nio.file.Path;
