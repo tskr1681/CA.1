@@ -378,6 +378,7 @@
                                         required="required">
                                     <option>Fitness proportionate selection</option>
                                     <option>Truncated selection</option>
+                                    <option>Tournament selection</option>
                                 </select>
                             </div>
                         </div>

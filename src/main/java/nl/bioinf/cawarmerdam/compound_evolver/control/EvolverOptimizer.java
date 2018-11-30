@@ -46,7 +46,7 @@ public class EvolverOptimizer {
                 CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
                 List<List<Double>> scores = run.getFitness();
                 double bestScore = scores.stream().flatMap(List::stream)
-                        .mapToDouble(s -> s).min().orElseThrow(NoSuchElementException::new);
+                        .mapToDouble(s -> s).max().orElseThrow(NoSuchElementException::new);
                 durations.add(Arrays.asList(new Object[]{i, bestScore, run.getDuration()}));
                 String csvData = GenerateCsv.generateCsvFile(scores, System.lineSeparator());
                 String csvFileName = String.format("%d-scores.csv", i);

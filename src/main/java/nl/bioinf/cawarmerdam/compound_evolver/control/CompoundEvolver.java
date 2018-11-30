@@ -4,6 +4,7 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
+import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
@@ -288,7 +289,7 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             for (Candidate candidate : this.population) {
                 // Setup callable
-                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, candidate);
+                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, pipelineOutputFilePath, candidate);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -311,13 +312,18 @@ public class CompoundEvolver {
                 // Set dummy fitness
                 double score = candidate.getPhenotype().getExactMass();
                 candidate.setRawScore(score);
+                try {
+                    candidate.calculateLigandEfficiency();
+                } catch (PluginException e) {
+                    e.printStackTrace();
+                }
+                candidate.calculateLigandLipophilicityEfficiency();
             }
         }
         processRawScores();
     }
 
     private void processRawScores() {
-        System.out.println("this.fitnessMeasure = " + this.fitnessMeasure);
         for (Candidate candidate : this.population) {
             // Ligand efficiency
             candidate.setFitnessMeasure(this.fitnessMeasure);

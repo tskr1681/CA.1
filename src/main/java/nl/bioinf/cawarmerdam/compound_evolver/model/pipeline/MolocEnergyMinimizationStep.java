@@ -4,6 +4,7 @@ import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -27,7 +28,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         Path inputFile = candidate.getFixedConformersFile();
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
-        mol3d(inputFile);
+        mol3d(inputFile, candidate);
         List<Double> conformerScores = getConformerScores(inputFile, ligandName, receptorName);
         double score = 0.0;
         if (conformerScores.size() > 0) {
@@ -60,7 +61,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
-    private void mol3d(Path inputFile) throws PipelineException {
+    private void mol3d(Path inputFile, Candidate candidate) throws PipelineException {
         // Initialize string line
         String line = null;
 
@@ -86,23 +87,22 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 
             p.waitFor();
 
-//            BufferedReader stdInput = new BufferedReader(new
-//                    InputStreamReader(p.getInputStream()));
-//
-//            BufferedReader stdError = new BufferedReader(new
-//                    InputStreamReader(p.getErrorStream()));
-//
-//            // read the output from the command
-//            System.out.println("Here is the standard output of the command:\n");
-//            while ((line = stdInput.readLine()) != null) {
-//                System.out.println(line);
-//            }
-//
-//            // read any errors from the attempted command
-//            System.out.println("Here is the standard error of the command (if any):\n");
-//            while ((line = stdError.readLine()) != null) {
-//                System.out.println(line);
-//            }
+            BufferedReader stdInput = new BufferedReader(new
+                    InputStreamReader(p.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(new
+                    InputStreamReader(p.getErrorStream()));
+
+            // read the output from the command
+            candidate.getPipelineLogger().info(
+                    String.format("Mol3d has written the following output:%n%s%n", IOUtils.toString(stdInput)));
+
+            // read any errors from the attempted command
+            String stdErrorMessage = IOUtils.toString(stdError);
+            if (!stdErrorMessage.isEmpty()) {
+                candidate.getPipelineLogger().warning(
+                        String.format("Mol3d has written an error message:%n%s%n", stdErrorMessage));
+            }
 
         } catch (InterruptedException | IOException e) {
 
@@ -124,9 +124,6 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
                     esprntoExecutable,
                     "-pM", receptorFile.toString());
 
-            // Print process
-            System.out.println("pb.toString() = " + builder.command().toString());
-
             // Start the process
             final Process p = builder.start();
 
@@ -137,17 +134,16 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
 //
 //            BufferedReader stdError = new BufferedReader(new
 //                    InputStreamReader(p.getErrorStream()));
-//
-//            // read the output from the command
-//            System.out.println("Here is the standard output of the command:\n");
-//            while ((line = stdInput.readLine()) != null) {
-//                System.out.println(line);
-//            }
+
+            // read the output from the command
+//            candidate.getPipelineLogger().info(
+//                    String.format("Conversion to mab file has written output:%n%s%n", IOUtils.toString(stdInput)));
 //
 //            // read any errors from the attempted command
-//            System.out.println("Here is the standard error of the command (if any):\n");
-//            while ((line = stdError.readLine()) != null) {
-//                System.out.println(line);
+//            String stdErrorMessage = IOUtils.toString(stdError);
+//            if (!stdErrorMessage.isEmpty()) {
+//                candidate.getPipelineLogger().warning(
+//                        String.format("Converson to mab file has written an error message:%n%s%n", stdErrorMessage));
 //            }
             return mabFilePath;
 

@@ -5,6 +5,7 @@ import chemaxon.struc.DPoint3;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -31,7 +32,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
         Path outputPath = inputFile.resolveSibling("smina.sdf");
-        ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath);
+        ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath, candidate);
         List<Double> conformerScores = getConformerScores(smina);
         double score = 0.0;
         if (conformerScores.size() > 0) {
@@ -54,7 +55,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         return conformerScores;
     }
 
-    private ArrayList<String> smina(Path inputFile, Map<String, Double> conformerCoordinates, Path outputPath) throws PipelineException {
+    private ArrayList<String> smina(Path inputFile, Map<String, Double> conformerCoordinates, Path outputPath, Candidate candidate) throws PipelineException {
         // Initialize string line
         String line = null;
 
@@ -78,8 +79,6 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             // Build process with the command
             Process p = builder.start();
 
-            System.out.println("builder = " + builder.command().toString());
-
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
 
@@ -87,16 +86,16 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                     InputStreamReader(p.getErrorStream()));
 
             // read the output from the command
-            System.out.println("Here is the standard output of the command:\n");
             while ((line = stdInput.readLine()) != null) {
                 sminaOutput.add(line);
             }
-//
-//            // read any errors from the attempted command
-//            System.out.println("Here is the standard error of the command (if any):\n");
-//            while ((line = stdError.readLine()) != null) {
-//                System.out.println(line);
-//            }
+
+            // read any errors from the attempted command
+            String stdErrorMessage = IOUtils.toString(stdError);
+            if (!stdErrorMessage.isEmpty()) {
+                candidate.getPipelineLogger().warning(
+                        String.format("Smina has written an error message:%n%s%n", stdErrorMessage));
+            }
             return sminaOutput;
 
         } catch (IOException e) {
@@ -120,8 +119,6 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                     "-A", "hydrogens",
                     "-o", pdbqtFilePath.toString());
 
-            System.out.println("builder = " + builder.command().toString());
-
             final Process p = builder.start();
 
             BufferedReader stdInput = new BufferedReader(new
@@ -130,17 +127,16 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
 
-            // read the output from the command
-            System.out.println("Here is the standard output of the command:\n");
-            while ((line = stdInput.readLine()) != null) {
-                System.out.println(line);
-            }
-
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((line = stdError.readLine()) != null) {
-                System.out.println(line);
-            }
+//            // read the output from the command
+//            candidate.getPipelineLogger().info(
+//                    String.format("Obfit has written the following output:%n%s%n", IOUtils.toString(stdInput)));
+//
+//            // read any errors from the attempted command
+//            String stdErrorMessage = IOUtils.toString(stdError);
+//            if (!stdErrorMessage.isEmpty()) {
+//                candidate.getPipelineLogger().warning(
+//                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
+//            }
             return pdbqtFilePath;
         } catch (IOException e) {
 

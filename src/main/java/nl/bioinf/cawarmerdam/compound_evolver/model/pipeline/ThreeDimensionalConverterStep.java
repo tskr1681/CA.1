@@ -24,21 +24,6 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Ca
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         Path conformerFilePath = getConformerFileName(candidate);
-        Path directory = conformerFilePath.getParent();
-        // Make directory if it does not exist
-        if (! directory.toFile().exists()){
-            try {
-                Files.createDirectory(directory);
-            } catch (IOException e) {
-
-                // Format exception method
-                String exceptionMessage = String.format("Could not create directory '%s' for docking files",
-                        directory.toString());
-                // Throw pipeline exception
-                throw new PipelineException(
-                        exceptionMessage, e);
-            }
-        }
         try {
             Molecule[] conformers = createConformers(candidate.getPhenotype());
             MolExporter exporter = new MolExporter(conformerFilePath.toString(), "sdf");

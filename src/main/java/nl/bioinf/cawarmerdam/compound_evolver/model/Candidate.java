@@ -12,6 +12,7 @@ import chemaxon.marvin.calculations.logPPlugin;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallablePipelineContainer;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,6 +31,7 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate> {
 
+    private Logger pipelineLogger;
     private final long identifier;
     private final int genomeSize;
     private static AtomicLong currentValue = new AtomicLong(0L);
@@ -56,6 +59,11 @@ public class Candidate implements Comparable<Candidate> {
         this.genomeSize = this.genotype.size();
         this.identifier = currentValue.getAndIncrement();
         this.runLogPPluginIfNotRan();
+        pipelineLogger = Logger.getLogger(String.valueOf(this.identifier));
+    }
+
+    public Logger getPipelineLogger() {
+        return pipelineLogger;
     }
 
     public long getIdentifier() {
@@ -254,7 +262,7 @@ public class Candidate implements Comparable<Candidate> {
 
     @Override
     public int compareTo(Candidate o) {
-        return -Double.compare(this.getNormFitness(), o.getNormFitness());
+        return Double.compare(this.getNormFitness(), o.getNormFitness());
     }
 
     public void setEnvironment(double pHLower, double pHUpper, double pHStep) {

@@ -9,6 +9,7 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.RandomCompoundReactor;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class Population implements Iterable<Candidate> {
     private double elitismRate;
     private int populationSize;
     private int generationNumber;
+    private int tournamentSize;
     private Double maxHydrogenBondAcceptors = null;
     private Double maxHydrogenBondDonors = null;
     private Double maxMolecularMass = null;
@@ -56,6 +58,7 @@ public class Population implements Iterable<Candidate> {
         this.elitismRate = 0.1;
         this.randomImmigrantRate = 0.1;
         this.maxAnchorMinimizedRmsd = 1;
+        this.tournamentSize = 2;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         initializePopulation();
@@ -567,10 +570,15 @@ public class Population implements Iterable<Candidate> {
      * Select the parents according to the method that is set.
      * If the method flag was set to cleared, do nothing.
      *
+     * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
+     * up to the nearest integer.
+     *
      * @throws UnSelectablePopulationException if the population was either empty or if the first candidate has a
      * fitness of 0.
      */
     private void selectParents() throws UnSelectablePopulationException {
+        // Get amount of parents to multiply the selection rate with for the amount of parents to select
+        int selectionSize = (int) Math.ceil(this.size() * this.selectionFraction);
         this.filterTooDeviantParents();
         // Check that the candidates exist and have a score
         if (candidateList.size() == 0) {
@@ -581,9 +589,11 @@ public class Population implements Iterable<Candidate> {
         }
         // Select the parents according to the method that is set
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
-            candidateList = this.fitnessProportionateSelection();
+            candidateList = this.fitnessProportionateSelection(selectionSize);
         } else if (this.selectionMethod == SelectionMethod.TRUNCATED_SELECTION) {
-            candidateList = this.truncatedSelection();
+            candidateList = this.truncatedSelection(selectionSize);
+        } else if (this.selectionMethod == SelectionMethod.TOURNAMENT_SELECTION) {
+            candidateList = this.tournamentSelection(selectionSize);
         }
         // Do nothing if the flag is cleared
     }
@@ -614,15 +624,14 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * A selection method that selects individuals probabilistically by using the fitness score.
-     * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
-     * up to the nearest integer.
      *
      * @return the selected individuals
+     * @param selectionSize The amount of individuals selected.
      */
-    private List<Candidate> fitnessProportionateSelection() {
+    private List<Candidate> fitnessProportionateSelection(int selectionSize) {
         List<Candidate> selectedParents = new ArrayList<>();
         // Select the amount of parents corresponding to the total parents multiplied by the selection rate
-        for (int i = 0; i < candidateList.size() * this.selectionFraction; i++) {
+        while (selectedParents.size() < selectionSize) {
             selectedParents.add(candidateList.get(rouletteSelect()));
         }
         return selectedParents;
@@ -630,14 +639,31 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * A selection method that selects the individuals with the best score.
-     * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
-     * up to the nearest integer.
+     *
+     * @return the selected individuals.
+     * @param selectionSize The amount of individuals selected.
+     */
+    private List<Candidate> truncatedSelection(int selectionSize) {
+        Collections.reverse(this.candidateList);
+        return this.candidateList.subList(0, selectionSize);
+    }
+
+    /**
+     * A selection method that selects the best individual in randomly selected sub-lists (tournaments),
+     * of size k (the tournament size), of the candidate list.
      *
      * @return the selected individuals
+     * @param selectionSize The amount of individuals selected.
      */
-    private List<Candidate> truncatedSelection() {
-        Collections.sort(this.candidateList);
-        return this.candidateList.subList(0, (int) Math.ceil(this.candidateList.size() * this.selectionFraction));
+    private List<Candidate> tournamentSelection(int selectionSize) {
+        List<Candidate> selectedParents = new ArrayList<>();
+        // Select the amount of parents corresponding to the total parents multiplied by the selection rate
+        while (selectedParents.size() < selectionSize) {
+            // Get the best candidate in the tournament
+            selectedParents.add(Collections.max(candidateList.subList(0, this.tournamentSize)));
+            Collections.shuffle(candidateList);
+        }
+        return selectedParents;
     }
 
     /**
@@ -805,7 +831,8 @@ public class Population implements Iterable<Candidate> {
     public enum SelectionMethod {
         CLEAR("Clear"),
         FITNESS_PROPORTIONATE_SELECTION("Fitness proportionate selection"),
-        TRUNCATED_SELECTION("Truncated selection");
+        TRUNCATED_SELECTION("Truncated selection"),
+        TOURNAMENT_SELECTION("Tournament selection");
 
         private final String text;
 
