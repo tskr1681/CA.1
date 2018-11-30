@@ -1,6 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.io;
 
-import nl.bioinf.cawarmerdam.compound_evolver.model.PipelineException;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class EneFileParser {
