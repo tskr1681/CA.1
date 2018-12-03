@@ -283,7 +283,7 @@ public class CompoundEvolver {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
             // Get executorService with thread pool size 4
-            ExecutorService executor = Executors.newFixedThreadPool(32);
+            ExecutorService executor = Executors.newFixedThreadPool(25);
             // Create list to hold future object associated with Callable
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
@@ -404,6 +404,7 @@ public class CompoundEvolver {
                 this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
         ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
+//        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
         // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile, anchor);
         // Combine the steps and set the pipe.

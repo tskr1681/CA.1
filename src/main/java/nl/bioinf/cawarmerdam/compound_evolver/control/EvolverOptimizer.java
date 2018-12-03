@@ -94,7 +94,7 @@ public class EvolverOptimizer {
         gaParameters.setForceField(CompoundEvolver.ForceField.SMINA);
         gaParameters.setTerminationCondition(CompoundEvolver.TerminationCondition.DURATION);
         gaParameters.setFitnessMeasure(CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY);
-        gaParameters.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
+        gaParameters.setSelectionMethod(Population.SelectionMethod.TOURNAMENT_SELECTION);
         gaParameters.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
         gaParameters.setMaxGenerations(Integer.MAX_VALUE);
         gaParameters.setMaxAnchorMinimizedRmsd(2.0);
