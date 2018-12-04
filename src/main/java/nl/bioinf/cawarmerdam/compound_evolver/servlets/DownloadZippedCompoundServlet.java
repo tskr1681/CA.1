@@ -1,5 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
+
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -11,6 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -23,14 +26,28 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
     private void handleGet(HttpServletRequest request, HttpServletResponse response) {
         String pipelineTargetDirectory = System.getenv("PL_TARGET_DIR");
         String sessionId = getSessionId(request);
-        String compoundId = request.getParameter("compoundId");
 
-        System.out.println("compoundId = " + compoundId);
+        // Set the directory to get the entire run
+        System.out.println(pipelineTargetDirectory + "\\" + sessionId);
+        Path directory = Paths.get(pipelineTargetDirectory, sessionId);
 
-        // Get the path of the folder to make a zip file from
-        Path directory = Paths.get(pipelineTargetDirectory, sessionId, compoundId);
+        // Set the format non compound specific
+        String filename = String.format("%s_compounds.zip", sessionId);
 
-        String filename = String.format("%s_compound-%s.zip", sessionId, compoundId);
+        // Try to get the compound id
+        // When this fails the entire run will be returned
+        try {
+            int compoundId = ServletUtils.getIntegerParameterFromRequest(request, "compoundId");
+
+            System.out.println("Requested compound " + compoundId);
+
+            // Get the path of the folder to make a zip file from
+            directory = directory.resolve(String.valueOf(compoundId));
+
+            filename = String.format("%s_compound-%s.zip", sessionId, compoundId);
+
+        } catch (ServletUtils.FormFieldHandlingException ignored) {
+        }
 
         // Get zipped archive
         String[] files = directory.toFile().list();
@@ -77,27 +94,49 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
     private byte[] zipFiles(Path directory, String[] files) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(baos);
-        byte bytes[] = new byte[2048];
-
-        for (String fileName : files) {
-            FileInputStream fis = new FileInputStream(directory.resolve(fileName).toFile());
-            BufferedInputStream bis = new BufferedInputStream(fis);
-
-            zos.putNextEntry(new ZipEntry(fileName));
-
-            int bytesRead;
-            while ((bytesRead = bis.read(bytes)) != -1) {
-                zos.write(bytes, 0, bytesRead);
-            }
-            zos.closeEntry();
-            bis.close();
-            fis.close();
-        }
+        addDirToZipArchive(zos, directory.toFile(), null);
         zos.flush();
         baos.flush();
         zos.close();
         baos.close();
 
         return baos.toByteArray();
+    }
+
+    private static void addDirToZipArchive(ZipOutputStream zos, File fileToZip, String parrentDirectoryName) {
+        if (fileToZip == null || !fileToZip.exists()) {
+            return;
+        }
+
+        String zipEntryName = fileToZip.getName();
+        if (parrentDirectoryName!=null && !parrentDirectoryName.isEmpty()) {
+            zipEntryName = parrentDirectoryName + "/" + fileToZip.getName();
+        }
+
+        if (fileToZip.isDirectory()) {
+
+            for (File file : Objects.requireNonNull(fileToZip.listFiles())) {
+                addDirToZipArchive(zos, file, zipEntryName);
+            }
+
+        } else {
+
+            try {
+                byte[] buffer = new byte[1024];
+                FileInputStream fis = null;
+                fis = new FileInputStream(fileToZip);
+
+                zos.putNextEntry(new ZipEntry(zipEntryName));
+                int length;
+                while ((length = fis.read(buffer)) > 0) {
+                    zos.write(buffer, 0, length);
+                }
+                zos.closeEntry();
+                fis.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

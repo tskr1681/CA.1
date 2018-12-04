@@ -14,6 +14,4 @@ public interface EvolutionProgressConnector {
 
     void setStatus(Status isRunning);
 
-    void addScores(List<Double> normFitnesses);
-
 }

@@ -20,6 +20,13 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
         this.referenceMolecule = importReferenceMolecule(anchor);
     }
 
+    /**
+     * Method responsible for importing the reference molecule from a given path.
+     *
+     * @param anchor The anchor file path.
+     * @return the imported molecule
+     * @throws PipelineException if the given anchor could not be imported.
+     */
     private Molecule importReferenceMolecule(Path anchor) throws PipelineException {
         MolImporter importer = null;
         try {
@@ -33,19 +40,26 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
 
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
+        // Get the path of the file with the conformers
         Path conformersFilePath = candidate.getConformersFile();
+        // Create the filename of the resulting file
         String fixedConformerFileName = "fixed-" + conformersFilePath.getFileName();
+        // Sets the fixed conformer file path to the candidate
         candidate.setFixedConformersFile(conformersFilePath.resolveSibling(fixedConformerFileName));
-        alignConformers(conformersFilePath, candidate.getFixedConformersFile());
+
+        // Align and export the conformers
+        List<Molecule> alignedMolecules = alignConformersFromPath(conformersFilePath);
+        exportAlignedConformers(candidate.getFixedConformersFile(), alignedMolecules);
         return candidate;
     }
 
-    private void alignConformers(Path conformersPath, Path fixedConformersPath) throws PipelineException {
-        List<Molecule> alignedMolecules = addConformersToAlignment(conformersPath);
-
-        exportAlignedConformers(fixedConformersPath, alignedMolecules);
-    }
-
+    /**
+     * Method exporting a list of molecules to the given file path.
+     *
+     * @param fixedConformersPath The file path that the list of molecules should be written to.
+     * @param alignedMolecules The list of molecule to write.
+     * @throws PipelineException if the molecules could not be exported.
+     */
     private void exportAlignedConformers(Path fixedConformersPath, List<Molecule> alignedMolecules)
             throws PipelineException {
 
@@ -63,14 +77,19 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             // Close the exporter
             exporter.close();
         } catch (IOException e) {
-            throw new PipelineException("Could not write aligned conformers", e);
+            throw new PipelineException("Could not export aligned conformers", e);
         }
     }
 
-    private List<Molecule> addConformersToAlignment(Path conformersPath) throws PipelineException {
+    /**
+     * Method aligning conformers that are read from the given path.
+     *
+     * @param conformersPath The path that the conformers are read from.
+     * @return the list of aligned conformers.
+     * @throws PipelineException if the conformers could not be read or aligned.
+     */
+    private List<Molecule> alignConformersFromPath(Path conformersPath) throws PipelineException {
         List<Molecule> alignedMolecules = new ArrayList<>();
-
-        Alignment alignment = constructAlignment();
 
         // Create importer for file
         MolImporter importer = null;
@@ -80,6 +99,8 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             // read the first molecule from the file
             Molecule m = importer.read();
             while (m != null) {
+
+                Alignment alignment = constructAlignment();
 
                 // Align molecules
                 alignment.addMolecule(m, false, true);
@@ -98,6 +119,12 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
         return alignedMolecules;
     }
 
+    /**
+     * Method making new alignment instance with the reference molecule.
+     *
+     * @return the alignment with a reference molecule added.
+     * @throws PipelineException if the reference fragment could not be added.
+     */
     private Alignment constructAlignment() throws PipelineException {
         Alignment alignment = new Alignment();
 

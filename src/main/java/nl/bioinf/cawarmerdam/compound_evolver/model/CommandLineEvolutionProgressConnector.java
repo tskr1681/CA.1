@@ -23,8 +23,4 @@ public class CommandLineEvolutionProgressConnector implements EvolutionProgressC
         // Do something
     }
 
-    @Override
-    public void addScores(List<Double> normFitnesses) {
-
-    }
 }

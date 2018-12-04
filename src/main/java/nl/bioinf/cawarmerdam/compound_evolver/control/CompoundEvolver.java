@@ -403,12 +403,12 @@ public class CompoundEvolver {
         ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
                 this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
-        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
-//        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
+//        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
+        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
         // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile, anchor);
         // Combine the steps and set the pipe.
-        PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerFixationStep);
+        PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
         this.pipe = converterStep.pipe(energyMinimizationStep);
     }
 

@@ -15,6 +15,7 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
           crossorigin="anonymous">
     <link rel="stylesheet" href="<c:url value = "css/main.css"/>">
+    <link rel="stylesheet" href="<c:url value = "css/dashboard.css"/>">
     <%--load library javascript--%>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script
@@ -32,25 +33,27 @@
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
 </head>
 <body>
-<div class="container" ng-controller="FormInputCtrl">
-    <div class="page-header">
-        <h1>Compound Evolver Application</h1>
-    </div>
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+    <a class="navbar-brand col-sm-4 col-md-3 mr-0" href="#">Compound evolver</a>
+    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+    <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+            <a class="nav-link" href="#">Sign out</a>
+        </li>
+    </ul>
+</nav>
+
+<div class="container-fluid" ng-controller="FormInputCtrl">
     <div class="row">
-        <div class="col-lg-12">
-        </div>
-    </div>
-    <%--Setup dynamic form using angularjs--%>
-    <div class="row">
-        <div class="col-lg-12">
-            <h2>Set genetic algorithm parameters</h2>
-            <form name="compoundEvolverForm"
-                  novalidate="novalidate"
-                  enctype="multipart/form-data">
-                <div class="alert alert-danger" ng-show="response.hasError" ng-bind="response.error"></div>
-                <div class="card">
-                    <h5 class="card-header"><b>Building blocks and reaction</b></h5>
-                    <div id="file-input" class="card-body">
+        <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <div class="nav flex-column">
+                <form name="compoundEvolverForm"
+                      novalidate="novalidate"
+                      enctype="multipart/form-data">
+                    <div class="alert alert-danger" ng-show="response.hasError" ng-bind="response.error"></div>
+                    <h5><b>Building blocks and reaction</b></h5>
+                    <div id="file-input">
                         <div class="form-group row">
                             <label for="reaction-file" class="col-sm-3 col-form-label">Reaction file (.mrv)</label>
                             <div class="col-sm-9">
@@ -85,10 +88,6 @@
                             <div class="col-sm-9 float-sm-left">
                                 <label for="reactant-files" class="custom-file-upload">
                                     <strong class="btn btn-secondary">Choose files</strong>
-                                    <%--<span ng-bind="reactantFiles.names"--%>
-                                    <%--ng-class="{--%>
-                                    <%--'text-danger':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),--%>
-                                    <%--'text-success':!reactantFiles.wrongExtension && !reactantFiles.pristine}"></span>--%>
                                 </label>
                                 <input type="file"
                                        file-bind="formModel.reactantFiles"
@@ -178,11 +177,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card">
-                    <h5 class="card-header"><b>Genetic operators</b></h5>
-                    <div id="operator-settings" class="card-body">
+                    <h5><b>Genetic operators</b></h5>
+                    <div id="operator-settings">
                         <div class="form-group row">
                             <label for="generation-size" class="col-sm-3 col-form-label">Size of initial
                                 generation</label>
@@ -439,11 +435,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card">
-                    <h5 class="card-header"><b>Scoring</b></h5>
-                    <div id="docking-settings" class="card-body">
+                    <h5><b>Scoring</b></h5>
+                    <div id="docking-settings">
                         <div class="form-group row">
                             <label for="conformer-count" class="col-sm-3 col-form-label">
                                 Maximum number of conformers to generate
@@ -500,11 +493,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card">
-                    <h5 class="card-header"><b>Filters</b></h5>
-                    <div id="filter-settings" class="card-body">
+                    <h5><b>Filters</b></h5>
+                    <div id="filter-settings">
                         <div class="form-group row">
                             <label for="max-anchor-minimized-rmsd" class="col-sm-3 col-form-label">
                                 Maximum RMSD allowed from the anchor
@@ -640,9 +630,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div id="submit">
-                    <div class="card card-body">
+                    <div id="submit">
                         <div class="form-group row">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary"
@@ -661,26 +649,49 @@
                             </div>
                         </div>
                     </div>
+                </form>
+            </div>
+        </nav>
+    </div>
+        <main role="main" class="col-md-8 ml-sm-auto col-lg-9 pt-3 px-4">
+            <div style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"
+                 class="chartjs-size-monitor">
+                <div class="chartjs-size-monitor-expand"
+                     style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                    <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
                 </div>
-            </form>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <h5>Results</h5>
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href>Download selected generation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href ng-click="downloadRun()">Download all</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href ng-click="downloadCsv()">Download csv</a>
-                    </li>
-                </ul>
-                <canvas id="myChart" width="400" height="400"></canvas>
-                <h6>Selected generation</h6>
-                <table class="table table-condensed table-borderless mono-font">
+                <div class="chartjs-size-monitor-shrink"
+                     style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                    <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Results</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group mr-2">
+                        <button class="btn btn-sm btn-outline-secondary">Share</button>
+                        <button class="btn btn-sm btn-outline-secondary">Export</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             class="feather feather-calendar">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        This week
+                    </button>
+                </div>
+            </div>
+
+            <canvas class="my-4 chartjs-render-monitor" id="myChart" width="1538" height="649"
+                    style="display: block; width: 1538px; height: 649px;"></canvas>
+
+            <h2>Section title</h2>
+            <div class="table-responsive">
+                <table class="table table-sm table-condensed table-borderless mono-font">
                     <thead>
                     <tr>
                         <th>ID</th>
@@ -701,7 +712,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </main>
     </div>
 </div>
 </body>

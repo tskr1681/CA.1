@@ -39,6 +39,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
             score = Collections.min(conformerScores);
             Molecule bestConformer = getBestConformer(outputPath, conformerScores.indexOf(score));
             candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
+            exportConformer(bestConformer, inputFile.resolveSibling("best-conformer.sdf"));
         }
         candidate.setRawScore(score);
         return null;

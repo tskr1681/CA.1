@@ -1,7 +1,6 @@
 var app = angular.module('compoundEvolver', ['fileReadBinding']);
 
 app.run(function ($rootScope) {
-    $rootScope.app = {hasData:false};
     // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
     $rootScope.generations = [];
     $rootScope.selectedGenerationNumber = null;
@@ -285,13 +284,13 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             // Form is not valid. Keep quiet.
             console.log("Invalid Form!");
         }
-    }
+    };
 
-});
-
-app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
     $scope.getPopulation = function() {
-        return $rootScope.generations[$rootScope.selectedGenerationNumber].candidateList;
+        if ($scope.hasData() && $scope.generationSelected()) {
+            return $rootScope.generations[$rootScope.selectedGenerationNumber].candidateList;
+        }
+        return [];
     };
 
     $scope.getMostFitCompound = function (generation) {
@@ -317,8 +316,23 @@ app.controller('CompoundsCtrl', function ($scope, $rootScope, $sce) {
 
     $scope.downloadCsv = function () {
         // Set data
-        let url = './csv.download?generationNumber=' + $rootScope.selectedGenerationNumber;
+        let url = './csv.download';
 
         download(url);
     };
+
+    $scope.hasData = function () {
+        return $rootScope.generations.length > 0;
+    };
+
+    $scope.generationSelected = function () {
+        return $rootScope.selectedGenerationNumber != null;
+    };
+
+    $scope.downloadRun = function () {
+        // Get the url without parameters: get the entire run.
+        let url = './compound.download';
+
+        download(url);
+    }
 });

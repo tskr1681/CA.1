@@ -657,10 +657,14 @@ public class Population implements Iterable<Candidate> {
      */
     private List<Candidate> tournamentSelection(int selectionSize) {
         List<Candidate> selectedParents = new ArrayList<>();
+
+        // Check if the tournament size is less than the size of the candidate list
+        int localTournamentSize = Math.min(this.tournamentSize, candidateList.size());
+
         // Select the amount of parents corresponding to the total parents multiplied by the selection rate
         while (selectedParents.size() < selectionSize) {
             // Get the best candidate in the tournament
-            selectedParents.add(Collections.max(candidateList.subList(0, this.tournamentSize)));
+            selectedParents.add(Collections.max(candidateList.subList(0, localTournamentSize)));
             Collections.shuffle(candidateList);
         }
         return selectedParents;

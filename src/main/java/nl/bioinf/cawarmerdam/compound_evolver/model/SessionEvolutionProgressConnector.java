@@ -7,8 +7,8 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
     private List<Exception> exceptions = new ArrayList<>();
     private Status status;
     private List<Generation> generationBuffer = new ArrayList<>();
+    private List<Generation> generations = new ArrayList<>();
     private boolean terminationRequired = false;
-    private List<List<Double>> scores = new ArrayList<>();
 
     public SessionEvolutionProgressConnector() {
         status = Status.STARTING;
@@ -17,7 +17,12 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
     public List<Generation> getGenerationBuffer() {
         ArrayList<Generation> oldBuffer = new ArrayList<>(generationBuffer);
         generationBuffer.clear();
+        generations.addAll(oldBuffer);
         return oldBuffer;
+    }
+
+    public List<Generation> getGenerations() {
+        return generations;
     }
 
     public List<Exception> getExceptions() {
@@ -30,15 +35,6 @@ public class SessionEvolutionProgressConnector implements EvolutionProgressConne
 
     public Status getStatus() {
         return this.status;
-    }
-
-    @Override
-    public void addScores(List<Double> normFitnesses) {
-        this.scores.add(normFitnesses);
-    }
-
-    public List<List<Double>> getScores() {
-        return this.scores;
     }
 
     @Override
