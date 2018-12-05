@@ -8,8 +8,6 @@ import chemaxon.descriptors.*;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
-import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.RandomCompoundReactor;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
