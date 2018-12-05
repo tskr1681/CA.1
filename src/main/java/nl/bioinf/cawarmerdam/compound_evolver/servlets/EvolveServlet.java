@@ -78,7 +78,7 @@ public class EvolveServlet extends HttpServlet {
         reactantLists = reorderReactantsLists(reactantLists, reactantsFileOrder);
 
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, reaction, generationSize);
+        Population initialPopulation = new Population(reactantLists, Arrays.asList(reaction), generationSize);
 
         // Get crossover rate
         double crossoverRate = getDoubleParameterFromRequest(request, "crossoverRate");

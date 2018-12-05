@@ -10,9 +10,11 @@ import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.IUPACNamingPlugin;
 import chemaxon.marvin.calculations.logPPlugin;
 import chemaxon.marvin.plugin.PluginException;
+import chemaxon.reaction.ReactionException;
+import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
-import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallablePipelineContainer;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -52,14 +54,47 @@ public class Candidate implements Comparable<Candidate> {
     private double CommonSubstructureToAnchorRmsd;
     private double normFitness;
     private double ligandEfficiency;
+    private Species species;
+    private Random random = new Random();
 
-    public Candidate(List<Integer> genotype, Molecule phenotype) {
+    public Candidate(List<Integer> genotype, Species species) {
         this.genotype = genotype;
-        this.phenotype = phenotype;
+        this.species = species;
         this.genomeSize = this.genotype.size();
         this.identifier = currentValue.getAndIncrement();
-        this.runLogPPluginIfNotRan();
         pipelineLogger = Logger.getLogger(String.valueOf(this.identifier));
+    }
+
+    boolean finish(List<List<Molecule>> reactantLists) {
+        // get Reactants from the indices
+        System.out.println("this.genotype = " + this.genotype + "||" + this.species.getReactantIndices());
+        Molecule[] reactants = this.species.getReactantsSubset(getReactantsFromIndices(reactantLists));
+        try {
+            Reactor reaction = this.species.getReaction();
+            reaction.setReactants(reactants);
+            Molecule[] products;
+            if ((products = reaction.react()) != null) {
+                this.phenotype = products[0];
+                return this.isValid();
+            }
+        } catch (ReactionException e) {
+            this.rejectionMessage = e.getMessage();
+            return false;
+        }
+        this.rejectionMessage = "Reactor could not produce a reactions product";
+        return false;
+    }
+
+    /**
+     * A method selecting reactants from the reactant lists with the given list of indices.
+     *
+     * @param reactantLists, a list of lists of reactants
+     * @return an array of reactants from the reactant lists.
+     */
+    private List<Molecule> getReactantsFromIndices(List<List<Molecule>> reactantLists) {
+        return IntStream.range(0, reactantLists.size())
+                .mapToObj(i -> reactantLists.get(i).get(this.genotype.get(i)))
+                .collect(Collectors.toList());
     }
 
     public Logger getPipelineLogger() {
@@ -214,15 +249,20 @@ public class Candidate implements Comparable<Candidate> {
      * @param other parent to perform crossover with
      * @return the recombined genome.
      */
-    List<Integer> crossover(Candidate other) {
+    ImmutablePair<Species, List<Integer>> crossover(Candidate other) {
         // Get crossover points to do uniform crossing over
         boolean[] crossoverPoints = generateCrossoverPoints();
         // Select the allele from this candidates genotype if true,
         // otherwise select the allele from the other candidate
-        // Return the new genotype
-        return IntStream.range(0, genomeSize)
+        List<Integer> reactantGenome = IntStream.range(0, genomeSize)
                 .mapToObj(i -> crossoverPoints[i] ? this.getGenotype().get(i) : other.getGenotype().get(i))
                 .collect(Collectors.toList());
+
+        // Get either the species from this or other
+        Species randomSpecies = (random.nextInt(2) == 0 ? this.species : other.species);
+
+        // Return the new genotype
+        return new ImmutablePair<>(randomSpecies, reactantGenome);
         // Should probably also return the child generated from the inverse of the crossover points:
         // P1 = 2, 4, 8
         // P2 = 1, 6, 7
@@ -237,7 +277,6 @@ public class Candidate implements Comparable<Candidate> {
      * @return an array of booleans with the length of the genome
      */
     private boolean[] generateCrossoverPoints() {
-        Random random = new Random();
         boolean[] arr = new boolean[genomeSize];
         // Get a random boolean for every gene in the genome
         for (int i = 0; i < genomeSize; i++) {
@@ -271,7 +310,7 @@ public class Candidate implements Comparable<Candidate> {
         hydrogenBondPlugin.setpHStep(pHStep);
     }
 
-    boolean isValid() {
+    private boolean isValid() {
         calculateLipinskiValues();
         if (maxHydrogenBondDonors != null) {
             if (!isHydrogenBondDonorCountValid()) return false;
@@ -299,6 +338,7 @@ public class Candidate implements Comparable<Candidate> {
                 throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
             }
         }
+        this.runLogPPluginIfNotRan();
     }
 
     private void runLogPPluginIfNotRan() {
@@ -409,5 +449,9 @@ public class Candidate implements Comparable<Candidate> {
 
     public void setCommonSubstructureToAnchorRmsd(double commonSubstructureToAnchorRmsd) {
         CommonSubstructureToAnchorRmsd = commonSubstructureToAnchorRmsd;
+    }
+
+    public Species getSpecies() {
+        return species;
     }
 }

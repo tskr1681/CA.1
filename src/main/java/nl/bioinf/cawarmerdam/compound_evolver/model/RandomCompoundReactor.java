@@ -1,7 +1,5 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.reaction.ReactionException;
-import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
 import java.util.ArrayList;
@@ -11,17 +9,17 @@ import java.util.Random;
 
 class RandomCompoundReactor {
 
-    private Reactor reactor;
+    private Species species;
     private int maxSamples;
 
-    RandomCompoundReactor(Reactor reactor, int maxSamples)
+    RandomCompoundReactor(Species species, int maxSamples)
     {
-        this.reactor = reactor;
+        this.species = species;
         this.maxSamples = maxSamples;
     }
 
-    List<Candidate> randReact(List<List<Molecule>> reactantLists)
-            throws ReactionException {
+    List<Candidate> randReact(List<List<Molecule>> reactantLists) {
+
         // Amount of products generated
         int nSampled = 0;
         Random random = new Random();
@@ -36,8 +34,6 @@ class RandomCompoundReactor {
             // Get iterator from reactant lists
             Iterator<List<Molecule>> iterator = reactantLists.iterator();
 
-            // Define a list of reactants, aka the genome of a candidate
-            List<Molecule> reactants = new ArrayList<>();
             // Define a list of indices corresponding to the reactants in the genome
             List<Integer> indexGenome = new ArrayList<>();
 
@@ -48,21 +44,14 @@ class RandomCompoundReactor {
                 int index = random.nextInt(map.size());
                 // Add the new reactant in both representations to the list
                 indexGenome.add(index);
-                Molecule reactant = map.get(index);
-                reactants.add(reactant);
             }
 
-            // Create an array of molecules, reactants, from the ArrayList instance
-            Molecule[] molecules = reactants.toArray(new Molecule[0]);
-
-            // Define an array that can contain reaction products
-            Molecule[] products;
-
             // Set the reactants
-            reactor.setReactants(molecules);
+            Candidate candidate = new Candidate(indexGenome, species);
             // Add the product and count the product if it can be made
-            if ((products = reactor.react()) != null) {
-                candidates.add(new Candidate(indexGenome, products[0]));
+            boolean finish = candidate.finish(reactantLists);
+            if (finish) {
+                candidates.add(candidate);
                 nSampled++;
             }
             long endTime = System.currentTimeMillis();

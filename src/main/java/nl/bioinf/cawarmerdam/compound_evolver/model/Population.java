@@ -8,6 +8,7 @@ import chemaxon.descriptors.*;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,9 +24,9 @@ import java.util.stream.Stream;
 public class Population implements Iterable<Candidate> {
 
     private final List<String> offspringRejectionMessages = new ArrayList<>();
-    private final Reactor reaction;
     private final List<List<Molecule>> reactantLists;
     private final Random random;
+    private List<Species> species;
     private double maxAnchorMinimizedRmsd;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
@@ -44,9 +45,8 @@ public class Population implements Iterable<Candidate> {
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
 
-    public Population(List<List<Molecule>> reactantLists, Reactor reaction, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+    public Population(List<List<Molecule>> reactantLists, List<Reactor> reactions, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
         this.random = new Random();
-        this.reaction = reaction;
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
@@ -59,7 +59,18 @@ public class Population implements Iterable<Candidate> {
         this.tournamentSize = 2;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
+        constructReactantMap(reactions);
         initializePopulation();
+    }
+
+    private void constructReactantMap(List<Reactor> reactions) {
+        this.species = new ArrayList<>();
+
+        for (Reactor reaction : reactions) {
+            this.species.add(new Species(
+                    IntStream.range(0, this.reactantLists.size()).boxed().collect(Collectors.toList()),
+                    reaction));
+        }
     }
 
     /**
@@ -119,19 +130,29 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Initializes a population from the reactant lists and the reaction.
+     * Initializes a population from the reactant lists and the reactions.
      *
      * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
-     *                                 in the reaction.
-     * @throws ReactionException       if an exception was thrown during a reaction.
+     *                                 in the reactions.
+     * @throws ReactionException       if an exception was thrown during a reactions.
      */
     private void initializePopulation() throws MisMatchedReactantCount, ReactionException {
-        int reactantCount = this.reaction.getReactantCount();
-        if (reactantCount != reactantLists.size()) {
-            // Throw exception
-            throw new MisMatchedReactantCount(reactantCount, reactantLists.size());
+        int individualsPerSpecies = this.populationSize / this.species.size();
+
+        for (Species species : this.species) {
+            int reactantCount = species.getReaction().getReactantCount();
+
+            // Get only the right reactants
+            List<List<Molecule>> reactants = species.getReactantListsSubset(this.reactantLists);
+
+            if (reactantCount != reactants.size()) {
+                // Throw exception
+                throw new MisMatchedReactantCount(reactantCount, reactants.size());
+            }
+            // Make sure only the right reactants are passed on
+            this.candidateList = new RandomCompoundReactor(species, individualsPerSpecies)
+                    .randReact(this.reactantLists);
         }
-        this.candidateList = new RandomCompoundReactor(this.reaction, this.populationSize).randReact(this.reactantLists);
     }
 
     /**
@@ -168,7 +189,7 @@ public class Population implements Iterable<Candidate> {
      * elitism rate and the crossover rate. When creating offspring a candidate solution is either produced
      * as a random immigrant, as the crossover product of two parents or by directly copying a selected candidate.
      *
-     * @param randomImmigrantRate, the weight of selecting a random immigrant as offspring.
+     * @param randomImmigrantRate The weight of selecting a random immigrant as offspring.
      */
     public void setRandomImmigrantRate(double randomImmigrantRate) {
         this.randomImmigrantRate = randomImmigrantRate;
@@ -190,7 +211,7 @@ public class Population implements Iterable<Candidate> {
      * in relation to the random immigrant rate and the crossover rate. The rates act as weights for choosing
      * the method for getting a new individual.
      *
-     * @param elitismRate is the weight that the elitism concept has in choosing an offspring production method for
+     * @param elitismRate The weight that the elitism concept has in choosing an offspring production method for
      *                    an individual.
      */
     public void setElitismRate(double elitismRate) {
@@ -209,7 +230,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for the selection fraction.
      *
-     * @param selectionFraction, the fraction off the population that will be selected.
+     * @param selectionFraction The fraction off the population that will be selected.
      */
     public void setSelectionFraction(double selectionFraction) {
         this.selectionFraction = selectionFraction;
@@ -227,7 +248,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for selection method.
      *
-     * @param selectionMethod for use in selecting new offspring.
+     * @param selectionMethod For use in selecting new offspring.
      */
     public void setSelectionMethod(SelectionMethod selectionMethod) {
         this.selectionMethod = selectionMethod;
@@ -245,7 +266,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for the mutation method.
      *
-     * @param mutationMethod for use in introducing mutations.
+     * @param mutationMethod For use in introducing mutations.
      */
     public void setMutationMethod(MutationMethod mutationMethod) {
         this.mutationMethod = mutationMethod;
@@ -263,7 +284,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for the population size.
      *
-     * @param populationSize, the size to set the amount of individuals to in newer generations.
+     * @param populationSize The size to set the amount of individuals to in newer generations.
      */
     public void setPopulationSize(int populationSize) {
         this.populationSize = populationSize;
@@ -281,7 +302,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for the mutation rate.
      *
-     * @param mutationRate, the rate at which to introduce new mutations in a gene.
+     * @param mutationRate The rate at which to introduce new mutations in a gene.
      */
     public void setMutationRate(double mutationRate) {
         this.mutationRate = mutationRate;
@@ -301,7 +322,7 @@ public class Population implements Iterable<Candidate> {
      * Setter for te crossover rate. This is the probability that crossover will be performed in two parents or
      * if new offspring will be generated by other means.
      *
-     * @param crossoverRate, the probability that crossover will be performed
+     * @param crossoverRate The probability that crossover will be performed
      */
     public void setCrossoverRate(double crossoverRate) {
         this.crossoverRate = crossoverRate;
@@ -496,18 +517,21 @@ public class Population implements Iterable<Candidate> {
      * @return the produced
      */
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
+        System.out.println("offspringChoice = " + offspringChoice);
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
-            List<Integer> newGenome = getRecombinedGenome(i);
+            ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(i);
             // Mutate the recombined genome
-            mutate(newGenome);
-            return finalizeOffspring(newGenome);
+            List<Integer> reactantGenome = newGenome.right;
+            mutate(reactantGenome);
+            return finalizeOffspring(reactantGenome, newGenome.left);
         } else if (offspringChoice == ReproductionMethod.ELITISM) {
             // Get the recombined genome by crossing over
-            List<Integer> newGenome = this.candidateList.get(i % this.candidateList.size()).getGenotype();
+            Candidate elitist = this.candidateList.get(i % this.candidateList.size());
+            List<Integer> newGenome = elitist.getGenotype();
             // Mutate the recombined genome
             mutate(newGenome);
-            return finalizeOffspring(newGenome);
+            return finalizeOffspring(newGenome, elitist.getSpecies());
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
             // Introduce a random immigrant
             return introduceRandomImmigrant();
@@ -521,33 +545,21 @@ public class Population implements Iterable<Candidate> {
      * to a full candidate with Chemaxon's Reactor API.
      *
      * @param newGenome, a list of indices representing reactants
+     * @param species The species that the new offspring should belong to
      * @return the new, finalized candidate when this was created successfully. If either Reactor did not produce a
      * product or if the produced candidate was not valid null is returned. Why the offspring was rejected is added
      * to the offSpringRejectionMessages field.
      */
-    private Candidate finalizeOffspring(List<Integer> newGenome) {
-        try {
-            // get Reactants from the indices
-            Molecule[] reactants = getReactantsFromIndices(newGenome);
-            reaction.setReactants(reactants);
-            Molecule[] products;
-            // Try to produce a product
-            if ((products = reaction.react()) != null) {
-                Candidate newCandidate = new Candidate(newGenome, products[0]);
-                newCandidate.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
-                newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
-                newCandidate.setMaxMolecularMass(this.maxMolecularMass);
-                newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
-                if (newCandidate.isValid()) {
-                    return newCandidate;
-                } else {
-                    this.offspringRejectionMessages.add(newCandidate.getRejectionMessage());
-                }
-            }
-        } catch (ReactionException e) {
-            this.offspringRejectionMessages.add(e.getMessage());
+    private Candidate finalizeOffspring(List<Integer> newGenome, Species species) {
+        Candidate newCandidate = new Candidate(newGenome, species);
+        newCandidate.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
+        newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
+        newCandidate.setMaxMolecularMass(this.maxMolecularMass);
+        newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
+        if (newCandidate.finish(this.reactantLists)) {
+            return newCandidate;
         }
-        this.offspringRejectionMessages.add("Reactor could not produce a reaction product");
+        this.offspringRejectionMessages.add(newCandidate.getRejectionMessage());
         return null;
     }
 
@@ -557,22 +569,22 @@ public class Population implements Iterable<Candidate> {
      * @return a new individual (random immigrant).
      */
     private Candidate introduceRandomImmigrant() {
-        try {
-            return new RandomCompoundReactor(this.reaction, 1).randReact(this.reactantLists).get(0);
-        } catch (ReactionException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        // Get one of the species to create an individual from
+        Species randomSpecies = this.species.get(random.nextInt(this.species.size()));
+
+        // Try to generate a new individual or candidate with these species
+        return new RandomCompoundReactor(randomSpecies, 1).randReact(this.reactantLists).get(0);
     }
 
     /**
      * Select the parents according to the method that is set.
      * If the method flag was set to cleared, do nothing.
-     *
+     * <p>
      * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
      * up to the nearest integer.
      *
      * @throws UnSelectablePopulationException if the population was either empty or if the first candidate has a
-     * fitness of 0.
+     *                                         fitness of 0.
      */
     private void selectParents() throws UnSelectablePopulationException {
         // Get amount of parents to multiply the selection rate with for the amount of parents to select
@@ -609,22 +621,10 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * A method selecting reactants from the reactant lists with the given list of indices.
-     *
-     * @param recombinedGenome, a list of indices as long as the reactant lists list.
-     * @return an array of reactants from the reactant lists.
-     */
-    private Molecule[] getReactantsFromIndices(List<Integer> recombinedGenome) {
-        return IntStream.range(0, reactantLists.size())
-                .mapToObj(i -> reactantLists.get(i).get(recombinedGenome.get(i)))
-                .toArray(Molecule[]::new);
-    }
-
-    /**
      * A selection method that selects individuals probabilistically by using the fitness score.
      *
-     * @return the selected individuals
      * @param selectionSize The amount of individuals selected.
+     * @return the selected individuals
      */
     private List<Candidate> fitnessProportionateSelection(int selectionSize) {
         List<Candidate> selectedParents = new ArrayList<>();
@@ -638,8 +638,8 @@ public class Population implements Iterable<Candidate> {
     /**
      * A selection method that selects the individuals with the best score.
      *
-     * @return the selected individuals.
      * @param selectionSize The amount of individuals selected.
+     * @return the selected individuals.
      */
     private List<Candidate> truncatedSelection(int selectionSize) {
         Collections.reverse(this.candidateList);
@@ -650,8 +650,8 @@ public class Population implements Iterable<Candidate> {
      * A selection method that selects the best individual in randomly selected sub-lists (tournaments),
      * of size k (the tournament size), of the candidate list.
      *
-     * @return the selected individuals
      * @param selectionSize The amount of individuals selected.
+     * @return the selected individuals
      */
     private List<Candidate> tournamentSelection(int selectionSize) {
         List<Candidate> selectedParents = new ArrayList<>();
@@ -707,13 +707,14 @@ public class Population implements Iterable<Candidate> {
      * @param i the index to get individuals from.
      * @return the recombined genome as a list
      */
-    private List<Integer> getRecombinedGenome(int i) {
+    private ImmutablePair<Species, List<Integer>> getRecombinedGenome(int i) {
         // Get the index of two parents to perform crossover between the two
         int firstParentIndex = i % this.candidateList.size();
         int otherParentIndex = (i + 1) % this.candidateList.size();
         // Get the two parents
         Candidate firstParent = this.candidateList.get(firstParentIndex);
         Candidate otherParent = this.candidateList.get(otherParentIndex);
+        System.out.printf("%s (%s) * %s (%s)%n", firstParent.getGenotype(), firstParentIndex, otherParent.getGenotype(), otherParentIndex);
         // Perform crossover between the two
         return firstParent.crossover(otherParent);
     }
@@ -738,9 +739,9 @@ public class Population implements Iterable<Candidate> {
      * @param genome to introduce mutations in.
      */
     private void mutate(List<Integer> genome) {
-        // Loop through each allele
-        String format = "%10s -> %10s";
-//        System.out.println(String.format(format, "curr", "new"));
+        // Loop through each gene and get a mutation substitute
+        // This can be either the current one (i) or a new one
+        // The change that i is chosen is equal to 1 - mutation rate
         for (int i = 0; i < genome.size(); i++) {
             int allele = genome.get(i);
             int reactantIndex = getMutationSubstitute(i, allele);
@@ -752,11 +753,11 @@ public class Population implements Iterable<Candidate> {
      * Method that introduces mutations with either a distance dependent method
      * or a distance independent method.
      *
-     * @param reactants_list_index, the index of the reactants list
-     * @param allele                the index of the allele in the reactant list
+     * @param reactantsListIndex, the index of the reactants list
+     * @param allele              the index of the allele in the reactant list
      * @return the index of the chosen reactant from the reactant list
      */
-    private int getMutationSubstitute(int reactants_list_index, int allele) {
+    private int getMutationSubstitute(int reactantsListIndex, int allele) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
 //            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
@@ -765,13 +766,13 @@ public class Population implements Iterable<Candidate> {
                         "for distance dependant mutation!");
             }
             // If the similarities for this allele with other alleles has not yet been calculated, calculate these now
-            if (alleleSimilarities[reactants_list_index][allele][allele] == 0) {
-                computeSpecificAlleleSimilarities(reactants_list_index, allele);
+            if (alleleSimilarities[reactantsListIndex][allele][allele] == 0) {
+                computeSpecificAlleleSimilarities(reactantsListIndex, allele);
             }
             // Return allele substitute index
-            return makeWeightedChoice(alleleSimilarities[reactants_list_index][allele]);
+            return makeWeightedChoice(alleleSimilarities[reactantsListIndex][allele]);
         } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
-            return makeChoice(reactantLists.get(reactants_list_index).size(), allele);
+            return makeChoice(reactantLists.get(reactantsListIndex).size(), allele);
         } else {
             throw new RuntimeException("Mutation method not set!");
         }

@@ -67,7 +67,9 @@ public class CompoundEvolver {
         // Load anchor molecule
         Path anchor = Paths.get(args[args.length - 2]);
         // Construct the initial population
-        Population population = new Population(reactantLists, reactor, maxSamples);
+        ArrayList<Reactor> reactions = new ArrayList<>();
+        reactions.add(reactor);
+        Population population = new Population(reactantLists, reactions, maxSamples);
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
