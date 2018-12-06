@@ -11,22 +11,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%--Load stylesheets--%>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
           crossorigin="anonymous">
     <link rel="stylesheet" href="<c:url value = "css/main.css"/>">
     <%--load library javascript--%>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script
-            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
             integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
             crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+            integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot"></script>
+    <script src="https://codepen.io/anon/pen/aWapBE.js"></script>
     <%--load custom javascript--%>
     <script src="<c:url value = "js/app.js"/>"></script>
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
@@ -52,28 +55,33 @@
                     <h5 class="card-header"><b>Building blocks and reaction</b></h5>
                     <div id="file-input" class="card-body">
                         <div class="form-group row">
-                            <label for="reaction-file" class="col-sm-3 col-form-label">Reaction file (.mrv)</label>
+                            <label for="reaction-files" class="col-sm-3 col-form-label">Reaction file (.mrv)</label>
                             <div class="col-sm-9">
-                                <label for="reaction-file" class="custom-file-upload">
-                                    <strong class="btn btn-secondary">Choose file</strong>
-                                    <span ng-bind="formModel.reactionFile[0].files[0].name"
-                                          ng-class="{
-                    'text-danger':reactionFile.wrongExtension || (!reactionFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'text-success':!reactionFile.wrongExtension && (!reactionFile.pristine || compoundEvolverForm.$submitted)}"></span>
-                                </label>
-                                <input type="file"
-                                       file-bind="formModel.reactionFile"
-                                       id="reaction-file"
-                                       name="reactionFile"
-                                       required="required"/>
+                                <div class="custom-file">
+                                    <input type="file"
+                                           class="custom-file-input"
+                                           name="reactionFiles"
+                                           id="reaction-files"
+                                           required="required"
+                                           multiple="multiple"
+                                           file-bind="formModel.reactionFiles"
+                                           ng-class="{
+                    'is-invalid':reactionFiles.wrongExtension || (!reactionFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'is-valid':!reactionFiles.wrongExtension && (!reactionFiles.pristine || compoundEvolverForm.$submitted)}">
+                                    <label class="custom-file-label overflow-hidden"
+                                           for="reaction-files">
+                                        <span ng-repeat="file in reactionFiles.files">{{file.name}} </span>
+                                        <span ng-hide="reactionFiles.files.length">Choose reaction files</span>
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"
-                                       ng-show="!reactionFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                       ng-show="!reactionFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
                                 </small>
                                 <small class="form-text text-danger"
-                                       ng-show="reactionFile.wrongExtension">
+                                       ng-show="reactionFiles.wrongExtension">
                                     Only an mrv file (.mrv) is accepted
                                 </small>
                             </div>
@@ -83,19 +91,23 @@
                                 (.smiles,
                                 .smi)</label>
                             <div class="col-sm-9 float-sm-left">
-                                <label for="reactant-files" class="custom-file-upload">
-                                    <strong class="btn btn-secondary">Choose files</strong>
-                                    <%--<span ng-bind="reactantFiles.names"--%>
-                                    <%--ng-class="{--%>
-                                    <%--'text-danger':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),--%>
-                                    <%--'text-success':!reactantFiles.wrongExtension && !reactantFiles.pristine}"></span>--%>
-                                </label>
-                                <input type="file"
-                                       file-bind="formModel.reactantFiles"
-                                       id="reactant-files"
-                                       name="reactantFiles"
-                                       required="required"
-                                       multiple="multiple"/>
+                                <div class="custom-file">
+                                    <input type="file"
+                                           class="custom-file-input"
+                                           name="reactantFiles"
+                                           id="reactant-files"
+                                           required="required"
+                                           multiple="multiple"
+                                           file-bind="formModel.reactantFiles"
+                                           ng-class="{
+                    'is-invalid':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'is-valid':!reactantFiles.wrongExtension && (!reactantFiles.pristine || compoundEvolverForm.$submitted)}">>
+                                    <label class="custom-file-label overflow-hidden"
+                                           for="reactant-files">
+                                        <span ng-repeat="file in reactantFiles.files">{{file.name}} </span>
+                                        <span ng-hide="reactantFiles.files.length">Choose reactant files</span></label>
+                                    </label>
+                                </div>
                             </div>
                             <small class="col-sm-9 float-sm-right form-text text-danger"
                                    ng-show="!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
@@ -106,37 +118,51 @@
                                 Only smiles files (.smiles, .smi) are accepted
                             </small>
                         </div>
+                        <%--<div class="form-group row">--%>
+                        <%--<label class="col-sm-3 col-form-label">Order of reactant files in reaction</label>--%>
+                        <%--<div class="col-sm-9">--%>
+                        <%--<ul class="list-group" id="sortableReactantList">--%>
+                        <%--<li class="list-group-item" id="file-list-item-{{$index}}"--%>
+                        <%--ng-repeat="file in reactantFiles.files track by $index">--%>
+                        <%--<span class=""--%>
+                        <%--ng-class="{--%>
+                        <%--'text-danger':file.invalid}">{{file.name}}</span>--%>
+                        <%--</li>--%>
+                        <%--</ul>--%>
+                        <%--<ul class="list-group" ng-hide="reactantFiles.files.length">--%>
+                        <%--<li class="list-group-item disabled">Please choose reactant files</li>--%>
+                        <%--</ul>--%>
+                        <%--</div>--%>
+                        <%--</div>--%>
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Order of reactant files in reaction</label>
+                            <div ng-dropdown-multiselect="" options="example1data" selected-model="example1model"></div>
+                            <label class="col-sm-3 col-form-label">Reactants mapping</label>
                             <div class="col-sm-9">
-                                <ul class="list-group" id="sortableReactantList">
-                                    <li class="list-group-item" id="file-list-item-{{$index}}"
-                                        ng-repeat="file in reactantFiles.files track by $index">
-                                    <span class=""
-                                          ng-class="{
-                                    'text-danger':file.invalid}">{{file.name}}</span>
-                                    </li>
-                                </ul>
-                                <ul class="list-group" ng-hide="reactantFiles.files.length">
-                                    <li class="list-group-item disabled">Please choose reactant files</li>
-                                </ul>
+                                <div class="input-group" ng-repeat="file in reactionFiles.files track by $index">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">{{file.name}}</span>
+                                    </div>
+                                    <input id="file-list-item-{{$index}}" type="text" class="form-control">
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="receptor-file" class="col-sm-3 col-form-label">Receptor file (.pdb)</label>
                             <div class="col-sm-9">
-                                <label for="receptor-file" class="custom-file-upload">
-                                    <strong class="btn btn-secondary">Choose file</strong>
-                                    <span ng-bind="formModel.receptorFile[0].files[0].name"
-                                          ng-class="{
-                    'text-danger':receptorFile.wrongExtension || (!receptorFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'text-success':!receptorFile.wrongExtension && (!receptorFile.pristine || compoundEvolverForm.$submitted)}"></span>
-                                </label>
-                                <input type="file"
-                                       file-bind="formModel.receptorFile"
-                                       id="receptor-file"
-                                       name="receptorFile"
-                                       required="required"/>
+                                <div class="custom-file">
+                                    <input type="file"
+                                           class="custom-file-input"
+                                           name="receptorFile"
+                                           id="receptor-file"
+                                           required="required"
+                                           file-bind="formModel.receptorFile"
+                                           ng-class="{
+                    'is-invalid':receptorFile.wrongExtension || (!receptorFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'is-valid':!receptorFile.wrongExtension && (!receptorFile.pristine || compoundEvolverForm.$submitted)}">
+                                    <label class="custom-file-label overflow-hidden"
+                                           for="receptor-file"
+                                           ng-bind="formModel.receptorFile[0].files[0].name || 'Choose receptor file'"></label>
+                                </div>
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"
@@ -153,18 +179,20 @@
                             <label for="anchor-fragment-file" class="col-sm-3 col-form-label">Anchor fragment file
                                 (.sdf)</label>
                             <div class="col-sm-9">
-                                <label for="anchor-fragment-file" class="custom-file-upload">
-                                    <strong class="btn btn-secondary">Choose file</strong>
-                                    <span ng-bind="formModel.anchorFragmentFile[0].files[0].name"
-                                          ng-class="{
-                    'text-danger':anchorFragmentFile.wrongExtension || (!anchorFragmentFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'text-success':!anchorFragmentFile.wrongExtension && (!anchorFragmentFile.pristine || compoundEvolverForm.$submitted)}"></span>
-                                </label>
-                                <input type="file"
-                                       file-bind="formModel.anchorFragmentFile"
-                                       id="anchor-fragment-file"
-                                       name="anchorFragmentFile"
-                                       required="required"/>
+                                <div class="custom-file">
+                                    <input type="file"
+                                           class="custom-file-input"
+                                           name="anchorFragmentFile"
+                                           id="anchor-fragment-file"
+                                           required="required"
+                                           file-bind="formModel.anchorFragmentFile"
+                                           ng-class="{
+                    'is-invalid':anchorFragmentFile.wrongExtension || (!anchorFragmentFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
+                    'is-valid':!anchorFragmentFile.wrongExtension && (!anchorFragmentFile.pristine || compoundEvolverForm.$submitted)}">
+                                    <label class="custom-file-label overflow-hidden"
+                                           for="anchor-fragment-file"
+                                           ng-bind="formModel.anchorFragmentFile[0].files[0].name || 'Choose anchor file'"></label>
+                                </div>
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"
@@ -647,7 +675,7 @@
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary"
                                         ng-click="onSubmit(
-                                (!reactionFile.wrongExtension && reactionFile.hasFile) &&
+                                (!reactionFiles.wrongExtension && reactionFiles.hasFile) &&
                                 (!reactantFiles.wrongExtension && reactantFiles.hasFile) &&
                                 (!receptorFile.wrongExtension && receptorFile.hasFile) &&
                                 (!anchorFragmentFile.wrongExtension && anchorFragmentFile.hasFile) &&
@@ -664,43 +692,44 @@
                 </div>
             </form>
         </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <h5>Results</h5>
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href>Download selected generation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href ng-click="downloadRun()">Download all</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href ng-click="downloadCsv()">Download csv</a>
-                    </li>
-                </ul>
-                <canvas id="myChart" width="400" height="400"></canvas>
-                <h6>Selected generation</h6>
-                <table class="table table-condensed table-borderless mono-font">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>COMPOUND</th>
-                        <th class="text-muted">SCORE</th>
-                        <th><abbr title="Ligand Efficiency">LE</abbr></th>
-                        <th><abbr title="Ligand Lipophilicity Efficiency">LEE</abbr></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
-                        <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
-                        <td>{{candidate.smiles}}</td>
-                        <td>{{candidate.rawScore | number:4}}</td>
-                        <td>{{candidate.ligandEfficiency | number:4}}</td>
-                        <td>{{candidate.ligandLipophilicityEfficiency | number:4}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <h5>Results</h5>
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link disabled" href>Download selected generation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href ng-click="downloadRun()">Download all</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href ng-click="downloadCsv()">Download csv</a>
+                </li>
+            </ul>
+            <canvas id="score-distribution-chart" width="400" height="400"></canvas>
+            <canvas id="species-distribution-chart" width="400" height="400"></canvas>
+            <h6>Selected generation</h6>
+            <table class="table table-condensed table-borderless mono-font">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>COMPOUND</th>
+                    <th class="text-muted">SCORE</th>
+                    <th><abbr title="Ligand Efficiency">LE</abbr></th>
+                    <th><abbr title="Ligand Lipophilicity Efficiency">LEE</abbr></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
+                    <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
+                    <td>{{candidate.smiles}}</td>
+                    <td>{{candidate.rawScore | number:4}}</td>
+                    <td>{{candidate.ligandEfficiency | number:4}}</td>
+                    <td>{{candidate.ligandLipophilicityEfficiency | number:4}}</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

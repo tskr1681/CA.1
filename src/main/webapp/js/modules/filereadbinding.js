@@ -4,7 +4,7 @@ angular.module('fileReadBinding', []).directive("fileBind", ['$parse', function 
         link: function (scope, element, attributes) {
 
             /**
-             * Updates variables that describe the state of the reactionFile input
+             * Updates variables that describe the state of the reactionFiles input
              */
             function updateFileParameters() {
                 $parse(attributes.fileBind)

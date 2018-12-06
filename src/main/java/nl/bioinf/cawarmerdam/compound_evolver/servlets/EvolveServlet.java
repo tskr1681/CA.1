@@ -9,7 +9,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
-import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 
 import javax.servlet.ServletException;
@@ -69,16 +68,16 @@ public class EvolveServlet extends HttpServlet {
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
-        // Get reaction
-        Reactor reaction = ReactionFileHandler.loadReaction(getFileFromRequest(request, "reactionFile"));
+        // Get reactionList
+        List<Reactor> reactionList = ReactionFileHandler.loadReactions(getFilesFromRequest(request, "reactionFiles"));
 
         // Get reactants
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getReactantFilesFromRequest(request));
-        List<Integer> reactantsFileOrder = getFileOrderParameterFromRequest(request);
-        reactantLists = reorderReactantsLists(reactantLists, reactantsFileOrder);
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"));
+        List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
+        List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
 
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, Arrays.asList(reaction), generationSize);
+        Population initialPopulation = new Population(reactantLists, species, generationSize);
 
         // Get crossover rate
         double crossoverRate = getDoubleParameterFromRequest(request, "crossoverRate");
@@ -209,12 +208,15 @@ public class EvolveServlet extends HttpServlet {
         return reactantsFileOrder.stream().map(reactantLists::get).collect(Collectors.toList());
     }
 
-    private List<Integer> getFileOrderParameterFromRequest(HttpServletRequest request) throws IOException {
+    private List<List<Integer>> getFileOrderParameterFromRequest(HttpServletRequest request) throws IOException {
         // Get parameter as string
         String fileOrder = request.getParameter("fileOrder");
         // this parses the json
         ObjectMapper mapper = new ObjectMapper();
-        return Arrays.asList(mapper.readValue(fileOrder, Integer[].class));
+        Integer[][] integers = mapper.readValue(fileOrder, Integer[][].class);
+        return Arrays.stream(integers)
+                .map(Arrays::asList)
+                .collect(Collectors.toList());
     }
 
     private void handleFilterOptions(HttpServletRequest request, Population initialPopulation) throws ServletUtils.FormFieldHandlingException {
@@ -281,9 +283,9 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
-    private List<Part> getReactantFilesFromRequest(HttpServletRequest request) throws IOException, ServletException {
+    private List<Part> getFilesFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
         return request.getParts().stream()
-                .filter(part -> "reactantFiles"
+                .filter(part -> fileFieldName
                         .equals(part.getName()))
                 .collect(Collectors.toList());
     }

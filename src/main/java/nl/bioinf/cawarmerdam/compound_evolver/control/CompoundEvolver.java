@@ -69,7 +69,8 @@ public class CompoundEvolver {
         // Construct the initial population
         ArrayList<Reactor> reactions = new ArrayList<>();
         reactions.add(reactor);
-        Population population = new Population(reactantLists, reactions, maxSamples);
+        List<Species> species = Species.constructSpecies(reactions, reactantLists.size());
+        Population population = new Population(reactantLists, species, maxSamples);
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);

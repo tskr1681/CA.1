@@ -6,7 +6,7 @@ app.run(function ($rootScope) {
     $rootScope.selectedGenerationNumber = null;
 });
 
-app.controller('FormInputCtrl' , function ($scope, $rootScope) {
+app.controller('FormInputCtrl', function ($scope, $rootScope) {
     $scope.formModel = {
         generationSize: 16,
         numberOfGenerations: 20,
@@ -14,9 +14,9 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         mutationRate: 0.1,
         crossoverRate: 0.8,
         elitismRate: 0.1,
-        randomImmigrantRate:0.1,
-        selectionMethod:'Fitness proportionate selection',
-        mutationMethod:'Distance dependent',
+        randomImmigrantRate: 0.1,
+        selectionMethod: 'Fitness proportionate selection',
+        mutationMethod: 'Distance dependent',
         terminationCondition: 'fixed',
         nonImprovingGenerationQuantity: 0.3,
         conformerCount: 15,
@@ -29,29 +29,40 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5
     };
-    $scope.reactionFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["mrv"]};
+    $scope.reactionFiles = {
+        wrongExtension: false,
+        pristine: true,
+        hasFile: false,
+        files: [],
+        permittedExtensions: ["mrv"]
+    };
     $scope.receptorFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["pdb"]};
     $scope.anchorFragmentFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["sdf"]};
-    $scope.reactantFiles = {wrongExtension: false, pristine: true, hasFile: false, files:[], permittedExtensions: ["smiles", "smi"]};
+    $scope.reactantFiles = {
+        wrongExtension: false,
+        pristine: true,
+        hasFile: false,
+        files: [],
+        permittedExtensions: ["smiles", "smi"]
+    };
 
     $scope.response = {hasError: false};
 
-    var myChart = null;
-    var evolveStatus = null;
+    $scope.example1model = [];
+    $scope.example1data = [ {id: 1, label: "David"}, {id: 2, label: "Jhon"}, {id: 3, label: "Danny"} ];
 
-    $( function() {
-        $("#sortableReactantList").sortable({
-            handle: 'span',
-            cursor: 'grabbing'
-        }).disableSelection();
-    });
+    var scoreDistributionChart = null;
+    var speciesDistributionChart = null;
+    var evolveStatus = null;
+    var orderCount = 0;
+    var species = [];
 
     /**
      * Sets the form to pristine: set grey colours and such.
      */
     function setPristine() {
         $scope.compoundEvolverForm.$setPristine();
-        $scope.reactionFile.pristine = true;
+        $scope.reactionFiles.pristine = true;
         $scope.reactantFiles.pristine = true;
         $scope.receptorFile.pristine = true;
         $scope.anchorFragmentFile.pristine = true;
@@ -96,10 +107,17 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
     function extractFormData() {
         let fileOrder = [];
 
-        $("#sortableReactantList").sortable("toArray").forEach(function (id) {
-            let splitted_id = id.split("-");
-            fileOrder.push(splitted_id[splitted_id.length - 1]);
+        $scope.reactionFiles.files.forEach(function (file, i) {
+            let reactantFiles = [];
+            let orderInputVal = $("input#file-list-item-" + i).val();
+            if (orderInputVal.length !== 0) {
+                orderInputVal.split(",").forEach(function (value) {
+                    reactantFiles.push(parseInt(value));
+                });
+            }
+            fileOrder.push(reactantFiles);
         });
+        console.log(fileOrder);
 
         // Get form
         let form = $('form')[0];
@@ -111,7 +129,42 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         return formData;
     }
 
-    $scope.getProgressUpdate = function() {
+    function addDatasets(chart, datasets) {
+        let backgroundColors = palette('cb-Set2', datasets.length).map(function(hex) {
+            return '#' + hex;
+        });
+        console.log(backgroundColors);
+        datasets.forEach(function (dataset, i) {
+            let species = {
+                label: dataset,
+                fill: true,
+                backgroundColor: backgroundColors[i]
+            };
+            chart.data.datasets.push(species);
+        });
+        chart.update();
+    }
+
+    function updateSpeciesDistributionChart(generation) {
+        console.log(speciesDistributionChart.data);
+        if (speciesDistributionChart.data.datasets.length === 0) {
+            species = generation.candidateList.map(item => item.species)
+                .sort().filter((x, i, a) => a.indexOf(x) === i);
+            addDatasets(speciesDistributionChart, species)
+        }
+        let speciesArray = generation.candidateList.map(item => item.species);
+        let counts = {};
+        for (const key of species) {
+            counts[key] = 0;
+        }
+        speciesArray.sort().forEach(function (species) {
+            counts[species] = counts[species] ? counts[species] + 1 : 1;
+        });
+
+        addData(speciesDistributionChart, generation.number, Object.values(counts));
+    }
+
+    $scope.getProgressUpdate = function () {
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
@@ -120,6 +173,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
             success: function (data, textStatus, jqXHR) {
                 // log data to the console so we can see
                 console.log(data);
+
                 // update variables with new data
                 function getSum(total, num) {
                     return total + num;
@@ -130,16 +184,19 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
                 generations.forEach(function (generation) {
 
-                    addData(myChart, generation.number, [
+                    addData(scoreDistributionChart, generation.number, [
                         generation.candidateList.map(candidate => candidate.rawScore),
                         generation.candidateList.map(candidate => candidate.ligandEfficiency),
                         generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
                     ]);
+
+                    updateSpeciesDistributionChart(generation);
+
                     $rootScope.generations.push(generation);
                     $rootScope.$apply();
                 });
 
-                },
+            },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Check which error was thrown
                 // If progress was stopped due to an exception set big error
@@ -172,19 +229,76 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         chart.update();
     }
 
+    function initializeSpeciesDistributionChart() {
+        var speciesCtx = document.getElementById("species-distribution-chart").getContext("2d");
+
+        var options = {
+            responsive: true,
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'distribution of populations'
+            },
+            scales: {
+                yAxes: [{
+                    stacked: true
+                }]
+            }
+        };
+
+        speciesDistributionChart = new Chart(speciesCtx, {
+            type: 'line',
+            options: options,
+            data: {
+                labels: [],
+                datasets: []
+            }
+        })
+    }
+
     function initializeChart() {
-        var chartData = {labels: [],
+        var chartData = {
+            labels: [],
             datasets: [
-                {data: [], label: "Raw Scores", borderColor: "#000000", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},
-                {data: [], label: "Ligand Efficiencies", borderColor: "#0055ff", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'},
-                {data: [], label: "Lipophilic Efficiencies", borderColor: "#ff0055", fill: "false", backgroundColor: 'rgba(0,0,0,0)', itemRadius: 2, itemBackgroundColor: 'rgba(255,0,0,0.64)'}
-            ]};
+                {
+                    data: [],
+                    label: "Raw Scores",
+                    borderColor: "#000000",
+                    fill: "false",
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    itemRadius: 2,
+                    itemBackgroundColor: 'rgba(255,0,0,0.64)'
+                },
+                {
+                    data: [],
+                    label: "Ligand Efficiencies",
+                    borderColor: "#0055ff",
+                    fill: "false",
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    itemRadius: 2,
+                    itemBackgroundColor: 'rgba(255,0,0,0.64)'
+                },
+                {
+                    data: [],
+                    label: "Lipophilic Efficiencies",
+                    borderColor: "#ff0055",
+                    fill: "false",
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    itemRadius: 2,
+                    itemBackgroundColor: 'rgba(255,0,0,0.64)'
+                }
+            ]
+        };
 
-        var ctx = document.getElementById("myChart").getContext('2d');
+        var scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
 
-        if (myChart !== null) {myChart.destroy();}
+        if (scoreDistributionChart !== null) {
+            scoreDistributionChart.destroy();
+        }
 
-        myChart = new Chart(ctx, {
+        scoreDistributionChart = new Chart(scoreCtx, {
             type: 'violin',
             data: chartData,
             options: {
@@ -199,23 +313,21 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
                 onClick: chartClickEvent
             }
         });
+
+        initializeSpeciesDistributionChart();
     }
 
-    function chartClickEvent(event, array){
-        if (myChart === 'undefined' || myChart == null)
-        {
+    function chartClickEvent(event, array) {
+        if (scoreDistributionChart === 'undefined' || scoreDistributionChart == null) {
             return;
         }
-        if (event === 'undefined' || event == null)
-        {
+        if (event === 'undefined' || event == null) {
             return;
         }
-        if (array === 'undefined' || array == null)
-        {
+        if (array === 'undefined' || array == null) {
             return;
         }
-        if (array.length <= 0)
-        {
+        if (array.length <= 0) {
             return;
         }
 
@@ -272,10 +384,10 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
 
             evolveStatus = null;
 
-            var i = setInterval(function(){
+            var i = setInterval(function () {
                 // do your thing
                 $scope.getProgressUpdate();
-                if(["FAILED", "SUCCESS"].includes(evolveStatus)) {
+                if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
                     clearInterval(i);
                 }
             }, 5000);
@@ -286,7 +398,7 @@ app.controller('FormInputCtrl' , function ($scope, $rootScope) {
         }
     };
 
-    $scope.getPopulation = function() {
+    $scope.getPopulation = function () {
         if ($scope.hasData() && $scope.generationSelected()) {
             return $rootScope.generations[$rootScope.selectedGenerationNumber].candidateList;
         }

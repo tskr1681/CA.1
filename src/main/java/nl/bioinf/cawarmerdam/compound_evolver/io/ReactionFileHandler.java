@@ -7,6 +7,8 @@ import chemaxon.reaction.Reactor;
 import javax.servlet.http.Part;
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ReactionFileHandler {
     public static Reactor loadReaction(String filePath) throws FileNotFoundException, ReactionFileHandlerException {
@@ -29,5 +31,14 @@ public final class ReactionFileHandler {
             throw new ReactionFileHandlerException(exception.getMessage(), fileName);
         }
         return reactor;
+    }
+
+    public static List<Reactor> loadReactions(List<Part> reactionFileParts)
+            throws IOException, ReactionFileHandlerException {
+        List<Reactor> reactantLists = new ArrayList<>();
+        for (Part filePart : reactionFileParts) {
+            reactantLists.add(loadReaction(filePart));
+        }
+        return reactantLists;
     }
 }

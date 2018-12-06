@@ -66,8 +66,8 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
 
     /**
      * Execute the obfit command line program.
-     * @param conformerLib The path to a reactionFile with conformers.
-     * @param outFile The path to a reactionFile that can function as an output reactionFile.
+     * @param conformerLib The path to a reactionFiles with conformers.
+     * @param outFile The path to a reactionFiles that can function as an output reactionFiles.
      * @param candidate The candidate that is being scored.
      * @throws PipelineException if an error occured in executing the obfit command.
      */

@@ -155,7 +155,8 @@ public class EvolverOptimizer {
     }
 
     private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
-        Population population = new Population(reactantLists, Collections.singletonList(reactor), parameters.getGenerationSize());
+        List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
+        Population population = new Population(reactantLists, species, parameters.getGenerationSize());
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());
         population.setSelectionMethod(parameters.getSelectionMethod());

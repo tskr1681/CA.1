@@ -104,6 +104,7 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         jgen.writeNumberField("ligandEfficiency", candidate.getLigandEfficiency());
         jgen.writeNumberField("ligandLipophilicityEfficiency", candidate.getLigandLipophilicityEfficiency());
         jgen.writeNumberField("rmsd", candidate.getCommonSubstructureToAnchorRmsd());
+        jgen.writeStringField("species", candidate.getSpecies().toString());
         jgen.writeEndObject();
     }
 }

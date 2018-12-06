@@ -45,7 +45,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
 
-    public Population(List<List<Molecule>> reactantLists, List<Reactor> reactions, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+    public Population(List<List<Molecule>> reactantLists, List<Species> species, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
         this.random = new Random();
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
@@ -59,18 +59,8 @@ public class Population implements Iterable<Candidate> {
         this.tournamentSize = 2;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
-        constructReactantMap(reactions);
+        this.species = species;
         initializePopulation();
-    }
-
-    private void constructReactantMap(List<Reactor> reactions) {
-        this.species = new ArrayList<>();
-
-        for (Reactor reaction : reactions) {
-            this.species.add(new Species(
-                    IntStream.range(0, this.reactantLists.size()).boxed().collect(Collectors.toList()),
-                    reaction));
-        }
     }
 
     /**
@@ -134,10 +124,10 @@ public class Population implements Iterable<Candidate> {
      *
      * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
      *                                 in the reactions.
-     * @throws ReactionException       if an exception was thrown during a reactions.
      */
-    private void initializePopulation() throws MisMatchedReactantCount, ReactionException {
+    private void initializePopulation() throws MisMatchedReactantCount {
         int individualsPerSpecies = this.populationSize / this.species.size();
+        this.candidateList = new ArrayList<>();
 
         for (Species species : this.species) {
             int reactantCount = species.getReaction().getReactantCount();
@@ -150,8 +140,8 @@ public class Population implements Iterable<Candidate> {
                 throw new MisMatchedReactantCount(reactantCount, reactants.size());
             }
             // Make sure only the right reactants are passed on
-            this.candidateList = new RandomCompoundReactor(species, individualsPerSpecies)
-                    .randReact(this.reactantLists);
+            this.candidateList.addAll(new RandomCompoundReactor(species, individualsPerSpecies)
+                    .randReact(this.reactantLists));
         }
     }
 
@@ -714,7 +704,7 @@ public class Population implements Iterable<Candidate> {
         // Get the two parents
         Candidate firstParent = this.candidateList.get(firstParentIndex);
         Candidate otherParent = this.candidateList.get(otherParentIndex);
-        System.out.printf("%s (%s) * %s (%s)%n", firstParent.getGenotype(), firstParentIndex, otherParent.getGenotype(), otherParentIndex);
+        System.out.printf("%s (%s) * %s (%s)%n", firstParent.getGenotype(), firstParent.getSpecies(), otherParent.getGenotype(), otherParent.getSpecies());
         // Perform crossover between the two
         return firstParent.crossover(otherParent);
     }
