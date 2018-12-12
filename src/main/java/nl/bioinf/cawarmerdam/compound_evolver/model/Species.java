@@ -4,7 +4,9 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -59,11 +61,32 @@ public class Species {
         return species;
     }
 
+    List<Integer> reactantIndexIntersection(Species other) {
+        return this.reactantIndices.stream()
+                .distinct()
+                .filter(thisIndex -> other.reactantIndices.stream().anyMatch(otherIndex -> otherIndex.equals(thisIndex)))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public String toString() {
         return "Species " +
                 this.getReactantIndices().stream()
                         .map(String::valueOf)
                         .collect(Collectors.joining(""));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Species species = (Species) o;
+        return Objects.equals(getReactantIndices(), species.getReactantIndices()) &&
+                Objects.equals(getReaction(), species.getReaction());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getReactantIndices(), getReaction());
     }
 }

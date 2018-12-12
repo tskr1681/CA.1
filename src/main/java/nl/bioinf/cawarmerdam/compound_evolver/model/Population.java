@@ -5,10 +5,12 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.descriptors.*;
+import chemaxon.jep.function.In;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.jaxen.util.SingletonList;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +32,8 @@ public class Population implements Iterable<Candidate> {
     private double maxAnchorMinimizedRmsd;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
+    private InterspeciesCrossoverMethod interspeciesCrossoverMethod;
+    private SpeciesDeterminationMethod speciesDeterminationMethod;
     private List<Candidate> candidateList;
     private double[][][] alleleSimilarities;
     private double mutationRate;
@@ -45,7 +49,11 @@ public class Population implements Iterable<Candidate> {
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
 
-    public Population(List<List<Molecule>> reactantLists, List<Species> species, int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+    public Population(
+            List<List<Molecule>> reactantLists,
+            List<Species> species,
+            int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+
         this.random = new Random();
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
@@ -57,10 +65,29 @@ public class Population implements Iterable<Candidate> {
         this.randomImmigrantRate = 0.1;
         this.maxAnchorMinimizedRmsd = 1;
         this.tournamentSize = 2;
+        this.speciesDeterminationMethod = SpeciesDeterminationMethod.DYNAMIC;
+        this.interspeciesCrossoverMethod = InterspeciesCrossoverMethod.COMPLETE;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.species = species;
         initializePopulation();
+    }
+
+
+    public InterspeciesCrossoverMethod getInterspeciesCrossoverMethod() {
+        return interspeciesCrossoverMethod;
+    }
+
+    public void setInterspeciesCrossoverMethod(InterspeciesCrossoverMethod interspeciesCrossoverMethod) {
+        this.interspeciesCrossoverMethod = interspeciesCrossoverMethod;
+    }
+
+    public SpeciesDeterminationMethod getSpeciesDeterminationMethod() {
+        return speciesDeterminationMethod;
+    }
+
+    public void setSpeciesDeterminationMethod(SpeciesDeterminationMethod speciesDeterminationMethod) {
+        this.speciesDeterminationMethod = speciesDeterminationMethod;
     }
 
     /**
@@ -129,19 +156,28 @@ public class Population implements Iterable<Candidate> {
         int individualsPerSpecies = this.populationSize / this.species.size();
         this.candidateList = new ArrayList<>();
 
-        for (Species species : this.species) {
-            int reactantCount = species.getReaction().getReactantCount();
+        if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
+            for (Species species : this.species) {
+                int reactantCount = species.getReaction().getReactantCount();
 
-            // Get only the right reactants
-            List<List<Molecule>> reactants = species.getReactantListsSubset(this.reactantLists);
+                // Get only the right reactants
+                List<List<Molecule>> reactants = species.getReactantListsSubset(this.reactantLists);
 
-            if (reactantCount != reactants.size()) {
-                // Throw exception
-                throw new MisMatchedReactantCount(reactantCount, reactants.size());
+                if (reactantCount != reactants.size()) {
+                    // Throw exception
+                    throw new MisMatchedReactantCount(reactantCount, reactants.size());
+                }
+                // Make sure only the right reactants are passed on
+                this.candidateList.addAll(new RandomCompoundReactor(Collections.singletonList(species), individualsPerSpecies)
+                        .randReact(this.reactantLists));
             }
-            // Make sure only the right reactants are passed on
-            this.candidateList.addAll(new RandomCompoundReactor(species, individualsPerSpecies)
+        } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
+            this.candidateList.addAll(new RandomCompoundReactor(this.species, individualsPerSpecies)
                     .randReact(this.reactantLists));
+        } else {
+            // Throw exception when another determination method is selected.
+            throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
+                    "' is not yet implemented!");
         }
     }
 
@@ -546,7 +582,12 @@ public class Population implements Iterable<Candidate> {
         newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
         newCandidate.setMaxMolecularMass(this.maxMolecularMass);
         newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
-        if (newCandidate.finish(this.reactantLists)) {
+
+        if (speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED &&
+                newCandidate.finish(this.reactantLists)) {
+            return newCandidate;
+        } else if (speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC &&
+                newCandidate.finish(this.reactantLists, this.species)) {
             return newCandidate;
         }
         this.offspringRejectionMessages.add(newCandidate.getRejectionMessage());
@@ -559,11 +600,21 @@ public class Population implements Iterable<Candidate> {
      * @return a new individual (random immigrant).
      */
     private Candidate introduceRandomImmigrant() {
-        // Get one of the species to create an individual from
-        Species randomSpecies = this.species.get(random.nextInt(this.species.size()));
+        if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
+            // Get one of the species to create an individual from
+            Species randomSpecies = this.species.get(random.nextInt(this.species.size()));
 
-        // Try to generate a new individual or candidate with these species
-        return new RandomCompoundReactor(randomSpecies, 1).randReact(this.reactantLists).get(0);
+            // Try to generate a new individual or candidate with these species
+            return new RandomCompoundReactor(Collections.singletonList(randomSpecies), 1)
+                    .randReact(this.reactantLists).get(0); // 1 new individual at index 0
+        } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
+            return new RandomCompoundReactor(this.species, 1)
+                    .randReact(this.reactantLists).get(0);
+        } else {
+            // Throw exception when another determination method is selected.
+            throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
+                    "' is not yet implemented!");
+        }
     }
 
     /**
@@ -706,7 +757,7 @@ public class Population implements Iterable<Candidate> {
         Candidate otherParent = this.candidateList.get(otherParentIndex);
         System.out.printf("%s (%s) * %s (%s)%n", firstParent.getGenotype(), firstParent.getSpecies(), otherParent.getGenotype(), otherParent.getSpecies());
         // Perform crossover between the two
-        return firstParent.crossover(otherParent);
+        return firstParent.crossover(otherParent, interspeciesCrossoverMethod);
     }
 
     @Override
@@ -858,6 +909,55 @@ public class Population implements Iterable<Candidate> {
 
         public static MutationMethod fromString(String text) {
             for (MutationMethod method : MutationMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+
+        public String getText() {
+            return this.text;
+        }
+    }
+
+    public enum InterspeciesCrossoverMethod {
+        NONE("None"),
+        AT_SPECIES_INTERSECTION("At species intersection"),
+        COMPLETE("Complete");
+
+        private final String text;
+
+        InterspeciesCrossoverMethod(String text) {
+            this.text = text;
+        }
+
+        public static InterspeciesCrossoverMethod fromString(String text) {
+            for (InterspeciesCrossoverMethod method : InterspeciesCrossoverMethod.values()) {
+                if (method.text.equalsIgnoreCase(text)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+
+        public String getText() {
+            return this.text;
+        }
+    }
+
+    public enum SpeciesDeterminationMethod {
+        DYNAMIC("Dynamic"),
+        FIXED("Fixed");
+
+        private final String text;
+
+        SpeciesDeterminationMethod(String text) {
+            this.text = text;
+        }
+
+        public static SpeciesDeterminationMethod fromString(String text) {
+            for (SpeciesDeterminationMethod method : SpeciesDeterminationMethod.values()) {
                 if (method.text.equalsIgnoreCase(text)) {
                     return method;
                 }

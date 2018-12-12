@@ -22,12 +22,12 @@ angular.module('fileReadBinding', []).directive("fileBind", ['$parse', function 
                     let invalidityArray = [];
                     let fileArray = [];
                     let names = [];
-                    Array.prototype.forEach.call(element[0].files, file => {
+                    Array.prototype.forEach.call(element[0].files, function(file, index) {
                         extension = file.name.split(".").pop();
                         let wrongExtension = requiredExtensions.indexOf(extension) === -1;
                         invalidityArray.push(wrongExtension);
                         names.push(file.name);
-                        fileArray.push({name: file.name, invalid: wrongExtension})
+                        fileArray.push({name: file.name, invalid: wrongExtension, reactants: [], id: index})
                     });
                     scope[attributes.name].wrongExtension = (invalidityArray.indexOf(true) !== -1);
                     scope[attributes.name].files = fileArray;
@@ -35,7 +35,6 @@ angular.module('fileReadBinding', []).directive("fileBind", ['$parse', function 
                     extension = element[0].files[0].name.split(".").pop();
                     scope[attributes.name].wrongExtension = requiredExtensions.indexOf(extension) === -1;
                 }
-
             }
 
             // Update when the element is touched

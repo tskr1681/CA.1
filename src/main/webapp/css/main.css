@@ -1,24 +1,3 @@
-input[type="file"] {
-    display:none;
-}
-
-.custom-file-upload {
-    display: inline;
-    cursor: pointer;
-}
-
-.custom-file-upload > span {
-    display: block;
-    float:left;
-    padding-left: 8px;
-    padding-top: 5px;
-}
-
-.custom-file-upload > strong {
-    display: inline-block;
-    float:left;
-}
-
 .mono-font {
     font-family: Consolas, Lucida Console, monospace;
     overflow-wrap: break-word;
@@ -33,8 +12,4 @@ input[type="file"] {
 .table-borderless > thead > tr > td,
 .table-borderless > thead > tr > th {
     border: none;
-}
-
-ul#sortableReactantList > li {
-    cursor: grab;
 }

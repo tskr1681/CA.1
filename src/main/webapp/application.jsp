@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
           crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="<c:url value = "css/main.css"/>">
     <%--load library javascript--%>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -26,10 +28,12 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/js/bootstrap-select.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot"></script>
     <script src="https://codepen.io/anon/pen/aWapBE.js"></script>
+    <script src="<c:url value = "js/libs/angularjs-dropdown-multiselect.js"/>"></script>
     <%--load custom javascript--%>
     <script src="<c:url value = "js/app.js"/>"></script>
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
@@ -55,7 +59,7 @@
                     <h5 class="card-header"><b>Building blocks and reaction</b></h5>
                     <div id="file-input" class="card-body">
                         <div class="form-group row">
-                            <label for="reaction-files" class="col-sm-3 col-form-label">Reaction file (.mrv)</label>
+                            <label for="reaction-files" class="col-sm-3 col-form-label">Reaction files (.mrv)</label>
                             <div class="col-sm-9">
                                 <div class="custom-file">
                                     <input type="file"
@@ -101,11 +105,11 @@
                                            file-bind="formModel.reactantFiles"
                                            ng-class="{
                     'is-invalid':reactantFiles.wrongExtension || (!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
-                    'is-valid':!reactantFiles.wrongExtension && (!reactantFiles.pristine || compoundEvolverForm.$submitted)}">>
+                    'is-valid':!reactantFiles.wrongExtension && (!reactantFiles.pristine || compoundEvolverForm.$submitted)}">
                                     <label class="custom-file-label overflow-hidden"
                                            for="reactant-files">
                                         <span ng-repeat="file in reactantFiles.files">{{file.name}} </span>
-                                        <span ng-hide="reactantFiles.files.length">Choose reactant files</span></label>
+                                        <span ng-hide="reactantFiles.files.length">Choose reactant files</span>
                                     </label>
                                 </div>
                             </div>
@@ -118,31 +122,18 @@
                                 Only smiles files (.smiles, .smi) are accepted
                             </small>
                         </div>
-                        <%--<div class="form-group row">--%>
-                        <%--<label class="col-sm-3 col-form-label">Order of reactant files in reaction</label>--%>
-                        <%--<div class="col-sm-9">--%>
-                        <%--<ul class="list-group" id="sortableReactantList">--%>
-                        <%--<li class="list-group-item" id="file-list-item-{{$index}}"--%>
-                        <%--ng-repeat="file in reactantFiles.files track by $index">--%>
-                        <%--<span class=""--%>
-                        <%--ng-class="{--%>
-                        <%--'text-danger':file.invalid}">{{file.name}}</span>--%>
-                        <%--</li>--%>
-                        <%--</ul>--%>
-                        <%--<ul class="list-group" ng-hide="reactantFiles.files.length">--%>
-                        <%--<li class="list-group-item disabled">Please choose reactant files</li>--%>
-                        <%--</ul>--%>
-                        <%--</div>--%>
-                        <%--</div>--%>
-                        <div class="form-group row">
-                            <div ng-dropdown-multiselect="" options="example1data" selected-model="example1model"></div>
-                            <label class="col-sm-3 col-form-label">Reactants mapping</label>
+                        <div class="form-group row" ng-repeat="reactionFile in reactionFiles.files track by $index">
+                            <label class="col-sm-3 col-form-label">Reactants for {{reactionFile.name}}</label>
                             <div class="col-sm-9">
-                                <div class="input-group" ng-repeat="file in reactionFiles.files track by $index">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">{{file.name}}</span>
+                                <div class="float-sm-left">
+                                    <div ng-dropdown-multiselect=""
+                                         options="reactantFiles.files"
+                                         selected-model="reactionFile.reactants"
+                                         extra-settings="reactantsMappingMultiSelectSettings">
                                     </div>
-                                    <input id="file-list-item-{{$index}}" type="text" class="form-control">
+                                </div>
+                                <div class="alert alert-primary float-sm-right" role="alert">
+                                    {{getReactantNames(reactionFile)}}
                                 </div>
                             </div>
                         </div>

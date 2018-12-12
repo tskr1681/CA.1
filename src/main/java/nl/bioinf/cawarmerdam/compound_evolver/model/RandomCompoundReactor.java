@@ -9,10 +9,10 @@ import java.util.Random;
 
 class RandomCompoundReactor {
 
-    private Species species;
+    private List<Species> species;
     private int maxSamples;
 
-    RandomCompoundReactor(Species species, int maxSamples)
+    RandomCompoundReactor(List<Species> species, int maxSamples)
     {
         this.species = species;
         this.maxSamples = maxSamples;
@@ -47,9 +47,9 @@ class RandomCompoundReactor {
             }
 
             // Set the reactants
-            Candidate candidate = new Candidate(indexGenome, species);
+            Candidate candidate = new Candidate(indexGenome);
             // Add the product and count the product if it can be made
-            boolean finish = candidate.finish(reactantLists);
+            boolean finish = candidate.finish(reactantLists, species);
             if (finish) {
                 candidates.add(candidate);
                 nSampled++;

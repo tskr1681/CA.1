@@ -18,6 +18,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -57,20 +58,40 @@ public class Candidate implements Comparable<Candidate> {
     private Species species;
     private Random random = new Random();
 
-    public Candidate(List<Integer> genotype, Species species) {
+    public Candidate(List<Integer> genotype) {
         this.genotype = genotype;
-        this.species = species;
         this.genomeSize = this.genotype.size();
         this.identifier = currentValue.getAndIncrement();
         pipelineLogger = Logger.getLogger(String.valueOf(this.identifier));
     }
 
+    public Candidate(List<Integer> genotype, Species species) {
+        this(genotype);
+        this.species = species;
+
+    }
+
     boolean finish(List<List<Molecule>> reactantLists) {
+        if (this.species == null) throw new RuntimeException("Species was not specified");
+        return finish(reactantLists, this.species);
+    }
+
+    boolean finish(List<List<Molecule>> reactantLists, List<Species> species) {
+        for (Species singleSpecies : species) {
+            boolean isFinished = finish(reactantLists, singleSpecies);
+            if (isFinished) {
+                this.species = singleSpecies;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
-        System.out.println("this.genotype = " + this.genotype + "||" + this.species.getReactantIndices());
-        Molecule[] reactants = this.species.getReactantsSubset(getReactantsFromIndices(reactantLists));
+        Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
         try {
-            Reactor reaction = this.species.getReaction();
+            Reactor reaction = species.getReaction();
             reaction.setReactants(reactants);
             Molecule[] products;
             if ((products = reaction.react()) != null) {
@@ -247,19 +268,44 @@ public class Candidate implements Comparable<Candidate> {
      * the allele from the other parent is chosen.
      *
      * @param other parent to perform crossover with
+     * @param interspeciesCrossoverMethod Specifies how to use crossover when different species are encountered.
      * @return the recombined genome.
      */
-    ImmutablePair<Species, List<Integer>> crossover(Candidate other) {
-        // Get crossover points to do uniform crossing over
-        boolean[] crossoverPoints = generateCrossoverPoints();
-        // Select the allele from this candidates genotype if true,
-        // otherwise select the allele from the other candidate
-        List<Integer> reactantGenome = IntStream.range(0, genomeSize)
-                .mapToObj(i -> crossoverPoints[i] ? this.getGenotype().get(i) : other.getGenotype().get(i))
-                .collect(Collectors.toList());
+    ImmutablePair<Species, List<Integer>> crossover(
+            Candidate other,
+            Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod) {
+
+        // Return null if the interspecies crossover method is set to not do crossover with different species
+        if (interspeciesCrossoverMethod == Population.InterspeciesCrossoverMethod.NONE &&
+                (!this.species.equals(other.species))) return null;
 
         // Get either the species from this or other
-        Species randomSpecies = (random.nextInt(2) == 0 ? this.species : other.species);
+        int candidateChoice = random.nextInt(2);
+        Species randomSpecies = (candidateChoice == 0 ? this.species : other.species);
+        // Get the indices of the reactant pool that are in both this species and the other species
+        List<Integer> intersectionOfIndices = this.species.reactantIndexIntersection(other.species);
+
+        // Get crossover points to do uniform crossing over
+        boolean[] crossoverPoints = generateCrossoverPoints();
+
+        List<Integer> reactantGenome = new ArrayList<>();
+        for (int i = 0; i < genomeSize; i++) {
+            // For each gene in the genome decide if crossover should be applied by checking if
+            // the current method for interspecies crossover is set to complete or if the
+            // reactant is used by both the candidate species
+            if (interspeciesCrossoverMethod == Population.InterspeciesCrossoverMethod.COMPLETE ||
+                    intersectionOfIndices.contains(i)) {
+                // Select the allele from this candidates genotype if true,
+                // otherwise select the allele from the other candidate
+                reactantGenome.add(crossoverPoints[i] ? this.getGenotype().get(i) : other.getGenotype().get(i));
+
+            } else { // Reactant not used by both of the candidates species
+                // Select the allele from this candidate if this candidates species was chosen,
+                // otherwise select the allele from the other candidate
+                reactantGenome.add(candidateChoice == 0 ? this.getGenotype().get(i) : other.getGenotype().get(i));
+                // candidate choice is either 0 (this) or 1 (other)
+            }
+        }
 
         // Return the new genotype
         return new ImmutablePair<>(randomSpecies, reactantGenome);

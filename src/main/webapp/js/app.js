@@ -1,10 +1,23 @@
-var app = angular.module('compoundEvolver', ['fileReadBinding']);
+var app = angular.module('compoundEvolver', ['fileReadBinding', 'angularjs-dropdown-multiselect']);
 
 app.run(function ($rootScope) {
     // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
     $rootScope.generations = [];
     $rootScope.selectedGenerationNumber = null;
 });
+
+app.directive('multiselectDropdown', [function() {
+    return function(scope, element, attributes) {
+
+        element = $(element[0]); // Get the element as a jQuery element
+
+        // Below setup the dropdown:
+
+        element.selectpicker();
+
+        // Below maybe some additional setup
+    }
+}]);
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
     $scope.formModel = {
@@ -48,8 +61,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     $scope.response = {hasError: false};
 
-    $scope.example1model = [];
-    $scope.example1data = [ {id: 1, label: "David"}, {id: 2, label: "Jhon"}, {id: 3, label: "Danny"} ];
+    $scope.reactantsMappingMultiSelectSettings = { checkBoxes: true, displayProp: 'name'};
 
     var scoreDistributionChart = null;
     var speciesDistributionChart = null;
@@ -109,10 +121,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         $scope.reactionFiles.files.forEach(function (file, i) {
             let reactantFiles = [];
-            let orderInputVal = $("input#file-list-item-" + i).val();
-            if (orderInputVal.length !== 0) {
-                orderInputVal.split(",").forEach(function (value) {
-                    reactantFiles.push(parseInt(value));
+            if (file.reactants.length !== 0) {
+                file.reactants.forEach(function (value) {
+                    reactantFiles.push(value.id);
                 });
             }
             fileOrder.push(reactantFiles);
@@ -163,6 +174,14 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         addData(speciesDistributionChart, generation.number, Object.values(counts));
     }
+
+    $scope.getReactantNames = function(reactionFile) {
+        let names = [];
+        reactionFile.reactants.forEach( function (reactant) {
+            names.push(reactant.name);
+        });
+        return names.join(", ");
+    };
 
     $scope.getProgressUpdate = function () {
         jQuery.ajax({
