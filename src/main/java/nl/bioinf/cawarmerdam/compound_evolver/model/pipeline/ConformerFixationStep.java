@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.ibm.db2.jcc.am.hb.e;
+
 /**
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
@@ -110,7 +112,7 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
                         String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
             }
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
 
             // Throw pipeline exception
             throw new PipelineException("Fixing conformers with 'obfit' to reference failed.", e);

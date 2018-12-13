@@ -1,6 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.struc.DPoint3;
+import org.apache.poi.hssf.record.PrintGridlinesRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,48 +22,47 @@ public class Grid {
     }
 
     private int getCeil(double size, double resolution) {
-        return (int) Math.ceil(size/resolution);
+        return (int) Math.ceil(size / resolution);
     }
 
-    public void markSphere(DPoint3 sphereCoordinates, double radius) {
-        if (sphereInGrid(sphereCoordinates, radius))
-        {
+    public void markSphere(DPoint3 sphereCoordinates, double radius, boolean value) {
+        if (sphereInGrid(sphereCoordinates, radius)) {
             double x = sphereCoordinates.x;
             double y = sphereCoordinates.y;
             double z = sphereCoordinates.z;
 
             //mark all yz circles
-            for (double d = 0; d <= radius; d += resolution)
-            {
+            for (double d = 0; d <= radius; d += resolution) {
                 double chordRadius = chordRadius(radius, d);
 
-                markYZCircle(x + d, y, z, chordRadius);
-                if (d != 0)
-                    markYZCircle(x - d, y, z, chordRadius);
+                markYZCircle(x + d, y, z, chordRadius, value);
+                if (d != 0) {
+                    markYZCircle(x - d, y, z, chordRadius, value);
+                }
             }
         }
     }
 
-    private void markYZCircle(double x, double y, double z, double radius) {
-        for (double d = 0; d <= radius; d += resolution)
-        {
+    private void markYZCircle(double x, double y, double z, double radius, boolean value) {
+        for (double d = 0; d <= radius; d += resolution) {
             double chordRadius = chordRadius(radius, d);
-            markZChord(x, y + d, z, chordRadius);
-            if (d != 0)
-                markZChord(x, y - d, z, chordRadius);
+            markZChord(x, y + d, z, chordRadius, value);
+            if (d != 0) {
+                markZChord(x, y - d, z, chordRadius, value);
+            }
         }
     }
 
-    private void markZChord(double x, double y, double z, double radius) {
+    private void markZChord(double x, double y, double z, double radius, boolean value) {
         GridLocation start = pointToGrid(x, y, z - radius);
         GridLocation end = pointToGrid(x, y, z + radius);
         if (start == null || end == null)
             return;
-        this.setRange(start, end, true);
+        this.setRange(start, end, value);
     }
 
     private void setRange(GridLocation start, GridLocation end, boolean b) {
-        for (int i = start.getZ(); i < end.getZ(); i++) {
+        for (int i = start.getZ(); i <= end.getZ(); i++) {
             grid[start.getX()][start.getY()][i] = b;
         }
     }
@@ -87,20 +87,20 @@ public class Grid {
         return false;
     }
 
-    public DPoint3 gridToPoint(double x, double y, double z) {
-        x = transformCoordinateToRealValue(x, referenceCoordinates.x);
-        y = transformCoordinateToRealValue(y, referenceCoordinates.y);
-        z = transformCoordinateToRealValue(z, referenceCoordinates.z);
+    public DPoint3 gridToPoint(int x, int y, int z) {
+        double pointX = transformCoordinateToRealValue(x, referenceCoordinates.x);
+        double pointY = transformCoordinateToRealValue(y, referenceCoordinates.y);
+        double pointZ = transformCoordinateToRealValue(z, referenceCoordinates.z);
 
-        return new DPoint3(x, y, z);
+        return new DPoint3(pointX, pointY, pointZ);
     }
 
-    private double transformCoordinateToRealValue(double coord, double refCoord) {
-        return (coord * resolution + refCoord);
+    private double transformCoordinateToRealValue(int coord, double refCoord) {
+        return (coord * resolution) + refCoord;
     }
 
     private int transformCoordinateToGrid(double coord, double refCoord) {
-        return (int) Math.ceil((coord - refCoord) / resolution);
+        return (int) Math.round((coord - refCoord) / resolution);
     }
 
     private double chordRadius(double radius, double d) {
@@ -108,7 +108,6 @@ public class Grid {
             return 0;
         }
         return Math.sqrt(radius * radius - d * d);
-
     }
 
     private boolean sphereInGrid(DPoint3 sphereCoordinates, double radius) {
@@ -127,8 +126,7 @@ public class Grid {
 
     void grow(double amount) {
         int num = (int) Math.ceil(amount / resolution);
-        for (int i = 0; i < num; i++)
-        {
+        for (int i = 0; i < num; i++) {
             growByOne();
         }
     }
@@ -136,46 +134,66 @@ public class Grid {
     private void growByOne() {
 
         List<GridLocation> toAdd = new ArrayList<>();
-        for (GridLocation markedGridLocation: getMarkedGridLocations()) {
+        for (GridLocation markedGridLocation : getMarkedGridLocations()) {
             System.out.println("markedGridLocation = " + markedGridLocation);
             int x = markedGridLocation.getX();
             int y = markedGridLocation.getY();
             int z = markedGridLocation.getZ();
 
-            if (!grid[x + 1][y][z])
-            {
+            if (!grid[x + 1][y][z]) {
                 toAdd.add(new GridLocation(x + 1, y, z));
             }
-            if (!grid[x - 1][y][z])
-            {
+            if (!grid[x - 1][y][z]) {
                 toAdd.add(new GridLocation(x - 1, y, z));
             }
 
-            if (!grid[x][y + 1][z])
-            {
+            if (!grid[x][y + 1][z]) {
                 toAdd.add(new GridLocation(x, y + 1, z));
             }
-            if (!grid[x][y - 1][z])
-            {
+            if (!grid[x][y - 1][z]) {
                 toAdd.add(new GridLocation(x, y - 1, z));
             }
 
-            if (!grid[x][y][z + 1])
-            {
+            if (!grid[x][y][z + 1]) {
                 toAdd.add(new GridLocation(x, y, z + 1));
             }
-            if (!grid[x][y][z - 1])
-            {
+            if (!grid[x][y][z - 1]) {
                 toAdd.add(new GridLocation(x, y, z - 1));
             }
         }
-        this.markCollection(toAdd);
+        this.setCollection(toAdd, true);
     }
 
-    private void markCollection(List<GridLocation> toAdd) {
+    private boolean isExposed(int x, int y, int z) {
+        return !grid[x + 1][y][z] || !grid[x - 1][y][z] ||
+        !grid[x][y + 1][z] || !grid[x][y - 1][z] ||
+        !grid[x][y][z + 1] || !grid[x][y][z - 1];
+    }
+
+    void scrape(double defaultProbeSize) {
+        List<GridLocation> exposedPoints = new ArrayList<>();
+        for (GridLocation markedGridLocation : getMarkedGridLocations()) {
+            int x = markedGridLocation.getX();
+            int y = markedGridLocation.getY();
+            int z = markedGridLocation.getZ();
+
+            if (isExposed(x, y, z)) {
+                exposedPoints.add(markedGridLocation);
+            }
+        }
+
+        for (GridLocation exposedPoint : exposedPoints) {
+            markSphere(gridToPoint(exposedPoint.getX(), exposedPoint.getY(), exposedPoint.getZ()),
+                    defaultProbeSize,
+                    false);
+        }
+    }
+
+    private void setCollection(List<GridLocation> toAdd, boolean value) {
         for (GridLocation gridLocation : toAdd) {
-            if (!locationOutsideGrid(gridLocation.getX(), gridLocation.getY(), gridLocation.getZ()))
-            grid[gridLocation.getX()][gridLocation.getY()][gridLocation.getZ()] = true;
+            if (!locationOutsideGrid(gridLocation.getX(), gridLocation.getY(), gridLocation.getZ())) {
+                grid[gridLocation.getX()][gridLocation.getY()][gridLocation.getZ()] = value;
+            }
         }
     }
 

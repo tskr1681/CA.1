@@ -3,6 +3,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -24,24 +25,19 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     }
 
     @Override
-    public Void execute(Candidate candidate) throws PipelineException {
+    public Candidate execute(Candidate candidate) throws PipelineException {
         Path inputFile = candidate.getFixedConformersFile();
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
         mol3d(inputFile, candidate);
-        List<Double> conformerScores = getConformerScores(inputFile, ligandName, receptorName);
-        double score = 0.0;
-        if (conformerScores.size() > 0) {
-            score = Collections.min(conformerScores);
-            File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
-            Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
-            minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
-            Molecule bestConformer = getBestConformer(newMinimizedConformersFilePath, conformerScores.indexOf(score));
-            candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
-            exportConformer(bestConformer, inputFile.resolveSibling("best-conformer.sdf"));
-        }
-        candidate.setRawScore(score);
-        return null;
+        File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
+        Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
+        boolean b = minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
+        if (b) throw new PipelineException(String.format("Could not rename '%s' to '%s'",
+                minimizedConformersFile, newMinimizedConformersFilePath));
+        candidate.setConformerScores(getConformerScores(inputFile, ligandName, receptorName));
+        candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);
+        return candidate;
     }
 
     private List<Double> getConformerScores(Path inputFile, String ligandName, String receptorName) throws PipelineException {

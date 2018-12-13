@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.formats.MolExporter;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
@@ -76,8 +77,23 @@ public class EvolveServlet extends HttpServlet {
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
 
+        // Get species determination method
+        Population.SpeciesDeterminationMethod speciesDeterminationMethod = Population.SpeciesDeterminationMethod.
+                fromString(request.getParameter("speciesDeterminationMethod"));
+
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, generationSize);
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize);
+
+        try (MolExporter molExporter = new MolExporter("X:\\Internship\\out2.mrv", "mrv")) {
+            for (Candidate candidate : initialPopulation) {
+                molExporter.write(candidate.getPhenotype());
+            }
+        }
+
+        // Get interspecies crossover method
+        Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
+                fromString(request.getParameter("interspeciesCrossoverMethod"));
+        initialPopulation.setInterspeciesCrossoverMethod(interspeciesCrossoverMethod);
 
         // Get crossover rate
         double crossoverRate = getDoubleParameterFromRequest(request, "crossoverRate");
@@ -119,10 +135,10 @@ public class EvolveServlet extends HttpServlet {
         // Get selection method
         Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
                 request.getParameter("selectionMethod"));
+        initialPopulation.setSelectionMethod(selectionMethod);
 
         SessionEvolutionProgressConnector progressConnector = new SessionEvolutionProgressConnector();
 
-        initialPopulation.setSelectionMethod(selectionMethod);
         CompoundEvolver evolver = new CompoundEvolver(
                 initialPopulation, progressConnector);
 

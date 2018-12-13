@@ -91,10 +91,10 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="reactant-files" class="col-sm-3 float-sm-left col-form-label">Reactants files
+                            <label for="reactant-files" class="col-sm-3 col-form-label">Reactants files
                                 (.smiles,
                                 .smi)</label>
-                            <div class="col-sm-9 float-sm-left">
+                            <div class="col-sm-9">
                                 <div class="custom-file">
                                     <input type="file"
                                            class="custom-file-input"
@@ -113,14 +113,16 @@
                                     </label>
                                 </div>
                             </div>
-                            <small class="col-sm-9 float-sm-right form-text text-danger"
-                                   ng-show="!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                This field is required
-                            </small>
-                            <small class="col-sm-9 float-sm-right form-text text-danger"
-                                   ng-show="reactantFiles.wrongExtension">
-                                Only smiles files (.smiles, .smi) are accepted
-                            </small>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="!reactantFiles.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="reactantFiles.wrongExtension">
+                                    Only smiles files (.smiles, .smi) are accepted
+                                </small>
+                            </div>
                         </div>
                         <div class="form-group row" ng-repeat="reactionFile in reactionFiles.files track by $index">
                             <label class="col-sm-3 col-form-label">Reactants for {{reactionFile.name}}</label>
@@ -194,6 +196,41 @@
                                        ng-show="anchorFragmentFile.wrongExtension">
                                     Only an sdf file (.sdf) is accepted
                                 </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h5 class="card-header"><b>Multiple reactions</b></h5>
+                    <div id="multi-reaction-settings" class="card-body">
+                        <div class="form-group row">
+                            <label for="species-determination-method" class="col-sm-3 col-form-label">Reaction determination method
+                            </label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="species-determination-method"
+                                        ng-model="formModel.speciesDeterminationMethod"
+                                        name="speciesDeterminationMethod"
+                                        required="required">
+                                    <option value="Dynamic">By reactants (try reactions until success)</option>
+                                    <option value="Fixed">Fixed (reactions are assigned at random or in equal amounts)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="interspecies-crossover-method" class="col-sm-3 col-form-label">Interspecies crossover method
+                            </label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="interspecies-crossover-method"
+                                        ng-model="formModel.interspeciesCrossoverMethod"
+                                        name="interspeciesCrossoverMethod"
+                                        required="required">
+                                    <option value="None">No not perform crossover between different species</option>
+                                    <option value="Intersection">Perform crossover at genes used in both species</option>
+                                    <option value="Complete">Always perform crossover between different species</option>
+                                </select>
                             </div>
                         </div>
                     </div>

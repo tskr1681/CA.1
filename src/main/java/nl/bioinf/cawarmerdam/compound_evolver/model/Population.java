@@ -52,6 +52,7 @@ public class Population implements Iterable<Candidate> {
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
+            SpeciesDeterminationMethod speciesDeterminationMethod,
             int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
 
         this.random = new Random();
@@ -65,12 +66,19 @@ public class Population implements Iterable<Candidate> {
         this.randomImmigrantRate = 0.1;
         this.maxAnchorMinimizedRmsd = 1;
         this.tournamentSize = 2;
-        this.speciesDeterminationMethod = SpeciesDeterminationMethod.DYNAMIC;
+        this.speciesDeterminationMethod = speciesDeterminationMethod;
         this.interspeciesCrossoverMethod = InterspeciesCrossoverMethod.COMPLETE;
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.species = species;
         initializePopulation();
+    }
+
+    public Population(
+            List<List<Molecule>> reactantLists,
+            List<Species> species,
+            int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize);
     }
 
 
@@ -172,7 +180,7 @@ public class Population implements Iterable<Candidate> {
                         .randReact(this.reactantLists));
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
-            this.candidateList.addAll(new RandomCompoundReactor(this.species, individualsPerSpecies)
+            this.candidateList.addAll(new RandomCompoundReactor(this.species, this.populationSize)
                     .randReact(this.reactantLists));
         } else {
             // Throw exception when another determination method is selected.
@@ -547,6 +555,7 @@ public class Population implements Iterable<Candidate> {
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
             ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(i);
+            if (newGenome == null) return null;
             // Mutate the recombined genome
             List<Integer> reactantGenome = newGenome.right;
             mutate(reactantGenome);
@@ -755,7 +764,9 @@ public class Population implements Iterable<Candidate> {
         // Get the two parents
         Candidate firstParent = this.candidateList.get(firstParentIndex);
         Candidate otherParent = this.candidateList.get(otherParentIndex);
-        System.out.printf("%s (%s) * %s (%s)%n", firstParent.getGenotype(), firstParent.getSpecies(), otherParent.getGenotype(), otherParent.getSpecies());
+        System.out.printf("%s (%s) * %s (%s)%n",
+                firstParent.getGenotype(), firstParent.getSpecies(),
+                otherParent.getGenotype(), otherParent.getSpecies());
         // Perform crossover between the two
         return firstParent.crossover(otherParent, interspeciesCrossoverMethod);
     }
@@ -923,7 +934,7 @@ public class Population implements Iterable<Candidate> {
 
     public enum InterspeciesCrossoverMethod {
         NONE("None"),
-        AT_SPECIES_INTERSECTION("At species intersection"),
+        AT_SPECIES_INTERSECTION("Intersection"),
         COMPLETE("Complete");
 
         private final String text;

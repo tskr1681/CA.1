@@ -21,6 +21,8 @@ app.directive('multiselectDropdown', [function() {
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
     $scope.formModel = {
+        interspeciesCrossoverMethod: 'Complete',
+        speciesDeterminationMethod: 'Dynamic',
         generationSize: 16,
         numberOfGenerations: 20,
         selectionSize: 0.4,
@@ -42,6 +44,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5
     };
+
     $scope.reactionFiles = {
         wrongExtension: false,
         pristine: true,
@@ -68,6 +71,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var evolveStatus = null;
     var orderCount = 0;
     var species = [];
+
+    angular.element(document).ready(function () {
+
+    });
 
     /**
      * Sets the form to pristine: set grey colours and such.

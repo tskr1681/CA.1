@@ -4,6 +4,7 @@ import chemaxon.formats.MolImporter;
 import chemaxon.struc.DPoint3;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -28,21 +29,14 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
     }
 
     @Override
-    public Void execute(Candidate candidate) throws PipelineException {
+    public Candidate execute(Candidate candidate) throws PipelineException {
         Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
         Path outputPath = inputFile.resolveSibling("smina.sdf");
         ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath, candidate);
-        List<Double> conformerScores = getConformerScores(smina);
-        double score = 0.0;
-        if (conformerScores.size() > 0) {
-            score = Collections.min(conformerScores);
-            Molecule bestConformer = getBestConformer(outputPath, conformerScores.indexOf(score));
-            candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
-            exportConformer(bestConformer, inputFile.resolveSibling("best-conformer.sdf"));
-        }
-        candidate.setRawScore(score);
-        return null;
+        candidate.setConformerScores(getConformerScores(smina));
+        candidate.setMinimizationOutputFilePath(outputPath);
+        return candidate;
     }
 
     private List<Double> getConformerScores(ArrayList<String> smina) {
@@ -122,6 +116,8 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
 
             final Process p = builder.start();
 
+            p.waitFor();
+
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
 
@@ -139,7 +135,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
 //                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
 //            }
             return pdbqtFilePath;
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
 
             // Format exception message
             String exceptionMessage = String.format(

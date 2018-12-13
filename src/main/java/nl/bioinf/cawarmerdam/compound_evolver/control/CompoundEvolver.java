@@ -46,7 +46,7 @@ public class CompoundEvolver {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
         this.maxNumberOfGenerations = 25;
-        this.maximumAllowedDuration = 60000;
+        this.maximumAllowedDuration = 600000;
         this.forceField = ForceField.MAB;
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
@@ -398,7 +398,7 @@ public class CompoundEvolver {
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFile, Path anchor, int conformerCount) throws PipelineException {
+    public void setupPipeline(Path outputFileLocation, Path receptorFilePath, Path anchor, int conformerCount) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFilePath(outputFileLocation);
 
@@ -408,11 +408,15 @@ public class CompoundEvolver {
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
+        // Get step that handles scored candidates
+        ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
+                anchor,
+                receptorFilePath);
         // Get the step for energy minimization
-        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFile, anchor);
+        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
-        this.pipe = converterStep.pipe(energyMinimizationStep);
+        this.pipe = converterStep.pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
     }
 
     /**

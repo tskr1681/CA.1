@@ -57,6 +57,8 @@ public class Candidate implements Comparable<Candidate> {
     private double ligandEfficiency;
     private Species species;
     private Random random = new Random();
+    private List<Double> conformerScores;
+    private Path minimizationOutputFilePath;
 
     public Candidate(List<Integer> genotype) {
         this.genotype = genotype;
@@ -499,5 +501,22 @@ public class Candidate implements Comparable<Candidate> {
 
     public Species getSpecies() {
         return species;
+    }
+
+    public void setConformerScores(List<Double> conformerScores) {
+
+        this.conformerScores = conformerScores;
+    }
+
+    public List<Double> getConformerScores() {
+        return this.conformerScores;
+    }
+
+    public void setMinimizationOutputFilePath(Path minimizationOutputFilePath) {
+        this.minimizationOutputFilePath = minimizationOutputFilePath;
+    }
+
+    public Path getMinimizationOutputFilePath() {
+        return minimizationOutputFilePath;
     }
 }
