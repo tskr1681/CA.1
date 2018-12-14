@@ -25,6 +25,8 @@ public class GAParameters implements Serializable {
     private CompoundEvolver.ForceField forceField;
     private Population.MutationMethod mutationMethod;
     private Population.SelectionMethod selectionMethod;
+    private Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod;
+    private Population.SpeciesDeterminationMethod speciesDeterminationMethod;
 
     public int getGenerationSize() {
         return generationSize;
@@ -182,5 +184,21 @@ public class GAParameters implements Serializable {
 
     public void setMaxAnchorMinimizedRmsd(Double maxAnchorMinimizedRmsd) {
         this.maxAnchorMinimizedRmsd = maxAnchorMinimizedRmsd;
+    }
+
+    public Population.InterspeciesCrossoverMethod getInterspeciesCrossoverMethod() {
+        return interspeciesCrossoverMethod;
+    }
+
+    public void setInterspeciesCrossoverMethod(Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod) {
+        this.interspeciesCrossoverMethod = interspeciesCrossoverMethod;
+    }
+
+    public Population.SpeciesDeterminationMethod getSpeciesDeterminationMethod() {
+        return speciesDeterminationMethod;
+    }
+
+    public void setSpeciesDeterminationMethod(Population.SpeciesDeterminationMethod speciesDeterminationMethod) {
+        this.speciesDeterminationMethod = speciesDeterminationMethod;
     }
 }

@@ -32,8 +32,8 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
         mol3d(inputFile, candidate);
         File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
         Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
-        boolean b = minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
-        if (b) throw new PipelineException(String.format("Could not rename '%s' to '%s'",
+        boolean renamed = minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
+        if (!renamed) throw new PipelineException(String.format("Could not rename '%s' to '%s'",
                 minimizedConformersFile, newMinimizedConformersFilePath));
         candidate.setConformerScores(getConformerScores(inputFile, ligandName, receptorName));
         candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);

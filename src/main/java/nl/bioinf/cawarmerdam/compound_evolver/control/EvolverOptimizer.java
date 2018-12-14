@@ -21,15 +21,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class EvolverOptimizer {
-    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists) {
+    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int runDuration) {
         // Get range
         List<GAParameters> gaParameterVectors = new ArrayList<>();
 
-        GAParameters baseParameters = getBaseParameters();
+        GAParameters baseParameters = getBaseParameters(runDuration);
         GeneratePermutations(parameterLists, gaParameterVectors, 0, baseParameters);
         List<GAParameters> filteredGAParameterVectors = gaParameterVectors.stream()
                 .filter(vector -> vector.getCrossoverRate() + vector.getRandomImmigrantRate() <= 1)
@@ -40,8 +41,9 @@ public class EvolverOptimizer {
         System.out.printf("Sampling %d parameter vectors%n%n", filteredGAParameterVectors.size());
         for (int i = 0; i < filteredGAParameterVectors.size(); i++) {
             GAParameters parameterVector = filteredGAParameterVectors.get(i);
+            Path runPath = null;
             try {
-                Path runPath = makeRunDirectory(uploadPath, i);
+                runPath = makeRunDirectory(uploadPath, i);
                 writeGAParameters(i, parameterVector, runPath);
                 CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
                 List<List<Double>> scores = run.getFitness();
@@ -73,35 +75,6 @@ public class EvolverOptimizer {
         }
     }
 
-    private Path makeRunDirectory(Path uploadPath, int i) throws IOException {
-        Path runPath = uploadPath.resolve("run_" + i);
-        Files.createDirectories(runPath.toAbsolutePath());
-        return runPath;
-    }
-
-    private void writeGAParameters(int i, GAParameters parameterVector, Path runPath) throws IOException {
-        Path paramsFilePath = runPath.resolve(String.format("%d-params.json", i));
-        if (!Files.exists(paramsFilePath, LinkOption.NOFOLLOW_LINKS))
-            Files.createFile(paramsFilePath);
-        //Object to JSON in file
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.writeValue(paramsFilePath.toFile(), parameterVector);
-    }
-
-    private GAParameters getBaseParameters() {
-        GAParameters gaParameters = new GAParameters();
-        gaParameters.setForceField(CompoundEvolver.ForceField.SMINA);
-        gaParameters.setTerminationCondition(CompoundEvolver.TerminationCondition.DURATION);
-        gaParameters.setFitnessMeasure(CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY);
-        gaParameters.setSelectionMethod(Population.SelectionMethod.TOURNAMENT_SELECTION);
-        gaParameters.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
-        gaParameters.setMaxGenerations(Integer.MAX_VALUE);
-        gaParameters.setMaxAnchorMinimizedRmsd(2.0);
-        gaParameters.setMaximumAllowedDuration(60000*5);
-        return gaParameters;
-    }
-
     /**
      * Main for optimization using the command line interface
      *
@@ -111,17 +84,18 @@ public class EvolverOptimizer {
         // Load reactor from argument
         Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
         // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 4);
+        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 5);
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
         // Load receptor molecule path
-        Path receptorPath = Paths.get(args[args.length - 4]);
+        Path receptorPath = Paths.get(args[args.length - 5]);
         // Load anchor molecule path
-        Path anchorPath = Paths.get(args[args.length - 3]);
+        Path anchorPath = Paths.get(args[args.length - 4]);
         // Construct the initial population
-        Path uploadPath = Paths.get(args[args.length - 2]);
-        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 1]);
+        Path uploadPath = Paths.get(args[args.length - 3]);
+        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 2]);
+        int runDuration = Integer.parseInt(args[args.length - 1]);
         // Construct the initial population
-        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists);
+        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, runDuration);
     }
 
     private static List<Pair<String, List<Object>>> parseParameterLists(String arg) throws java.io.IOException {
@@ -141,6 +115,37 @@ public class EvolverOptimizer {
         return parameterLists;
     }
 
+    private Path makeRunDirectory(Path uploadPath, int i) throws IOException {
+        Path runPath = uploadPath.resolve("run_" + i);
+        Files.createDirectories(runPath.toAbsolutePath());
+        return runPath;
+    }
+
+    private void writeGAParameters(int i, GAParameters parameterVector, Path runPath) throws IOException {
+        Path paramsFilePath = runPath.resolve(String.format("%d-params.json", i));
+        if (!Files.exists(paramsFilePath, LinkOption.NOFOLLOW_LINKS))
+            Files.createFile(paramsFilePath);
+        //Object to JSON in file
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.writeValue(paramsFilePath.toFile(), parameterVector);
+    }
+
+    private GAParameters getBaseParameters(int runDuration) {
+        GAParameters gaParameters = new GAParameters();
+        gaParameters.setForceField(CompoundEvolver.ForceField.SMINA);
+        gaParameters.setTerminationCondition(CompoundEvolver.TerminationCondition.DURATION);
+        gaParameters.setFitnessMeasure(CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY);
+        gaParameters.setSelectionMethod(Population.SelectionMethod.TOURNAMENT_SELECTION);
+        gaParameters.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
+        gaParameters.setMaxGenerations(Integer.MAX_VALUE);
+        gaParameters.setSpeciesDeterminationMethod(Population.SpeciesDeterminationMethod.FIXED);
+        gaParameters.setInterspeciesCrossoverMethod(Population.InterspeciesCrossoverMethod.NONE);
+        gaParameters.setMaxAnchorMinimizedRmsd(2.0);
+        gaParameters.setMaximumAllowedDuration(1000 * runDuration);
+        return gaParameters;
+    }
+
     private void GeneratePermutations(List<Pair<String, List<Object>>> ParameterLists, List<GAParameters> parameterVectors, int depth, GAParameters current) {
         if (depth == ParameterLists.size()) {
             parameterVectors.add(current);
@@ -156,7 +161,12 @@ public class EvolverOptimizer {
 
     private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
-        Population population = new Population(reactantLists, species, parameters.getGenerationSize());
+        Population population = new Population(
+                reactantLists,
+                species,
+                parameters.getSpeciesDeterminationMethod(),
+                parameters.getGenerationSize());
+
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());
         population.setSelectionMethod(parameters.getSelectionMethod());
@@ -166,9 +176,11 @@ public class EvolverOptimizer {
         population.setRandomImmigrantRate(parameters.getRandomImmigrantRate());
         population.setElitismRate(parameters.getElitistRate());
         population.setMaxAnchorMinimizedRmsd(parameters.getMaxAnchorMinimizedRmsd());
+        population.setInterspeciesCrossoverMethod(parameters.getInterspeciesCrossoverMethod());
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
         compoundEvolver.setDummyFitness(false);
+        compoundEvolver.setCleanupFiles(true);
         compoundEvolver.setForceField(parameters.getForceField());
         compoundEvolver.setFitnessMeasure(parameters.getFitnessMeasure());
         compoundEvolver.setTerminationCondition(parameters.getTerminationCondition());

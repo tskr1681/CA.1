@@ -41,6 +41,7 @@ public class CompoundEvolver {
     private int maxNumberOfGenerations;
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
+    private boolean cleanupFiles;
 
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
@@ -48,6 +49,7 @@ public class CompoundEvolver {
         this.maxNumberOfGenerations = 25;
         this.maximumAllowedDuration = 600000;
         this.forceField = ForceField.MAB;
+        this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
     }
 
@@ -292,7 +294,7 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             for (Candidate candidate : this.population) {
                 // Setup callable
-                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, pipelineOutputFilePath, candidate);
+                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, pipelineOutputFilePath, candidate, cleanupFiles);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -473,6 +475,10 @@ public class CompoundEvolver {
             throw new RuntimeException(String.format("Environment variable '%s' was null", variableName));
         }
         return sminaExecutable;
+    }
+
+    public void setCleanupFiles(boolean cleanupFiles) {
+        this.cleanupFiles = cleanupFiles;
     }
 
     public enum ForceField {

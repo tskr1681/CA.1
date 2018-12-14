@@ -551,7 +551,7 @@ public class Population implements Iterable<Candidate> {
      * @return the produced
      */
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
-        System.out.println("offspringChoice = " + offspringChoice);
+//        System.out.println("offspringChoice = " + offspringChoice);
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
             ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(i);
@@ -764,9 +764,9 @@ public class Population implements Iterable<Candidate> {
         // Get the two parents
         Candidate firstParent = this.candidateList.get(firstParentIndex);
         Candidate otherParent = this.candidateList.get(otherParentIndex);
-        System.out.printf("%s (%s) * %s (%s)%n",
-                firstParent.getGenotype(), firstParent.getSpecies(),
-                otherParent.getGenotype(), otherParent.getSpecies());
+//        System.out.printf("%s (%s) * %s (%s)%n",
+//                firstParent.getGenotype(), firstParent.getSpecies(),
+//                otherParent.getGenotype(), otherParent.getSpecies());
         // Perform crossover between the two
         return firstParent.crossover(otherParent, interspeciesCrossoverMethod);
     }

@@ -3,9 +3,14 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 import chemaxon.marvin.plugin.PluginException;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 import java.util.logging.*;
 
@@ -13,11 +18,13 @@ public class CallablePipelineContainer implements Callable<Void> {
     private PipelineStep<Candidate, Void> pipeline;
     private Path pipelineOutputFilePath;
     private Candidate candidate;
+    private boolean cleanupFiles;
 
-    public CallablePipelineContainer(PipelineStep<Candidate, Void> pipeline, Path pipelineOutputFilePath, Candidate candidate) {
+    public CallablePipelineContainer(PipelineStep<Candidate, Void> pipeline, Path pipelineOutputFilePath, Candidate candidate, boolean cleanupFiles) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
         this.candidate = candidate;
+        this.cleanupFiles = cleanupFiles;
     }
 
     @Override
@@ -25,8 +32,9 @@ public class CallablePipelineContainer implements Callable<Void> {
 
         Handler fileHandler = null;
         Formatter simpleFormatter = null;
+        Path candidateDirectory = null;
         try {
-            Path candidateDirectory = createCandidateDirectory();
+            candidateDirectory = createCandidateDirectory();
             // Creating FileHandler
             fileHandler = new FileHandler(candidateDirectory.resolve("pipeline.log").toString());
             // Creating SimpleFormatter
@@ -44,6 +52,11 @@ public class CallablePipelineContainer implements Callable<Void> {
         } catch (PipelineException | IOException e) {
             candidate.getPipelineLogger().log(Level.SEVERE, e.getMessage(), e);
             throw e;
+        } finally {
+            if (fileHandler != null) {
+                fileHandler.close();
+            }
+            if (cleanupFiles) this.removeCandidatePipelineDirectory(candidateDirectory);
         }
         candidate.calculateLigandEfficiency();
         candidate.calculateLigandLipophilicityEfficiency();
@@ -67,5 +80,23 @@ public class CallablePipelineContainer implements Callable<Void> {
             }
         }
         return directory;
+    }
+
+    private void removeCandidatePipelineDirectory(Path candidateDirectory) throws IOException {
+        final File[] files = candidateDirectory.toFile().listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept( final File dir,
+                                   final String name ) {
+                boolean isMatch = !name.matches("^pipeline\\.log$");
+                return isMatch;
+            }
+        } );
+        if (files != null) {
+            for ( final File file : files ) {
+                if ( !file.delete() ) {
+                    System.err.println( "Can't remove " + file.getAbsolutePath() );
+                }
+            }
+        }
     }
 }

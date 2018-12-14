@@ -515,8 +515,8 @@
                                        max="100"
                                        step="1"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.conformerCount.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.conformerCount.$valid && formModel.terminationCondition != 'fixed' && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.conformerCount.$valid && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.conformerCount.$valid && (!compoundEvolverForm.conformerCount.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"

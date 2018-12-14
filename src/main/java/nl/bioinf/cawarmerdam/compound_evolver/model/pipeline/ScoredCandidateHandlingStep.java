@@ -49,12 +49,13 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
                     nonClashingConformerScores.add(conformerScores.get(i));
                     nonClashingConformers.add(conformer);
                 }
-                System.out.println("CANDIDATE " + candidate.getIdentifier() + " Conformer " + i + " isInShape = " + isInShape);
             }
-            score = Collections.min(nonClashingConformerScores);
-            Molecule bestConformer = nonClashingConformers.get(nonClashingConformerScores.indexOf(score));
-            candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
-            exportConformer(bestConformer, outputFilePath.resolveSibling("best-conformer.sdf"));
+            if (nonClashingConformerScores.size() > 0) {
+                score = Collections.min(nonClashingConformerScores);
+                Molecule bestConformer = nonClashingConformers.get(nonClashingConformerScores.indexOf(score));
+                candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
+                exportConformer(bestConformer, outputFilePath.resolveSibling("best-conformer.sdf"));
+            }
         }
         candidate.setRawScore(score);
         return null;
