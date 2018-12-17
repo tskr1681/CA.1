@@ -496,7 +496,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="card">
                     <h5 class="card-header"><b>Scoring</b></h5>
                     <div id="docking-settings" class="card-body">
@@ -524,7 +523,7 @@
                                     This field is required
                                 </small>
                                 <small class="form-text text-danger"
-                                       ng-show="(compoundEvolverForm.conformerCount.$error.number || compoundEvolverForm.conformerCount.$error.min || compoundEvolverForm.conformerCount.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                       ng-show="(compoundEvolverForm.conformerCount.$error.number || compoundEvolverForm.conformerCount.$error.step || compoundEvolverForm.conformerCount.$error.min || compoundEvolverForm.conformerCount.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     An integer value (whole number) between 1 and 100 is required
                                 </small>
                             </div>
@@ -557,7 +556,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="card">
                     <h5 class="card-header"><b>Filters</b></h5>
                     <div id="filter-settings" class="card-body">
@@ -584,6 +582,34 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.maxAnchorMinimizedRmsd.$error.number || compoundEvolverForm.maxAnchorMinimizedRmsd.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A positive numeric value is required
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="exclusion-shape-tolerance" class="col-sm-3 col-form-label">
+                                Receptor exclusion shape tolerance
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.exclusionShapeTolerance"
+                                       id="exclusion-shape-tolerance"
+                                       name="exclusionShapeTolerance"
+                                       required="required"
+                                       min="-2"
+                                       max="2"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.exclusionShapeTolerance.$valid && (!compoundEvolverForm.exclusionShapeTolerance.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.exclusionShapeTolerance.$valid && (!compoundEvolverForm.exclusionShapeTolerance.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.exclusionShapeTolerance.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.exclusionShapeTolerance.$error.number || compoundEvolverForm.exclusionShapeTolerance.$error.min || compoundEvolverForm.exclusionShapeTolerance.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A value below -2 or above 2 is forbidden
                                 </small>
                             </div>
                         </div>

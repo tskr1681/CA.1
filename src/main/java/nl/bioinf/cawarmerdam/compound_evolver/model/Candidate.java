@@ -34,10 +34,10 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate> {
 
-    private Logger pipelineLogger;
+    private static AtomicLong currentValue = new AtomicLong(0L);
     private final long identifier;
     private final int genomeSize;
-    private static AtomicLong currentValue = new AtomicLong(0L);
+    private Logger pipelineLogger;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
     private Path conformersFile;
     private Path fixedConformersFile;
@@ -59,6 +59,7 @@ public class Candidate implements Comparable<Candidate> {
     private Random random = new Random();
     private List<Double> conformerScores;
     private Path minimizationOutputFilePath;
+    private double kcalToJouleConstant;
 
     public Candidate(List<Integer> genotype) {
         this.genotype = genotype;
@@ -73,11 +74,34 @@ public class Candidate implements Comparable<Candidate> {
 
     }
 
+    /**
+     * Method responsible for completing this constructed candidate. It uses this candidates construction to
+     * determine if the candidate is valid. The reactants that where chosen might not be viable, in which case
+     * the rejection message field will be assigned, and the method will return false.
+     * <p>
+     * This method will use the species that this candidate was initiated with. Will run a runtime exception if
+     * the species field is null.
+     *
+     * @param reactantLists The entire pool of reactants for every reactant in the current experiment.
+     * @return true if this candidate was viable and valid, false if not.
+     */
     boolean finish(List<List<Molecule>> reactantLists) {
         if (this.species == null) throw new RuntimeException("Species was not specified");
         return finish(reactantLists, this.species);
     }
 
+    /**
+     * Method responsible for completing this constructed candidate. It uses this candidates construction to
+     * determine if the candidate is valid. The reactants that where chosen might not be viable, in which case
+     * the rejection message field will be assigned, and the method will return false.
+     * <p>
+     * Multiple species should be supplied in this method. The species are checked one by one until a working
+     * scheme was encountered.
+     *
+     * @param reactantLists The entire pool of reactants for every reactant in the current experiment.
+     * @param species       The list of species to try.
+     * @return true if this candidate was viable and valid, false if not.
+     */
     boolean finish(List<List<Molecule>> reactantLists, List<Species> species) {
         for (Species singleSpecies : species) {
             boolean isFinished = finish(reactantLists, singleSpecies);
@@ -89,6 +113,15 @@ public class Candidate implements Comparable<Candidate> {
         return false;
     }
 
+    /**
+     * Method responsible for completing this constructed candidate. It uses this candidates construction to
+     * determine if the candidate is valid. The reactants that where chosen might not be viable, in which case
+     * the rejection message field will be assigned, and the method will return false.
+     *
+     * @param reactantLists The entire pool of reactants for every reactant in the current experiment.
+     * @param species       The species to use for this candidate.
+     * @return true if this candidate was viable and valid, false if not.
+     */
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
@@ -120,26 +153,56 @@ public class Candidate implements Comparable<Candidate> {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Getter for the pipeline logger that can be written to.
+     *
+     * @return a logger instance.
+     */
     public Logger getPipelineLogger() {
         return pipelineLogger;
     }
 
+    /**
+     * Getter for the identifier field.
+     *
+     * @return the identifier.
+     */
     public long getIdentifier() {
         return identifier;
     }
 
+    /**
+     * Setter for the maximum hydrogen bond donors that are allowed for this candidate.
+     *
+     * @param maxHydrogenBondDonors The maximum amount of hydrogen bond donors.
+     */
     void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {
         this.maxHydrogenBondDonors = maxHydrogenBondDonors;
     }
 
+    /**
+     * Setter for the maximum hydrogen bond acceptors that are allowed for this candidate.
+     *
+     * @param maxHydrogenBondAcceptors The maximum amount of hydrogen bond acceptors.
+     */
     void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
         this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
     }
 
+    /**
+     * Setter for the maximum molecular mass that are allowed for this candidate.
+     *
+     * @param maxMolecularMass The maximum molecular mass.
+     */
     void setMaxMolecularMass(Double maxMolecularMass) {
         this.maxMolecularMass = maxMolecularMass;
     }
 
+    /**
+     * Setter for the maximum partition coefficient that is allowed for this candidate.
+     *
+     * @param maxPartitionCoefficient The maximum partition coefficient.
+     */
     void setMaxPartitionCoefficient(Double maxPartitionCoefficient) {
         this.maxPartitionCoefficient = maxPartitionCoefficient;
     }
@@ -153,6 +216,25 @@ public class Candidate implements Comparable<Candidate> {
         return rawScore;
     }
 
+    /**
+     * Setter for the rawScore attribute
+     *
+     * @param rawScore the rawScore of this candidate
+     */
+    public void setRawScore(double rawScore) {
+        this.rawScore = rawScore;
+    }
+
+    /**
+     * Getter for the fitness.
+     * <p>
+     * This value depends on the fitness measure that is set:
+     * Negative of the raw score in case the fitness measure 'affinity',
+     * Negative of the ligand efficiency in case the fitness measure 'ligand efficiency',
+     * Negative of the ligand lipophilicity efficiency in case the fitness measure 'ligand lipophilicity efficiency'
+     *
+     * @return the fitness according to the fitness measure that is set.
+     */
     public Double getFitness() {
         Double fitness;
         if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.AFFINITY) {
@@ -166,7 +248,13 @@ public class Candidate implements Comparable<Candidate> {
         }
     }
 
-    public void setNormFitness(double minFitness, double maxFitness) {
+    /**
+     * Method that calculates the normalized fitness given a minimum fitness and maximum fitness
+     *
+     * @param minFitness The minimum fitness in the population.
+     * @param maxFitness The maximum fitness in the population.
+     */
+    public void calcNormFitness(double minFitness, double maxFitness) {
         this.normFitness = (getFitness() - minFitness) / (maxFitness - minFitness);
     }
 
@@ -178,15 +266,6 @@ public class Candidate implements Comparable<Candidate> {
      */
     public Double getNormFitness() {
         return this.normFitness;
-    }
-
-    /**
-     * Setter for the rawScore attribute
-     *
-     * @param rawScore the rawScore of this candidate
-     */
-    public void setRawScore(double rawScore) {
-        this.rawScore = rawScore;
     }
 
     /**
@@ -221,7 +300,8 @@ public class Candidate implements Comparable<Candidate> {
      * Method responsible for calculating and setting the ligand lipophilicity efficiency.
      */
     public void calculateLigandLipophilicityEfficiency() {
-        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()) - logPPlugin.getlogPTrue();
+        kcalToJouleConstant = 4.186798188;
+        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()*kcalToJouleConstant) - logPPlugin.getlogPTrue();
     }
 
     /**
@@ -269,7 +349,7 @@ public class Candidate implements Comparable<Candidate> {
      * for each gene either the allele from this parent is chosen or
      * the allele from the other parent is chosen.
      *
-     * @param other parent to perform crossover with
+     * @param other                       parent to perform crossover with
      * @param interspeciesCrossoverMethod Specifies how to use crossover when different species are encountered.
      * @return the recombined genome.
      */
@@ -333,31 +413,12 @@ public class Candidate implements Comparable<Candidate> {
         return arr;
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Candidate candidate = (Candidate) o;
-        return Objects.equals(getGenotype(), candidate.getGenotype());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getGenotype());
-    }
-
-    @Override
-    public int compareTo(Candidate o) {
-        return Double.compare(this.getNormFitness(), o.getNormFitness());
-    }
-
-    public void setEnvironment(double pHLower, double pHUpper, double pHStep) {
-        hydrogenBondPlugin.setpHLower(pHLower);
-        hydrogenBondPlugin.setpHUpper(pHUpper);
-        hydrogenBondPlugin.setpHStep(pHStep);
-    }
-
+    /**
+     * Method checking if this candidate is valid concerning the set maximum amount of
+     * hydrogen bond donors and acceptors, the maximum molecular mass and the maximum partition coefficient.
+     *
+     * @return true if valid, false if not.
+     */
     private boolean isValid() {
         calculateLipinskiValues();
         if (maxHydrogenBondDonors != null) {
@@ -375,6 +436,9 @@ public class Candidate implements Comparable<Candidate> {
         return true;
     }
 
+    /**
+     * Method that calculates hydrogen bond values.
+     */
     private void calculateLipinskiValues() {
         if (maxHydrogenBondAcceptors != null || maxHydrogenBondDonors != null) {
             try {
@@ -389,6 +453,9 @@ public class Candidate implements Comparable<Candidate> {
         this.runLogPPluginIfNotRan();
     }
 
+    /**
+     * Method that calculates the partition coefficient.
+     */
     private void runLogPPluginIfNotRan() {
         try {
             this.logPPlugin.setMolecule(this.phenotype);
@@ -398,6 +465,13 @@ public class Candidate implements Comparable<Candidate> {
         }
     }
 
+    /**
+     * Checks if the partition coefficient is valid concerning the set maximum.
+     * <p>
+     * Sets the rejection message of this candidate if this is not valid.
+     *
+     * @return true if the partition coefficient is valid, false if not.
+     */
     private boolean isPartitionCoefficientValid() {
         double logPTrue = this.logPPlugin.getlogPTrue();
         boolean valid = logPTrue <= maxPartitionCoefficient;
@@ -408,6 +482,13 @@ public class Candidate implements Comparable<Candidate> {
         return valid;
     }
 
+    /**
+     * Checks if the molecular mass is valid concerning the set maximum.
+     * <p>
+     * Sets the rejection message of this candidate if this is not valid.
+     *
+     * @return true if the molecular mass is valid, false if not.
+     */
     private boolean isMolecularMassValid() {
         double mass = this.phenotype.getExactMass();
         boolean valid = mass <= maxMolecularMass;
@@ -418,6 +499,13 @@ public class Candidate implements Comparable<Candidate> {
         return valid;
     }
 
+    /**
+     * Checks if the hydrogen bond acceptor count is valid concerning the set maximum.
+     * <p>
+     * Sets the rejection message of this candidate if this is not valid.
+     *
+     * @return true if the hydrogen bond acceptor count is valid, false if not.
+     */
     private boolean isHydrogenBondAcceptorCountValid() {
         int acceptorAtomCount = hydrogenBondPlugin.getAcceptorAtomCount();
         boolean valid = acceptorAtomCount <= maxHydrogenBondAcceptors;
@@ -428,6 +516,13 @@ public class Candidate implements Comparable<Candidate> {
         return valid;
     }
 
+    /**
+     * Checks if the hydrogen bond donor count is valid concerning the set maximum.
+     * <p>
+     * Sets the rejection message of this candidate if this is not valid.
+     *
+     * @return true if the hydrogen bond donor count is valid, false if not.
+     */
     private boolean isHydrogenBondDonorCountValid() {
         int donorAtomCount = hydrogenBondPlugin.getDonorAtomCount();
         boolean valid = donorAtomCount <= maxHydrogenBondDonors;
@@ -457,7 +552,145 @@ public class Candidate implements Comparable<Candidate> {
         return allAtomCount - hydrogenAtomCount;
     }
 
+    /**
+     * Setter for the fitness measure.
+     *
+     * @param fitnessMeasure The measure to determine fitness with.
+     */
+    public void setFitnessMeasure(CompoundEvolver.FitnessMeasure fitnessMeasure) {
+        this.fitnessMeasure = fitnessMeasure;
+    }
 
+    /**
+     * Getter for the message that describes why this candidate was not viable or valid.
+     *
+     * @return the rejection message.
+     */
+    public String getRejectionMessage() {
+        return rejectionMessage;
+    }
+
+    /**
+     * Getter for the conformers file path.
+     *
+     * @return the path to the conformers file.
+     */
+    public Path getConformersFile() {
+        return conformersFile;
+    }
+
+    /**
+     * Setter for the conformers file path.
+     *
+     * @param conformersFile The path to the conformers file.
+     */
+    public void setConformersFile(Path conformersFile) {
+        this.conformersFile = conformersFile;
+    }
+
+    /**
+     * Getter for the fixed conformers file path.
+     *
+     * @return the path to the fixed conformers file.
+     */
+    public Path getFixedConformersFile() {
+        return fixedConformersFile;
+    }
+
+    /**
+     * Setter for the conformers file path.
+     *
+     * @param fixedConformersFile The path to the conformers file.
+     */
+    public void setFixedConformersFile(Path fixedConformersFile) {
+        this.fixedConformersFile = fixedConformersFile;
+    }
+
+    /**
+     * Getter for the root mean square deviation between the anchor and the corresponding maximum common substructure
+     * in this candidate.
+     *
+     * @return the root mean square deviation between the anchor and the corresponding maximum common substructure
+     * in this candidate.
+     */
+    public double getCommonSubstructureToAnchorRmsd() {
+        return CommonSubstructureToAnchorRmsd;
+    }
+
+    /**
+     * Setter for the root mean square deviation between the anchor and the corresponding maximum common substructure
+     * in this candidate.
+     *
+     * @param commonSubstructureToAnchorRmsd The root mean square deviation between the anchor and the corresponding
+     *                                       maximum common substructure in this candidate.
+     */
+    public void setCommonSubstructureToAnchorRmsd(double commonSubstructureToAnchorRmsd) {
+        CommonSubstructureToAnchorRmsd = commonSubstructureToAnchorRmsd;
+    }
+
+    /**
+     * Getter for the species this candidate currently belongs to.
+     *
+     * @return the species this candidate currently belongs to.
+     */
+    public Species getSpecies() {
+        return species;
+    }
+
+    /**
+     * Getter for the conformer scores for this candidate.
+     *
+     * @return the scores of every conformer in a list.
+     */
+    public List<Double> getConformerScores() {
+        return this.conformerScores;
+    }
+
+    /**
+     * Setter for the conformer scores for this candidate.
+     *
+     * @param conformerScores the scores of every conformer in a list.
+     */
+    public void setConformerScores(List<Double> conformerScores) {
+
+        this.conformerScores = conformerScores;
+    }
+
+    /**
+     * Getter for the minimization output file path.
+     *
+     * @return the minimization output file path.
+     */
+    public Path getMinimizationOutputFilePath() {
+        return minimizationOutputFilePath;
+    }
+
+    /**
+     * Setter for the minimization output file path.
+     *
+     * @param minimizationOutputFilePath The minimization output file path.
+     */
+    public void setMinimizationOutputFilePath(Path minimizationOutputFilePath) {
+        this.minimizationOutputFilePath = minimizationOutputFilePath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Candidate candidate = (Candidate) o;
+        return Objects.equals(getGenotype(), candidate.getGenotype());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGenotype());
+    }
+
+    @Override
+    public int compareTo(Candidate o) {
+        return Double.compare(this.getNormFitness(), o.getNormFitness());
+    }
 
     @Override
     public String toString() {
@@ -465,58 +698,5 @@ public class Candidate implements Comparable<Candidate> {
                 "genotype=" + genotype +
                 ", rawScore=" + rawScore +
                 '}';
-    }
-
-    public void setFitnessMeasure(CompoundEvolver.FitnessMeasure fitnessMeasure) {
-        this.fitnessMeasure = fitnessMeasure;
-    }
-
-    public String getRejectionMessage() {
-        return rejectionMessage;
-    }
-
-    public Path getConformersFile() {
-        return conformersFile;
-    }
-
-    public void setConformersFile(Path conformersFile) {
-        this.conformersFile = conformersFile;
-    }
-
-    public Path getFixedConformersFile() {
-        return fixedConformersFile;
-    }
-
-    public void setFixedConformersFile(Path fixedConformersFile) {
-        this.fixedConformersFile = fixedConformersFile;
-    }
-
-    public double getCommonSubstructureToAnchorRmsd() {
-        return CommonSubstructureToAnchorRmsd;
-    }
-
-    public void setCommonSubstructureToAnchorRmsd(double commonSubstructureToAnchorRmsd) {
-        CommonSubstructureToAnchorRmsd = commonSubstructureToAnchorRmsd;
-    }
-
-    public Species getSpecies() {
-        return species;
-    }
-
-    public void setConformerScores(List<Double> conformerScores) {
-
-        this.conformerScores = conformerScores;
-    }
-
-    public List<Double> getConformerScores() {
-        return this.conformerScores;
-    }
-
-    public void setMinimizationOutputFilePath(Path minimizationOutputFilePath) {
-        this.minimizationOutputFilePath = minimizationOutputFilePath;
-    }
-
-    public Path getMinimizationOutputFilePath() {
-        return minimizationOutputFilePath;
     }
 }

@@ -23,11 +23,11 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
     private Path anchorFilePath;
     private ExclusionShape exclusionShape;
 
-    public ScoredCandidateHandlingStep(Path anchorFilePath, Path receptorFilePath) throws PipelineException {
+    public ScoredCandidateHandlingStep(Path anchorFilePath, Path receptorFilePath, double exclusionShapeTolerance) throws PipelineException {
         this.anchorFilePath = anchorFilePath;
         try {
             Molecule receptor = new MolImporter(String.valueOf(receptorFilePath)).read();
-            this.exclusionShape = new ExclusionShape(receptor);
+            this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
         } catch (IOException e) {
             throw new PipelineException(
                     String.format("Could not import receptor molecule %s", receptorFilePath.getFileName()));

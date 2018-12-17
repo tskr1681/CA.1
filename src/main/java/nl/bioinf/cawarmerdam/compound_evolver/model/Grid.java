@@ -26,19 +26,17 @@ public class Grid {
     }
 
     public void markSphere(DPoint3 sphereCoordinates, double radius, boolean value) {
-        if (sphereInGrid(sphereCoordinates, radius)) {
-            double x = sphereCoordinates.x;
-            double y = sphereCoordinates.y;
-            double z = sphereCoordinates.z;
+        double x = sphereCoordinates.x;
+        double y = sphereCoordinates.y;
+        double z = sphereCoordinates.z;
 
-            //mark all yz circles
-            for (double d = 0; d <= radius; d += resolution) {
-                double chordRadius = chordRadius(radius, d);
+        //mark all yz circles
+        for (double d = 0; d <= radius; d += resolution) {
+            double chordRadius = chordRadius(radius, d);
 
-                markYZCircle(x + d, y, z, chordRadius, value);
-                if (d != 0) {
-                    markYZCircle(x - d, y, z, chordRadius, value);
-                }
+            markYZCircle(x + d, y, z, chordRadius, value);
+            if (d != 0) {
+                markYZCircle(x - d, y, z, chordRadius, value);
             }
         }
     }
@@ -110,10 +108,6 @@ public class Grid {
         return Math.sqrt(radius * radius - d * d);
     }
 
-    private boolean sphereInGrid(DPoint3 sphereCoordinates, double radius) {
-        return true;
-    }
-
     boolean isMarked(DPoint3 location) {
         return isMarked(location.x, location.y, location.z);
     }
@@ -135,7 +129,6 @@ public class Grid {
 
         List<GridLocation> toAdd = new ArrayList<>();
         for (GridLocation markedGridLocation : getMarkedGridLocations()) {
-            System.out.println("markedGridLocation = " + markedGridLocation);
             int x = markedGridLocation.getX();
             int y = markedGridLocation.getY();
             int z = markedGridLocation.getZ();
@@ -166,12 +159,41 @@ public class Grid {
 
     private boolean isExposed(int x, int y, int z) {
         return !grid[x + 1][y][z] || !grid[x - 1][y][z] ||
-        !grid[x][y + 1][z] || !grid[x][y - 1][z] ||
-        !grid[x][y][z + 1] || !grid[x][y][z - 1];
+                !grid[x][y + 1][z] || !grid[x][y - 1][z] ||
+                !grid[x][y][z + 1] || !grid[x][y][z - 1];
     }
 
-    void scrape(double defaultProbeSize) {
+    void scrapeProbe(double defaultProbeSize) {
         List<GridLocation> exposedPoints = new ArrayList<>();
+        getExposedPoints(exposedPoints);
+
+        for (GridLocation exposedPoint : exposedPoints) {
+            markSphere(gridToPoint(exposedPoint.getX(), exposedPoint.getY(), exposedPoint.getZ()),
+                    defaultProbeSize,
+                    false);
+        }
+    }
+
+    void shrink(double amount)
+    {
+        int num = (int) Math.ceil(amount / resolution);
+        for (int i = 0; i < num; i++)
+        {
+            shrinkByOne();
+        }
+
+    }
+
+    private void shrinkByOne() {
+        List<GridLocation> exposedPoints = new ArrayList<>();
+        getExposedPoints(exposedPoints);
+
+        for (GridLocation exposedPoint : exposedPoints) {
+            this.grid[exposedPoint.getX()][exposedPoint.getY()][exposedPoint.getZ()] = false;
+        }
+    }
+
+    private void getExposedPoints(List<GridLocation> exposedPoints) {
         for (GridLocation markedGridLocation : getMarkedGridLocations()) {
             int x = markedGridLocation.getX();
             int y = markedGridLocation.getY();
@@ -180,12 +202,6 @@ public class Grid {
             if (isExposed(x, y, z)) {
                 exposedPoints.add(markedGridLocation);
             }
-        }
-
-        for (GridLocation exposedPoint : exposedPoints) {
-            markSphere(gridToPoint(exposedPoint.getX(), exposedPoint.getY(), exposedPoint.getZ()),
-                    defaultProbeSize,
-                    false);
         }
     }
 

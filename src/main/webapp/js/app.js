@@ -38,6 +38,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         fitnessMeasure: 'ligandEfficiency',
         forceField: 'smina',
         maxAnchorMinimizedRmsd: 2,
+        exclusionShapeTolerance: 0,
         useLipinski: false,
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
@@ -216,7 +217,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                         generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
                     ]);
 
-                    updateSpeciesDistributionChart(generation);
+                    if (speciesDistributionChart != null) {
+                        updateSpeciesDistributionChart(generation);
+                    }
 
                     $rootScope.generations.push(generation);
                     $rootScope.$apply();
@@ -284,7 +287,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         })
     }
 
-    function initializeChart() {
+    function initializeChart(multipleSpecies) {
         var chartData = {
             labels: [],
             datasets: [
@@ -340,7 +343,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             }
         });
 
-        initializeSpeciesDistributionChart();
+        if (multipleSpecies) {
+            initializeSpeciesDistributionChart();
+        }
     }
 
     function chartClickEvent(event, array) {
@@ -406,7 +411,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                     $scope.$apply();
                 }
             });
-            initializeChart();
+            initializeChart($scope.reactionFiles.files.length > 1);
 
             evolveStatus = null;
 

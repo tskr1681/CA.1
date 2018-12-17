@@ -1,6 +1,5 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
-import chemaxon.formats.MolExporter;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
@@ -55,7 +54,7 @@ public class EvolveServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         try {
             // Create new compoundEvolver
-            CompoundEvolver compoundEvolver = constructCompoundEvolver(request);
+            CompoundEvolver compoundEvolver = handleRequest(request);
             compoundEvolver.evolve();
             mapper.writeValue(response.getOutputStream(), GenerateCsv.generateCsvFile(compoundEvolver.getFitness(), "\n"));
         } catch (Exception e) {
@@ -65,7 +64,17 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
-    private CompoundEvolver constructCompoundEvolver(HttpServletRequest request) throws IOException, ServletException, ReactantFileHandlingException, ReactantFileFormatException, ReactionFileHandlerException, ServletUtils.FormFieldHandlingException, MisMatchedReactantCount, ReactionException, PipelineException {
+    private CompoundEvolver handleRequest(HttpServletRequest request)
+            throws IOException,
+            ServletException,
+            ReactantFileHandlingException,
+            ReactantFileFormatException,
+            ReactionFileHandlerException,
+            ServletUtils.FormFieldHandlingException,
+            MisMatchedReactantCount,
+            ReactionException,
+            PipelineException {
+
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
@@ -83,12 +92,6 @@ public class EvolveServlet extends HttpServlet {
 
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize);
-
-        try (MolExporter molExporter = new MolExporter("X:\\Internship\\out2.mrv", "mrv")) {
-            for (Candidate candidate : initialPopulation) {
-                molExporter.write(candidate.getPhenotype());
-            }
-        }
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
@@ -168,7 +171,7 @@ public class EvolveServlet extends HttpServlet {
                 throw e;
         }
 
-        // Get termination condition
+        // Get and set termination condition
         CompoundEvolver.TerminationCondition terminationCondition = CompoundEvolver.TerminationCondition.fromString(
                 request.getParameter("terminationCondition"));
         evolver.setTerminationCondition(terminationCondition);
@@ -203,8 +206,16 @@ public class EvolveServlet extends HttpServlet {
         Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
         copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
 
+        // Get the exclusion shape tolerance
+        double exclusionShapeTolerance = getDoubleParameterFromRequest(request, "exclusionShapeTolerance");
+
         // Setup the pipeline using the gathered locations paths
-        evolver.setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount);
+        evolver.setupPipeline(
+                outputFileLocation,
+                receptorLocation,
+                anchorLocation,
+                conformerCount,
+                exclusionShapeTolerance);
 
         System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());
     }
@@ -235,6 +246,13 @@ public class EvolveServlet extends HttpServlet {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Method that handles the values for filters by setting them in the population if they are present.
+     *
+     * @param request The http request that is being handled.
+     * @param initialPopulation The population that the values are set to.
+     * @throws ServletUtils.FormFieldHandlingException if the field was either null, or badly formatted.
+     */
     private void handleFilterOptions(HttpServletRequest request, Population initialPopulation) throws ServletUtils.FormFieldHandlingException {
         // Get maximum hydrogen bond acceptors
         try {
@@ -273,17 +291,35 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Gets a file from a http request.
+     *
+     * @param request The http request to get the file from.
+     * @param fileFieldName The name of the field to which the file was uploaded.
+     * @return the file part that was found in the specified field.
+     * @throws IOException if the file could not be obtained from the request.
+     * @throws ServletException if the file could not be obtained from the request.
+     */
     private Part getFileFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
         Part filePart = request.getPart(fileFieldName);
+        // Check if the file part is null.
         if (filePart != null) {
             return filePart;
         } else {
+            // Throw exception if it is null.
             throw new IllegalArgumentException(
                     String.format("File in field '%s' was not specified", fileFieldName));
         }
     }
 
-    private void copyFilePart(Part filePart, Path path) throws IOException {
+    /**
+     * Writes a file part to a path on the system.
+     *
+     * @param filePart The file part to write.
+     * @param path The path to write the file part to.
+     * @throws IOException if the file path could not be written to the path.
+     */
+    private void copyFilePart(Part filePart, Path path) {
         try (OutputStream out = new FileOutputStream(path.toFile()); InputStream filecontent = filePart.getInputStream()) {
 
             int read = 0;
@@ -293,9 +329,8 @@ public class EvolveServlet extends HttpServlet {
                 out.write(bytes, 0, read);
             }
 
-        } catch (FileNotFoundException fne) {
-            // Throw exception
-
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

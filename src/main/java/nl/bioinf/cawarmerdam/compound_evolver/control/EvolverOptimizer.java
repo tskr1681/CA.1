@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class EvolverOptimizer {
-    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int runDuration) {
+    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int runDuration, int repetitions) {
         // Get range
         List<GAParameters> gaParameterVectors = new ArrayList<>();
 
@@ -36,43 +36,83 @@ public class EvolverOptimizer {
                 .filter(vector -> vector.getCrossoverRate() + vector.getRandomImmigrantRate() <= 1)
                 .collect(Collectors.toList());
 
-        List<List<Object>> durations = new ArrayList<>();
+        List<List<Object>> resultsTable = getResultsTable();
 
-        System.out.printf("Sampling %d parameter vectors%n%n", filteredGAParameterVectors.size());
+        System.out.printf("Sampling %d parameter vectors %d times, %d total%n%n",
+                filteredGAParameterVectors.size(),
+                repetitions,
+                filteredGAParameterVectors.size() * repetitions);
         for (int i = 0; i < filteredGAParameterVectors.size(); i++) {
             GAParameters parameterVector = filteredGAParameterVectors.get(i);
-            Path runPath = null;
-            try {
-                runPath = makeRunDirectory(uploadPath, i);
-                writeGAParameters(i, parameterVector, runPath);
-                CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
-                List<List<Double>> scores = run.getFitness();
-                double bestScore = scores.stream().flatMap(List::stream)
-                        .mapToDouble(s -> s).max().orElseThrow(NoSuchElementException::new);
-                durations.add(Arrays.asList(new Object[]{i, bestScore, run.getDuration()}));
-                String csvData = GenerateCsv.generateCsvFile(scores, System.lineSeparator());
-                String csvFileName = String.format("%d-scores.csv", i);
-                Path csvFilePath = runPath.resolve(csvFileName);
-                System.out.printf("Writing %s", csvFileName);
-                try (PrintWriter out = new PrintWriter(csvFilePath.toFile())) {
-                    out.println(csvData);
-                } catch (FileNotFoundException e) {
-                    System.out.printf("Failed writing %s%n", csvFileName);
+            for (int repetition = 0; repetition < repetitions; repetition++) {
+                String identifier = i + "r" + repetition;
+                Path runPath = null;
+                try {
+                    runPath = makeRunDirectory(uploadPath, identifier);
+                    writeGAParameters(identifier, parameterVector, runPath);
+                    CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
+                    List<List<Double>> scores = run.getFitness();
+                    double bestScore = scores.stream().flatMap(List::stream)
+                            .mapToDouble(s -> s).max().orElseThrow(NoSuchElementException::new);
+                    addRun(resultsTable, parameterVector, identifier, run, bestScore);
+                    String csvData = GenerateCsv.generateCsvFile(scores, System.lineSeparator());
+                    String csvFileName = String.format("%s-scores.csv", identifier);
+                    Path csvFilePath = runPath.resolve(csvFileName);
+                    System.out.printf("Writing %s", csvFileName);
+                    try (PrintWriter out = new PrintWriter(csvFilePath.toFile())) {
+                        out.println(csvData);
+                    } catch (FileNotFoundException e) {
+                        System.out.printf("Failed writing %s%n", csvFileName);
+                        e.printStackTrace();
+                    }
+                } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
+                    System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
                     e.printStackTrace();
                 }
-            } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
-                System.out.printf("Run %d failed%n", i);
-                e.printStackTrace();
             }
         }
         Path outputTable = uploadPath.resolve("out.csv");
         System.out.printf("Writing %s", outputTable);
         try (PrintWriter out = new PrintWriter(outputTable.toFile())) {
-            out.println(GenerateCsv.generateCsvFile(durations, System.lineSeparator()));
+            out.println(GenerateCsv.generateCsvFile(resultsTable, System.lineSeparator()));
         } catch (FileNotFoundException e) {
             System.out.printf("Failed writing %s%n", outputTable);
             e.printStackTrace();
         }
+    }
+
+    private List<List<Object>> getResultsTable() {
+        List<List<Object>> table = new ArrayList<>();
+        table.add(Arrays.asList(new Object[]{
+                "id",
+                "score",
+                "duration",
+                "population-size",
+                "selection-size",
+                "mutation-rate",
+                "selection-method",
+                "mutation-method",
+                "crossover-rate",
+                "elitist-rate",
+                "random-immigrant-rate"
+        }));
+        return table;
+    }
+
+    private void addRun(List<List<Object>> runs, GAParameters parameterVector, String identifier, CompoundEvolver run, double bestScore) {
+        runs.add(Arrays.asList(new Object[]{
+                identifier,
+                bestScore,
+                run.getDuration(),
+                parameterVector.getGenerationSize(),
+                parameterVector.getSelectionRate(),
+                parameterVector.getMutationRate(),
+                parameterVector.getSelectionMethod(),
+                parameterVector.getMutationMethod(),
+                parameterVector.getCrossoverRate(),
+                parameterVector.getElitistRate(),
+                parameterVector.getRandomImmigrantRate(),
+        }));
     }
 
     /**
@@ -84,18 +124,19 @@ public class EvolverOptimizer {
         // Load reactor from argument
         Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
         // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 5);
+        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 6);
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
         // Load receptor molecule path
-        Path receptorPath = Paths.get(args[args.length - 5]);
+        Path receptorPath = Paths.get(args[args.length - 6]);
         // Load anchor molecule path
-        Path anchorPath = Paths.get(args[args.length - 4]);
+        Path anchorPath = Paths.get(args[args.length - 5]);
         // Construct the initial population
-        Path uploadPath = Paths.get(args[args.length - 3]);
-        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 2]);
-        int runDuration = Integer.parseInt(args[args.length - 1]);
+        Path uploadPath = Paths.get(args[args.length - 4]);
+        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 3]);
+        int runDuration = Integer.parseInt(args[args.length - 2]);
+        int repetitions = Integer.parseInt(args[args.length - 1]);
         // Construct the initial population
-        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, runDuration);
+        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, runDuration, repetitions);
     }
 
     private static List<Pair<String, List<Object>>> parseParameterLists(String arg) throws java.io.IOException {
@@ -115,14 +156,14 @@ public class EvolverOptimizer {
         return parameterLists;
     }
 
-    private Path makeRunDirectory(Path uploadPath, int i) throws IOException {
+    private Path makeRunDirectory(Path uploadPath, String i) throws IOException {
         Path runPath = uploadPath.resolve("run_" + i);
         Files.createDirectories(runPath.toAbsolutePath());
         return runPath;
     }
 
-    private void writeGAParameters(int i, GAParameters parameterVector, Path runPath) throws IOException {
-        Path paramsFilePath = runPath.resolve(String.format("%d-params.json", i));
+    private void writeGAParameters(String i, GAParameters parameterVector, Path runPath) throws IOException {
+        Path paramsFilePath = runPath.resolve(String.format("%s-params.json", i));
         if (!Files.exists(paramsFilePath, LinkOption.NOFOLLOW_LINKS))
             Files.createFile(paramsFilePath);
         //Object to JSON in file

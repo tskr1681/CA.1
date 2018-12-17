@@ -3,7 +3,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 import chemaxon.struc.DPoint3;
 import chemaxon.struc.MolAtom;
 import chemaxon.struc.Molecule;
-import org.apache.regexp.RE;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -127,7 +126,7 @@ public class ExclusionShape {
      * @param receptor A molecule that represents the excluded space
      * @throws IllegalArgumentException if any atom in the array is a Hydrogen atom
      */
-    public ExclusionShape(Molecule receptor) {
+    public ExclusionShape(Molecule receptor, double tolerance) {
         // Make a grid that spans the size of the molecule and has resolution
         DPoint3[] enclosingCube = receptor.getEnclosingCube();
         DPoint3 margin = new DPoint3(5, 5, 5);
@@ -137,10 +136,13 @@ public class ExclusionShape {
         grid = new Grid(referenceCoordinate, cubeSize.x, cubeSize.y, cubeSize.z, RESOLUTION);
 
         fillAccessibleSurface(receptor);
-//        System.out.println(grid);
-//        grid.grow(DEFAULT_PROBE_SIZE);
-        // Shrink default probe size
-        grid.scrape(DEFAULT_PROBE_SIZE);
+        // Scrape using the default probe size
+        grid.scrapeProbe(DEFAULT_PROBE_SIZE);
+        if (tolerance > 0) {
+            grid.shrink(tolerance);
+        } else {
+            grid.grow(-tolerance);
+        }
     }
 
     private void fillAccessibleSurface(Molecule receptor) {

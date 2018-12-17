@@ -148,6 +148,11 @@ public class GAParameters implements Serializable {
             try {
                 Field field = clazz.getDeclaredField(fieldName);
                 field.setAccessible(true);
+                if (field.getType().equals(Population.MutationMethod.class)) {
+                    fieldValue = Population.MutationMethod.valueOf((String) fieldValue);
+                } else if (field.getType().equals(Population.SelectionMethod.class)) {
+                    fieldValue = Population.SelectionMethod.valueOf((String) fieldValue);
+                }
                 field.set(object, fieldValue);
                 return true;
             } catch (NoSuchFieldException e) {

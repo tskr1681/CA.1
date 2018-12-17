@@ -346,7 +346,7 @@ public class CompoundEvolver {
         // We whould like to calculate the fitness with the heavy atom
         for (Candidate candidate : this.population) {
             // Ligand efficiency
-            candidate.setNormFitness(minFitness, maxFitness);
+            candidate.calcNormFitness(minFitness, maxFitness);
         }
     }
 
@@ -394,13 +394,14 @@ public class CompoundEvolver {
 
     public void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
         int conformerCount = 15;
-        setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount);
+        double exclusionShapeTolerance = 0;
+        setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount, exclusionShapeTolerance);
     }
 
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFilePath, Path anchor, int conformerCount) throws PipelineException {
+    public void setupPipeline(Path outputFileLocation, Path receptorFilePath, Path anchor, int conformerCount, double exclusionShapeTolerance) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFilePath(outputFileLocation);
 
@@ -413,7 +414,8 @@ public class CompoundEvolver {
         // Get step that handles scored candidates
         ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
                 anchor,
-                receptorFilePath);
+                receptorFilePath,
+                exclusionShapeTolerance);
         // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.

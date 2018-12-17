@@ -525,6 +525,7 @@ public class Population implements Iterable<Candidate> {
             // Try to produce offspring
             Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
             if (newOffspring != null) {
+                // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
                 offspring.add(newOffspring);
                 offspringChoice = ReproductionMethod.CLEAR;
                 this.offspringRejectionMessages.clear();
@@ -932,6 +933,9 @@ public class Population implements Iterable<Candidate> {
         }
     }
 
+    /**
+     * Methods that can be chosen for guiding crossover between candidates that belong to different species.
+     */
     public enum InterspeciesCrossoverMethod {
         NONE("None"),
         AT_SPECIES_INTERSECTION("Intersection"),
@@ -957,6 +961,9 @@ public class Population implements Iterable<Candidate> {
         }
     }
 
+    /**
+     * Methods that can be chosen for determining to which species a candidate shall belong.
+     */
     public enum SpeciesDeterminationMethod {
         DYNAMIC("Dynamic"),
         FIXED("Fixed");
