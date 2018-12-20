@@ -176,12 +176,12 @@ public class Population implements Iterable<Candidate> {
                     throw new MisMatchedReactantCount(reactantCount, reactants.size());
                 }
                 // Make sure only the right reactants are passed on
-                this.candidateList.addAll(new RandomCompoundReactor(Collections.singletonList(species), individualsPerSpecies)
-                        .randReact(this.reactantLists));
+                this.candidateList.addAll(new RandomCompoundReactor(individualsPerSpecies)
+                        .randReact(this.reactantLists, Collections.singletonList(species)));
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
-            this.candidateList.addAll(new RandomCompoundReactor(this.species, this.populationSize)
-                    .randReact(this.reactantLists));
+            this.candidateList.addAll(new RandomCompoundReactor(this.populationSize)
+                    .randReact(this.reactantLists, this.species));
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
@@ -615,11 +615,11 @@ public class Population implements Iterable<Candidate> {
             Species randomSpecies = this.species.get(random.nextInt(this.species.size()));
 
             // Try to generate a new individual or candidate with these species
-            return new RandomCompoundReactor(Collections.singletonList(randomSpecies), 1)
-                    .randReact(this.reactantLists).get(0); // 1 new individual at index 0
+            return new RandomCompoundReactor(1)
+                    .randReact(this.reactantLists, Collections.singletonList(randomSpecies)).get(0); // 1 new individual at index 0
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
-            return new RandomCompoundReactor(this.species, 1)
-                    .randReact(this.reactantLists).get(0);
+            return new RandomCompoundReactor(1)
+                    .randReact(this.reactantLists, this.species).get(0);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +

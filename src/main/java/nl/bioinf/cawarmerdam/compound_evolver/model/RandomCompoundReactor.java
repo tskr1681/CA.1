@@ -9,16 +9,14 @@ import java.util.Random;
 
 class RandomCompoundReactor {
 
-    private List<Species> species;
     private int maxSamples;
 
-    RandomCompoundReactor(List<Species> species, int maxSamples)
+    RandomCompoundReactor(int maxSamples)
     {
-        this.species = species;
         this.maxSamples = maxSamples;
     }
 
-    List<Candidate> randReact(List<List<Molecule>> reactantLists) {
+    List<Candidate> randReact(List<List<Molecule>> reactantLists, List<Species> species) {
 
         // Amount of products generated
         int nSampled = 0;
