@@ -43,6 +43,10 @@ public class CompoundEvolver {
     private boolean dummyFitness;
     private boolean cleanupFiles;
 
+    /**
+     * @param population
+     * @param evolutionProgressConnector
+     */
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
         this.evolutionProgressConnector = evolutionProgressConnector;
@@ -116,7 +120,7 @@ public class CompoundEvolver {
      * Getter for the maximum allowed duration of the evolution procedure. No new generation is made when this
      * duration is surpassed by actual duration.
      *
-     * @param maximumAllowedDuration, the maximum allowed duration of the evolution procedure.
+     * @param maximumAllowedDuration The maximum allowed duration of the evolution procedure.
      */
     public void setMaximumAllowedDuration(long maximumAllowedDuration) {
         this.maximumAllowedDuration = maximumAllowedDuration;
@@ -134,7 +138,7 @@ public class CompoundEvolver {
     /**
      * Setter for the dummy fitness setting.
      *
-     * @param dummyFitness, true if the dummy fitness should be applied. (the molecular mass is the raw score)
+     * @param dummyFitness True if the dummy fitness should be applied. (the molecular mass is the raw score)
      */
     public void setDummyFitness(boolean dummyFitness) {
         this.dummyFitness = dummyFitness;
@@ -152,8 +156,8 @@ public class CompoundEvolver {
     /**
      * Setter for the output file path for the pipeline.
      *
-     * @param pipelineOutputFilePath the output file path for the pipeline.
-     * @throws PipelineException if the output file path does not exist and cannot be created.
+     * @param pipelineOutputFilePath The output file path for the pipeline.
+     * @throws PipelineException If the output file path does not exist and cannot be created.
      */
     private void setPipelineOutputFilePath(Path pipelineOutputFilePath) throws PipelineException {
         if (!pipelineOutputFilePath.toFile().exists()) {
@@ -208,7 +212,7 @@ public class CompoundEvolver {
     /**
      * Setter for the force field that is used in scoring and minimization.
      *
-     * @param forceField, the force field.
+     * @param forceField The force field.
      */
     public void setForceField(ForceField forceField) {
         this.forceField = forceField;
@@ -226,24 +230,44 @@ public class CompoundEvolver {
     /**
      * Setter for the fitness measure that is used.
      *
-     * @param fitnessMeasure, the fitness measure.
+     * @param fitnessMeasure The fitness measure.
      */
     public void setFitnessMeasure(FitnessMeasure fitnessMeasure) {
         this.fitnessMeasure = fitnessMeasure;
     }
 
+    /**
+     * Getter for the termination condition.
+     *
+     * @return the termination condition.
+     */
     public TerminationCondition getTerminationCondition() {
         return terminationCondition;
     }
 
+    /**
+     * Setter for the termination condition.
+     *
+     * @param terminationCondition The fitness measure.
+     */
     public void setTerminationCondition(TerminationCondition terminationCondition) {
         this.terminationCondition = terminationCondition;
     }
 
+    /**
+     * Getter for the maximum number of generations in the evolution process.
+     *
+     * @return the maximum number of generations in the evolution process.
+     */
     public int getMaxNumberOfGenerations() {
         return maxNumberOfGenerations;
     }
 
+    /**
+     * Setter for the maximum number of generations in the evolution process.
+     *
+     * @param generations The maximum number of generations in the evolution process.
+     */
     public void setMaxNumberOfGenerations(int generations) {
         this.maxNumberOfGenerations = generations;
     }
@@ -255,17 +279,19 @@ public class CompoundEvolver {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
+
+        // Score the initial population
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         updateDuration();
         try {
             // Evolve
             while (!shouldTerminate()) {
-
                 System.out.println(this.population.toString());
-                // Try to produce offspring
 
+                // Try to produce offspring
                 this.population.produceOffspring();
+
                 // Score the candidates
                 scoreCandidates();
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
@@ -278,11 +304,17 @@ public class CompoundEvolver {
         }
     }
 
+    /**
+     * Recalculates the current duration of evolution.
+     */
     private void updateDuration() {
         long endTime = System.currentTimeMillis();
         this.duration = endTime - startTime;
     }
 
+    /**
+     * Scores the candidates in the population.
+     */
     private void scoreCandidates() {
         if (!dummyFitness) {
             // Check if pipe is present
@@ -328,6 +360,10 @@ public class CompoundEvolver {
         processRawScores();
     }
 
+    /**
+     * Method responsible for processing the raw scores. Normalized scores are calculated by using the set
+     * fitness measure.
+     */
     private void processRawScores() {
         for (Candidate candidate : this.population) {
             // Ligand efficiency
@@ -350,6 +386,11 @@ public class CompoundEvolver {
         }
     }
 
+    /**
+     * Method that indicates if the evolution should be terminated.
+     *
+     * @return true if the evolution should be terminated.
+     */
     private boolean shouldTerminate() {
         int generationNumber = this.population.getGenerationNumber();
         if (this.terminationCondition == TerminationCondition.CONVERGENCE && generationNumber > 5) {
@@ -360,6 +401,12 @@ public class CompoundEvolver {
         return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
 
+    /**
+     * Method that indicates if the evolution has converged.
+     *
+     * @param generationNumber The number of the current generation.
+     * @return true if the evolution has converged.
+     */
     private boolean hasConverged(int generationNumber) {
         // Get all fitness scores so far
         List<List<Double>> populationFitness = this.getFitness();
@@ -380,12 +427,16 @@ public class CompoundEvolver {
                 highestScoringGenerationNumber = i;
             }
         }
-        System.out.printf("highscore: %.2f at Ngen %d, curr: %.2f --- ", highestScore, highestScoringGenerationNumber, max);
+//        System.out.printf("highscore: %.2f at Ngen %d, curr: %.2f --- ", highestScore, highestScoringGenerationNumber, max);
         double nonImprovingGenerationNumber = highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber;
-        System.out.printf("%f < %d = %s%n", nonImprovingGenerationNumber, generationNumber, nonImprovingGenerationNumber < generationNumber);
+//        System.out.printf("%f < %d = %s%n", nonImprovingGenerationNumber, generationNumber, nonImprovingGenerationNumber < generationNumber);
         return nonImprovingGenerationNumber < generationNumber;
     }
 
+    /**
+     * @param outputFileLocation The output file location.
+     * @throws PipelineException If the pipeline setup throws an error.
+     */
     private void setupPipeline(Path outputFileLocation) throws PipelineException {
         Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
         Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
@@ -401,7 +452,11 @@ public class CompoundEvolver {
     /**
      * Setup the pipeline for scoring candidates
      */
-    public void setupPipeline(Path outputFileLocation, Path receptorFilePath, Path anchor, int conformerCount, double exclusionShapeTolerance) throws PipelineException {
+    public void setupPipeline(Path outputFileLocation,
+                              Path receptorFilePath,
+                              Path anchor,
+                              int conformerCount,
+                              double exclusionShapeTolerance) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFilePath(outputFileLocation);
 
@@ -479,10 +534,18 @@ public class CompoundEvolver {
         return sminaExecutable;
     }
 
-    public void setCleanupFiles(boolean cleanupFiles) {
+    /**
+     * Setter for the clearing and cleaning of pipeline files.
+     *
+     * @param cleanupFiles, True if pipeline files have to be cleared.
+     */
+    void setCleanupFiles(boolean cleanupFiles) {
         this.cleanupFiles = cleanupFiles;
     }
 
+    /**
+     * The force field or program enum.
+     */
     public enum ForceField {
         MAB("mab"),
         SMINA("smina");

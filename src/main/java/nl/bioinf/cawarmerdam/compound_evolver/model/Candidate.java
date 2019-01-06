@@ -61,6 +61,11 @@ public class Candidate implements Comparable<Candidate> {
     private Path minimizationOutputFilePath;
     private double kcalToJouleConstant;
 
+    /**
+     * Constructor for candidate instance.
+     *
+     * @param genotype The genotype that corresponds to the candidate.
+     */
     public Candidate(List<Integer> genotype) {
         this.genotype = genotype;
         this.genomeSize = this.genotype.size();
@@ -68,6 +73,12 @@ public class Candidate implements Comparable<Candidate> {
         pipelineLogger = Logger.getLogger(String.valueOf(this.identifier));
     }
 
+    /**
+     * Constructor for candidate instance with dynamic species.
+     *
+     * @param genotype The genotype that corresponds to the candidate.
+     * @param species A list of possible species to select from
+     */
     public Candidate(List<Integer> genotype, Species species) {
         this(genotype);
         this.species = species;

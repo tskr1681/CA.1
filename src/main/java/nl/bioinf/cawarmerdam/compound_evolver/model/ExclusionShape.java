@@ -12,7 +12,7 @@ public class ExclusionShape {
     private static final double DEFAULT_PROBE_SIZE = 1.4;
     private static final double RESOLUTION = 0.5;
 
-    public static Map<Integer, Double> ELEMENT_VDW_RADII = new HashMap<>();
+    private static Map<Integer, Double> ELEMENT_VDW_RADII = new HashMap<>();
     static {
         ELEMENT_VDW_RADII.put(1, 1.10);
         ELEMENT_VDW_RADII.put(6, 1.55);

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.io;
 
 import chemaxon.formats.MolFormatException;
@@ -11,12 +15,26 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public final class ReactantFileHandler {
+    /**
+     * Method that loads molecules from set of filenames.
+     *
+     * @param filenames The files that should be loaded.
+     * @return lists of molecules in a list.
+     * @throws ReactantFileHandlingException If a reactant file could not be read.
+     * @throws ReactantFileFormatException If a erroneous reactant format was encountered.
+     */
     public static List<List<Molecule>> loadMolecules(String[] filenames) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (String fileName : filenames) {
             File initialFile = new File(fileName);
             try {
+                // Read file by file.
                 reactantLists.add(readSmileFile(new FileInputStream(initialFile), fileName));
             } catch (FileNotFoundException e) {
                 throw new ReactantFileHandlingException(e.getMessage(), fileName);
@@ -27,6 +45,7 @@ public final class ReactantFileHandler {
 
     /**
      * Method responsible for loading reaction file parts as a list of reactant lists.
+     *
      * @param fileParts, files as parts that starts with a SMILES string on each line.
      * @return a list of reactant lists.
      * @throws ReactantFileHandlingException if an IO exception is encountered.
@@ -49,6 +68,7 @@ public final class ReactantFileHandler {
 
     /**
      * Method responsible for reading a reactants file from an inputStream.
+     *
      * @param inputStream, starting with a SMILES string on each line.
      * @param fileName, name of the file that is read.
      * @return a list of reactants (molecules).
@@ -63,6 +83,7 @@ public final class ReactantFileHandler {
                 try {
                     moleculeMap.add(MolImporter.importMol(line));
                 } catch (MolFormatException e) {
+                    e.printStackTrace();
                     throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }
             }

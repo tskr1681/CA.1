@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.io;
 
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
@@ -10,6 +14,11 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class EneFileParser {
     public static List<Double> parseEneFile(InputStream eneFileInputStream, String eneFileName)
             throws PipelineException {
@@ -28,6 +37,7 @@ public class EneFileParser {
                 }
             }
         } catch (IOException e) {
+            // Throw exception
             throw new PipelineException(String.format("Could not read ENE file %s", eneFileName), e);
         }
         return scores;

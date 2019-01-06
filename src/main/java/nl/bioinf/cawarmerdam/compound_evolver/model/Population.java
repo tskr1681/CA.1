@@ -49,6 +49,17 @@ public class Population implements Iterable<Candidate> {
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
 
+    /**
+     * Constructor for population.
+     *
+     * @param reactantLists Lists of reactants in a list.
+     * @param species List of possible species.
+     * @param speciesDeterminationMethod The method that determines which species to use.
+     * @param initialGenerationSize The generation or population size.
+     * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
+     * in the reaction.
+     * @throws ReactionException if a reaction could not be performed.
+     */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
@@ -74,6 +85,16 @@ public class Population implements Iterable<Candidate> {
         initializePopulation();
     }
 
+    /**
+     * Constructor for population with dynamic species determination as default.
+     *
+     * @param reactantLists Lists of reactants in a list.
+     * @param species List of possible species.
+     * @param initialGenerationSize The generation or population size.
+     * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
+     * in the reaction.
+     * @throws ReactionException if a reaction could not be performed.
+     */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
@@ -82,18 +103,38 @@ public class Population implements Iterable<Candidate> {
     }
 
 
+    /**
+     * Getter for the interspecies crossover method.
+     *
+     * @return the interspecies crossover method.
+     */
     public InterspeciesCrossoverMethod getInterspeciesCrossoverMethod() {
         return interspeciesCrossoverMethod;
     }
 
+    /**
+     * Setter for the interspecies crossover method.
+     *
+     * @param interspeciesCrossoverMethod the interspecies crossover method.
+     */
     public void setInterspeciesCrossoverMethod(InterspeciesCrossoverMethod interspeciesCrossoverMethod) {
         this.interspeciesCrossoverMethod = interspeciesCrossoverMethod;
     }
 
+    /**
+     * Getter for the species determination method.
+     *
+     * @return the species determination method.
+     */
     public SpeciesDeterminationMethod getSpeciesDeterminationMethod() {
         return speciesDeterminationMethod;
     }
 
+    /**
+     * Setter for the species determination method.
+     *
+     * @param speciesDeterminationMethod The species determination method.
+     */
     public void setSpeciesDeterminationMethod(SpeciesDeterminationMethod speciesDeterminationMethod) {
         this.speciesDeterminationMethod = speciesDeterminationMethod;
     }

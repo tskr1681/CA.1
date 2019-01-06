@@ -1,5 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.formats.MolExporter;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
@@ -92,6 +93,12 @@ public class EvolveServlet extends HttpServlet {
 
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize);
+        MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
+        for (Candidate candidate :
+                initialPopulation) {
+            molExporter.write(candidate.getPhenotype());
+        }
+        molExporter.close();
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
