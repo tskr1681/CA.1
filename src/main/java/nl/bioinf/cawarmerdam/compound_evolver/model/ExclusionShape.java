@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.struc.DPoint3;
@@ -7,8 +11,12 @@ import chemaxon.struc.Molecule;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class ExclusionShape {
-    // Bosco uses as default 960, Shrake and Rupley seem to use in their paper 92 (not sure if this is actually the same parameter)
     private static final double DEFAULT_PROBE_SIZE = 1.4;
     private static final double RESOLUTION = 0.5;
 
@@ -167,5 +175,9 @@ public class ExclusionShape {
 
     public Grid getGrid() {
         return grid;
+    }
+
+    public static Map<Integer, Double> getElementVdwRadii() {
+        return ELEMENT_VDW_RADII;
     }
 }

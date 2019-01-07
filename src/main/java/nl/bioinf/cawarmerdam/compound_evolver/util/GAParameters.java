@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,6 +12,11 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GAParameters implements Serializable {
     private long maximumAllowedDuration;

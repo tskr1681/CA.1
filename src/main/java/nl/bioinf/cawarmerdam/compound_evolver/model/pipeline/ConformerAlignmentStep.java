@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolExporter;
@@ -12,10 +16,23 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Conformer alignment step that uses the alignment functionality in the chemaxon package.
+ *
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate> {
 
     private Molecule referenceMolecule;
 
+    /**
+     * Constructor for the conformer alignment step.
+     *
+     * @param anchor The path to the file that holds the anchor molecule.
+     * @throws PipelineException If the anchor file could not be imported.
+     */
     public ConformerAlignmentStep(Path anchor) throws PipelineException {
         this.referenceMolecule = importReferenceMolecule(anchor);
     }
@@ -38,6 +55,13 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             throw new PipelineException("Could not read reference fragment", e);        }
     }
 
+    /**
+     * Executes the conformer alignment step.
+     *
+     * @param candidate The candidate whose conformers have to be aligned.
+     * @return the candidate with aligned conformers.
+     * @throws PipelineException if an exception occured in the alignment step.
+     */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         // Get the path of the file with the conformers

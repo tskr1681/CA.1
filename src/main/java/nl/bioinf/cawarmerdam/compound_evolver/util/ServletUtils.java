@@ -1,9 +1,18 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class ServletUtils {
     public static String getIpFromRequest(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");

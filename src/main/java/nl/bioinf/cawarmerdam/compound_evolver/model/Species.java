@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.reaction.Reactor;
@@ -10,6 +14,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class Species {
     private List<Integer> reactantIndices;
     private Reactor reaction;

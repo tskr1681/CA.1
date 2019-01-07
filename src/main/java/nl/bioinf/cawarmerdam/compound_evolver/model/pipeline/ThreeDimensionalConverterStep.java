@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolExporter;
@@ -11,6 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Candidate> {
 
     private Path filePath;

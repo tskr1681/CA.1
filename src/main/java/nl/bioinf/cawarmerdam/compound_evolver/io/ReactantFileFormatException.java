@@ -21,7 +21,7 @@ public class ReactantFileFormatException extends Exception {
      * @param fileName The name of the file that contains the erroneous reactant.
      */
     ReactantFileFormatException(String message, int lineNumber, String fileName) {
-        super(message);
+        super(String.format("Error in file '%s', line %d: %s", fileName, lineNumber, message));
         this.lineNumber = lineNumber;
         this.fileName = fileName;
     }

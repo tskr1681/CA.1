@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import chemaxon.formats.MolExporter;
@@ -30,6 +34,11 @@ import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getBoolea
 import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getDoubleParameterFromRequest;
 import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getIntegerParameterFromRequest;
 
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 @MultipartConfig(maxFileSize = 10000000)    // upload file's size up to 10MB
 @WebServlet(name = "EvolveServlet", urlPatterns = "/evolve.do")
 public class EvolveServlet extends HttpServlet {
