@@ -240,8 +240,7 @@
                     <h5 class="card-header"><b>Genetic operators</b></h5>
                     <div id="operator-settings" class="card-body">
                         <div class="form-group row">
-                            <label for="generation-size" class="col-sm-3 col-form-label">Size of initial
-                                generation</label>
+                            <label for="generation-size" class="col-sm-3 col-form-label">Population size</label>
                             <div class="col-sm-9">
                                 <input type="number"
                                        class="form-control"
@@ -256,6 +255,11 @@
                     'is-valid':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.generationSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The generation or population size represents the amount of
+                                    candidates that will be produced and scored in each generation.
+                                    This must be at least two.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.generationSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -267,7 +271,7 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="number-of-generations" class="col-sm-3 col-form-label">Number of
+                            <label for="number-of-generations" class="col-sm-3 col-form-label">Maximum number of
                                 generations</label>
                             <div class="col-sm-9">
                                 <input type="number"
@@ -276,13 +280,16 @@
                                        id="number-of-generations"
                                        name="numberOfGenerations"
                                        required="required"
-                                       min="2"
+                                       min="0"
                                        step="1"
                                        ng-class="{
                     'is-invalid':!compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted),
                     'is-valid':compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    Evolution will terminate when the maximum number of generations is reached.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.numberOfGenerations.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -309,6 +316,10 @@
                     'is-valid':compoundEvolverForm.selectionSize.$valid && (!compoundEvolverForm.selectionSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The selection size represents the portion of candidates that are selected for
+                                    a next generation through crossover or elitism. The other candidates are 'killed'.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.selectionSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -335,6 +346,10 @@
                     'is-valid':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The crossover rate represents the probability of crossover being performed
+                                    for producing a new candidate relative to the elitism and random immigrant rates.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -361,6 +376,11 @@
                     'is-valid':compoundEvolverForm.elitismRate.$valid && (!compoundEvolverForm.elitismRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The elitism rate represents the probability of the elitism strategy being carried
+                                    out for producing a new candidate relative to the
+                                    crossover and random immigrant rates.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.elitismRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -387,6 +407,9 @@
                     'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The mutation rate represents the probability of a single gene being mutated.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -414,6 +437,10 @@
                     'is-valid':compoundEvolverForm.randomImmigrantRate.$valid && (!compoundEvolverForm.randomImmigrantRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The random immigrant rate represents the probability of a random immigrant being made
+                                    for producing a new candidate relative to the elitism and crossover rates.
+                                </small>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.randomImmigrantRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -436,6 +463,13 @@
                                     <option>Truncated selection</option>
                                     <option>Tournament selection</option>
                                 </select>
+                                <small class="form-text">
+                                    The selection method affects the manner in which candidates are selected. Fitness
+                                    proportionate selection or roulette wheel selection picks candidates by their
+                                    relative probability, based on the fitness score. Truncated selection picks
+                                    only the best individuals, exerting big selective pressure. Tournament selection
+                                    picks the best individual from two randomly selected individuals.
+                                </small>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -449,6 +483,13 @@
                                     <option>Distance dependent</option>
                                     <option>Distance independent</option>
                                 </select>
+                                <small class="form-text">
+                                    The mutation method applies mutations to single genes. The distance independent
+                                    mutation method does this by picking a random allele, or reactant, as a substitution
+                                    with the set mutation rate. The distance dependent method takes the similarity of
+                                    alleles into account. More similar alleles have a higher chance of being chosen as
+                                    a substitution.
+                                </small>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -463,6 +504,11 @@
                                     <option value="fixed">Maximum number of generations reached</option>
                                     <option value="convergence">Convergence reached</option>
                                 </select>
+                                <small class="form-text">
+                                    The termination condition specifies under what condition the evolution should be
+                                    terminated. When the maximum number of generations is reached evolution is always
+                                    terminated, also with the convergence reached condition set.
+                                </small>
                             </div>
                         </div>
                         <div class="form-group row">

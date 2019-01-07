@@ -73,8 +73,45 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var orderCount = 0;
     var species = [];
 
-    angular.element(document).ready(function () {
+    function getProgressUpdate(){
+        jQuery.ajax({
+            method: 'POST',
+            type: 'POST',
+            url: './progress.update',
+            responseType: "application/json",
+            success: function (data, textStatus, jqXHR) {
+                return data;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // Check which error was thrown
+                // If progress was stopped due to an exception set big error
+                // Reset form fields and output error to the page
+                getErrorResponse(jqXHR);
+                setPristine();
+                $scope.response.hasError = true;
+                $scope.$apply();
+            }
+        });
+        return null;
+    }
 
+    angular.element(document).ready(function () {
+        let jsonData = getProgressUpdate();
+        if (jsonData == null) {
+            return;
+        }
+        initializeChart(true);
+        evolveStatus = jsonData.status;
+        handleGenerationCollection(jsonData.generations);
+
+        if (evolveStatus === "RUNNING") {
+            handleGenerationCollection(jsonData.generationBuffer);
+            setFrequentUpdateInterval()
+        } else if (evolveStatus === "FAILED") {
+            // Post fail message
+        } else if (evolveStatus === "SUCCESS") {
+            // Post success message
+        }
     });
 
     /**
@@ -191,51 +228,41 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         return names.join(", ");
     };
 
-    $scope.getProgressUpdate = function () {
-        jQuery.ajax({
-            method: 'POST',
-            type: 'POST',
-            url: './progress.update',
-            responseType: "application/json",
-            success: function (data, textStatus, jqXHR) {
-                // log data to the console so we can see
-                console.log(data);
+    function handleGenerationCollection(generations) {
+        generations.forEach(function (generation) {
 
-                // update variables with new data
-                function getSum(total, num) {
-                    return total + num;
-                }
+            addData(scoreDistributionChart, generation.number, [
+                generation.candidateList.map(candidate => candidate.rawScore),
+                generation.candidateList.map(candidate => candidate.ligandEfficiency),
+                generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
+            ]);
 
-                let generations = data.generationBuffer;
-                evolveStatus = data.status;
-
-                generations.forEach(function (generation) {
-
-                    addData(scoreDistributionChart, generation.number, [
-                        generation.candidateList.map(candidate => candidate.rawScore),
-                        generation.candidateList.map(candidate => candidate.ligandEfficiency),
-                        generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
-                    ]);
-
-                    if (speciesDistributionChart != null) {
-                        updateSpeciesDistributionChart(generation);
-                    }
-
-                    $rootScope.generations.push(generation);
-                    $rootScope.$apply();
-                });
-
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                // Check which error was thrown
-                // If progress was stopped due to an exception set big error
-                // Reset form fields and output error to the page
-                getErrorResponse(jqXHR);
-                setPristine();
-                $scope.response.hasError = true;
-                $scope.$apply();
+            if (speciesDistributionChart != null) {
+                updateSpeciesDistributionChart(generation);
             }
-        })
+
+            $rootScope.generations.push(generation);
+            $rootScope.$apply();
+        });
+    }
+
+    $scope.getProgressUpdate = function () {
+        let jsonData = getProgressUpdate();
+        if (jsonData == null) {
+            return;
+        }
+        // log data to the console so we can see
+        console.log(jsonData);
+
+        // update variables with new data
+        function getSum(total, num) {
+            return total + num;
+        }
+
+        let generations = jsonData.generationBuffer;
+        evolveStatus = jsonData.status;
+
+        handleGenerationCollection(generations);
     };
 
     $scope.terminateEvolution = function () {
@@ -375,6 +402,16 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         $rootScope.$apply();
     }
 
+    function setFrequentUpdateInterval() {
+        let i = setInterval(function () {
+            // do your thing
+            $scope.getProgressUpdate();
+            if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
+                clearInterval(i);
+            }
+        }, 5000);
+    }
+
     /**
      * Gets called when the submit button is clicked
      * @param valid Boolean true when the form is valid
@@ -415,13 +452,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
             evolveStatus = null;
 
-            var i = setInterval(function () {
-                // do your thing
-                $scope.getProgressUpdate();
-                if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
-                    clearInterval(i);
-                }
-            }, 5000);
+            setFrequentUpdateInterval();
 
         } else {
             // Form is not valid. Keep quiet.
