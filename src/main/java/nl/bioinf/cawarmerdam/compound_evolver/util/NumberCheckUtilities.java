@@ -1,8 +1,17 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import java.util.regex.Pattern;
 
-public class NumberCheckUtilities {
+/**
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
+class NumberCheckUtilities {
 
     /**
      * Method that checks if a string is an integer.
@@ -10,7 +19,7 @@ public class NumberCheckUtilities {
      * @param radix, The number of unique digits used to represent numbers in a positional numeral system.
      * @return true if the string is an integer.
      */
-    public static boolean isInteger(String string, int radix) {
+    static boolean isInteger(String string, int radix) {
         if (string.isEmpty()) return false;
         for (int i = 0; i < string.length(); i++) {
             if (i == 0 && string.charAt(i) == '-') {
@@ -27,7 +36,7 @@ public class NumberCheckUtilities {
      * @param parameter, the string to check.
      * @return true if the string can be a double, false if not.
      */
-    public static Boolean isDouble(String parameter) {
+    static Boolean isDouble(String parameter) {
         final String Digits = "(\\p{Digit}+)";
         final String HexDigits = "(\\p{XDigit}+)";
         // an exponent is 'e' or 'E' followed by an optionally

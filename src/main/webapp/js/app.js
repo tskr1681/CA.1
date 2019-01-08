@@ -73,14 +73,16 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var orderCount = 0;
     var species = [];
 
-    function getProgressUpdate(){
+    function getProgressUpdate(handleData){
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
             url: './progress.update',
             responseType: "application/json",
             success: function (data, textStatus, jqXHR) {
-                return data;
+                // log data to the console so we can see
+                console.log(data);
+                handleData(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Check which error was thrown
@@ -92,26 +94,26 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 $scope.$apply();
             }
         });
-        return null;
     }
 
     angular.element(document).ready(function () {
-        let jsonData = getProgressUpdate();
-        if (jsonData == null) {
-            return;
-        }
-        initializeChart(true);
-        evolveStatus = jsonData.status;
-        handleGenerationCollection(jsonData.generations);
+        getProgressUpdate(function(jsonData) {
+            if (jsonData == null) {
+                return;
+            }
+            initializeChart(true);
+            evolveStatus = jsonData.status;
+            handleGenerationCollection(jsonData.generations);
 
-        if (evolveStatus === "RUNNING") {
-            handleGenerationCollection(jsonData.generationBuffer);
-            setFrequentUpdateInterval()
-        } else if (evolveStatus === "FAILED") {
-            // Post fail message
-        } else if (evolveStatus === "SUCCESS") {
-            // Post success message
-        }
+            if (evolveStatus === "RUNNING") {
+                handleGenerationCollection(jsonData.generationBuffer);
+                setFrequentUpdateInterval()
+            } else if (evolveStatus === "FAILED") {
+                // Post fail message
+            } else if (evolveStatus === "SUCCESS") {
+                // Post success message
+            }
+        });
     });
 
     /**
@@ -247,22 +249,23 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     $scope.getProgressUpdate = function () {
-        let jsonData = getProgressUpdate();
-        if (jsonData == null) {
-            return;
-        }
-        // log data to the console so we can see
-        console.log(jsonData);
+        getProgressUpdate(function (jsonData) {
+            if (jsonData == null) {
+                return;
+            }
+            // log data to the console so we can see
+            console.log(jsonData);
 
-        // update variables with new data
-        function getSum(total, num) {
-            return total + num;
-        }
+            // update variables with new data
+            function getSum(total, num) {
+                return total + num;
+            }
 
-        let generations = jsonData.generationBuffer;
-        evolveStatus = jsonData.status;
+            let generations = jsonData.generationBuffer;
+            evolveStatus = jsonData.status;
 
-        handleGenerationCollection(generations);
+            handleGenerationCollection(generations);
+        });
     };
 
     $scope.terminateEvolution = function () {
@@ -403,9 +406,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function setFrequentUpdateInterval() {
-        let i = setInterval(function () {
+        var i = setInterval(function () {
             // do your thing
             $scope.getProgressUpdate();
+            console.log(evolveStatus);
             if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
                 clearInterval(i);
             }
@@ -446,6 +450,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                     setPristine();
                     $scope.response.hasError = true;
                     $scope.$apply();
+                    evolveStatus = "FAILED";
                 }
             });
             initializeChart($scope.reactionFiles.files.length > 1);

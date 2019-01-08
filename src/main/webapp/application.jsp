@@ -255,11 +255,11 @@
                     'is-valid':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.generationSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The generation or population size represents the amount of
-                                    candidates that will be produced and scored in each generation.
-                                    This must be at least two.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The generation or population size represents the amount of--%>
+                                    <%--candidates that will be produced and scored in each generation.--%>
+                                    <%--This must be at least two.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.generationSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -287,16 +287,16 @@
                     'is-valid':compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    Evolution will terminate when the maximum number of generations is reached.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--Evolution will terminate when the maximum number of generations is reached.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.numberOfGenerations.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
                                 </small>
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.numberOfGenerations.$error.number || compoundEvolverForm.numberOfGenerations.$error.step || compoundEvolverForm.numberOfGenerations.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
-                                    An integer value (a whole number) above 2 is required
+                                    An integer value (a whole number) more or equal to 0 is required
                                 </small>
                             </div>
                         </div>
@@ -316,10 +316,10 @@
                     'is-valid':compoundEvolverForm.selectionSize.$valid && (!compoundEvolverForm.selectionSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The selection size represents the portion of candidates that are selected for
-                                    a next generation through crossover or elitism. The other candidates are 'killed'.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The selection size represents the portion of candidates that are selected for--%>
+                                    <%--a next generation through crossover or elitism. The other candidates are 'killed'.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.selectionSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -346,10 +346,10 @@
                     'is-valid':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The crossover rate represents the probability of crossover being performed
-                                    for producing a new candidate relative to the elitism and random immigrant rates.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The crossover rate represents the probability of crossover being performed--%>
+                                    <%--for producing a new candidate relative to the elitism and random immigrant rates.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -376,11 +376,11 @@
                     'is-valid':compoundEvolverForm.elitismRate.$valid && (!compoundEvolverForm.elitismRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The elitism rate represents the probability of the elitism strategy being carried
-                                    out for producing a new candidate relative to the
-                                    crossover and random immigrant rates.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The elitism rate represents the probability of the elitism strategy being carried--%>
+                                    <%--out for producing a new candidate relative to the--%>
+                                    <%--crossover and random immigrant rates.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.elitismRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -407,9 +407,9 @@
                     'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The mutation rate represents the probability of a single gene being mutated.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The mutation rate represents the probability of a single gene being mutated.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -437,10 +437,10 @@
                     'is-valid':compoundEvolverForm.randomImmigrantRate.$valid && (!compoundEvolverForm.randomImmigrantRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <small class="form-text">
-                                    The random immigrant rate represents the probability of a random immigrant being made
-                                    for producing a new candidate relative to the elitism and crossover rates.
-                                </small>
+                                <%--<small class="form-text">--%>
+                                    <%--The random immigrant rate represents the probability of a random immigrant being made--%>
+                                    <%--for producing a new candidate relative to the elitism and crossover rates.--%>
+                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.randomImmigrantRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required

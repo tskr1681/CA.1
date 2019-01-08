@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
+ * All rights reserved.
+ */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolExporter;
@@ -10,21 +14,42 @@ import com.chemaxon.search.mcs.McsSearchResult;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
+/**
+ * A pipeline step that handles scored candidates.
+ *
+ * @author C.A. (Robert) Warmerdam
+ * @author c.a.warmerdam@st.hanze.nl
+ * @version 0.0.1
+ */
 public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void> {
 
     private Path anchorFilePath;
+    private Map<Long, Integer> clashingConformerCounter;
     private ExclusionShape exclusionShape;
 
-    public ScoredCandidateHandlingStep(Path anchorFilePath, Path receptorFilePath, double exclusionShapeTolerance) throws PipelineException {
+    /**
+     * Constructor for a scored candidate handling step.
+     *
+     * @param anchorFilePath The path to the file that holds the anchor.
+     * @param receptorFilePath The path of the file that holds the receptor.
+     * @param exclusionShapeTolerance The tolerance of the exclusion shape in Ångström. default is 0.
+     * @param clashingConformerCounter A map that is used to count the amount of conformers clashing.
+     * @throws PipelineException if the molecules could not be imported.
+     */
+    public ScoredCandidateHandlingStep(Path anchorFilePath,
+                                       Path receptorFilePath,
+                                       double exclusionShapeTolerance,
+                                       Map<Long, Integer> clashingConformerCounter) throws PipelineException {
+
         this.anchorFilePath = anchorFilePath;
+        this.clashingConformerCounter = clashingConformerCounter;
         try {
             Molecule receptor = new MolImporter(String.valueOf(receptorFilePath)).read();
             this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
@@ -34,12 +59,22 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         }
     }
 
+    /**
+     * Executes the scored candidate handling step.
+     *
+     * @param candidate The candidate that is scored.
+     * @return void
+     * @throws PipelineException if the candidates conformers could not be handled.
+     */
     @Override
     public Void execute(Candidate candidate) throws PipelineException {
         List<Double> conformerScores = candidate.getConformerScores();
         Path outputFilePath = candidate.getMinimizationOutputFilePath();
+        // Declare default score
         double score = 0.0;
         if (conformerScores.size() > 0) {
+
+            // Filter conformers that clash according to the exclusion shape.
             List<Double> nonClashingConformerScores = new ArrayList<>();
             List<Molecule> nonClashingConformers = new ArrayList<>();
             for (int i = 0; i < conformerScores.size(); i++) {
@@ -48,9 +83,14 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
                 if (!isInShape) {
                     nonClashingConformerScores.add(conformerScores.get(i));
                     nonClashingConformers.add(conformer);
+                } else {
+                    // Count the clashing conformer.
+                    clashingConformerCounter.compute(
+                            candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
                 }
             }
             if (nonClashingConformerScores.size() > 0) {
+                // Get best conformer.
                 score = Collections.min(nonClashingConformerScores);
                 Molecule bestConformer = nonClashingConformers.get(nonClashingConformerScores.indexOf(score));
                 candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
@@ -61,6 +101,14 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         return null;
     }
 
+    /**
+     * Calculate the least RMSD between the anchor and the substructure of the given molecule that matches the
+     * anchor best.
+     *
+     * @param minimizedMolecule The molecule to calculate the RMSD from.
+     * @return the RMSD.
+     * @throws PipelineException if the molecule could not be imported.
+     */
     private double calculateLeastAnchorRmsd(Molecule minimizedMolecule) throws PipelineException {
         try {
             // Create importer for file
@@ -98,7 +146,18 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         }
     }
 
-    private double calculateRmsd(Molecule minimizedMolecule, Molecule anchorMolecule, McsSearchResult result) throws PipelineException {
+    /**
+     * Calculates the RMSD between the minimized molecules best to the anchor matching substructure
+     * and the anchor molecule.
+     *
+     * @param minimizedMolecule The molecule with a substructure (partially matching) to the anchor molecule.
+     * @param anchorMolecule The anchor molecule.
+     * @param result The maximum common substructure search result.
+     * @return the RMSD.
+     * @throws PipelineException if no substructure was found in the minimized molecule.
+     */
+    private double calculateRmsd(Molecule minimizedMolecule, Molecule anchorMolecule, McsSearchResult result)
+            throws PipelineException {
         int[] atomMapping = result.getAtomMapping();
 
         double deviations = 0;
@@ -125,6 +184,15 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         return Math.sqrt(deviations / atomCount);
     }
 
+    /**
+     * Reads a conformer from a file at the specified index.
+     *
+     * @param minimizedConformersFilePath The path to the file that holds multiple conformers.
+     * @param conformerIndex The index at which the conformer resides (zero-indexed).
+     * @return the conformers molecule instance.
+     * @throws PipelineException if the conformer could not be obtained, or the minimized conformer file could not be
+     * imported.
+     */
     private Molecule getConformer(Path minimizedConformersFilePath, int conformerIndex) throws PipelineException {
         try {
             // Create importer for file
@@ -142,17 +210,27 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
                 m = importer.read();
             }
             importer.close();
+            // The while loop should exit whenever the considered conformer index is reached. If the two indices
+            // are not equal something went wrong (index is probably out of range) and an exception should be thrown.
             if (conformerIndex != currentConformerIndex) {
                 throw new PipelineException(String.format("Could not obtain conformer %d from '%s'",
                         conformerIndex,
                         minimizedConformersFilePath.getFileName()));
             }
+            // Return the molecule
             return m;
         } catch (IOException e) {
             throw new PipelineException("Could not import minimized file", e);
         }
     }
 
+    /**
+     * Method that exports a molecule (conformer).
+     *
+     * @param conformer The conformer to export.
+     * @param outputFilePath The path to the file to write the conformer to.
+     * @throws PipelineException if the conformer could not be written.
+     */
     private void exportConformer(Molecule conformer, Path outputFilePath) throws PipelineException {
         try {
             MolExporter exporter = new MolExporter(outputFilePath.toString(), "sdf");
