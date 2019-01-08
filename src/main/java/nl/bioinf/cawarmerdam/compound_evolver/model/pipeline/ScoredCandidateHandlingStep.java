@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A pipeline step that handles scored candidates.
@@ -30,6 +31,7 @@ import java.util.List;
 public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void> {
 
     private Path anchorFilePath;
+    private Map<Long, Integer> clashingConformerCounter;
     private ExclusionShape exclusionShape;
 
     /**
@@ -38,10 +40,16 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      * @param anchorFilePath The path to the file that holds the anchor.
      * @param receptorFilePath The path of the file that holds the receptor.
      * @param exclusionShapeTolerance The tolerance of the exclusion shape in Ångström. default is 0.
+     * @param clashingConformerCounter A map that is used to count the amount of conformers clashing.
      * @throws PipelineException if the molecules could not be imported.
      */
-    public ScoredCandidateHandlingStep(Path anchorFilePath, Path receptorFilePath, double exclusionShapeTolerance) throws PipelineException {
+    public ScoredCandidateHandlingStep(Path anchorFilePath,
+                                       Path receptorFilePath,
+                                       double exclusionShapeTolerance,
+                                       Map<Long, Integer> clashingConformerCounter) throws PipelineException {
+
         this.anchorFilePath = anchorFilePath;
+        this.clashingConformerCounter = clashingConformerCounter;
         try {
             Molecule receptor = new MolImporter(String.valueOf(receptorFilePath)).read();
             this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
@@ -75,6 +83,10 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
                 if (!isInShape) {
                     nonClashingConformerScores.add(conformerScores.get(i));
                     nonClashingConformers.add(conformer);
+                } else {
+                    // Count the clashing conformer.
+                    clashingConformerCounter.compute(
+                            candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
                 }
             }
             if (nonClashingConformerScores.size() > 0) {

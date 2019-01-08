@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
  */
 public class CompoundEvolver {
 
+    private Map<Long, Integer> clashingConformerCounter = new HashMap<>();
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
     private ForceField forceField;
@@ -44,8 +45,10 @@ public class CompoundEvolver {
     private boolean cleanupFiles;
 
     /**
-     * @param population
-     * @param evolutionProgressConnector
+     * The constructor for a compound evolver.
+     *
+     * @param population The initial population.
+     * @param evolutionProgressConnector An object that can be used to write progress to.
      */
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
         this.population = population;
@@ -470,7 +473,8 @@ public class CompoundEvolver {
         ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
                 anchor,
                 receptorFilePath,
-                exclusionShapeTolerance);
+                exclusionShapeTolerance,
+                clashingConformerCounter);
         // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.
