@@ -9,6 +9,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -114,27 +115,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                     "-A", "hydrogens",
                     "-o", pdbqtFilePath.toString());
 
-            final Process p = builder.start();
-
-            p.waitFor();
-
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
-
-//            // read the output from the command
-//            candidate.getPipelineLogger().info(
-//                    String.format("Obfit has written the following output:%n%s%n", IOUtils.toString(stdInput)));
-//
-//            // read any errors from the attempted command
-//            String stdErrorMessage = IOUtils.toString(stdError);
-//            if (!stdErrorMessage.isEmpty()) {
-//                candidate.getPipelineLogger().warning(
-//                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
-//            }
-            return pdbqtFilePath;
+            return convertFileWithProcessBuilder(pdbqtFilePath, builder);
         } catch (IOException | InterruptedException e) {
 
             // Format exception message
@@ -148,7 +129,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
-    public static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
+    private static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
         try {
 
             // Initialize new Lists for centers and sizes

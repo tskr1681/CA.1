@@ -8,6 +8,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -121,27 +122,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
                     "-pM", receptorFile.toString());
 
             // Start the process
-            final Process p = builder.start();
-
-            p.waitFor();
-
-//            BufferedReader stdInput = new BufferedReader(new
-//                    InputStreamReader(p.getInputStream()));
-//
-//            BufferedReader stdError = new BufferedReader(new
-//                    InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-//            candidate.getPipelineLogger().info(
-//                    String.format("Conversion to mab file has written output:%n%s%n", IOUtils.toString(stdInput)));
-//
-//            // read any errors from the attempted command
-//            String stdErrorMessage = IOUtils.toString(stdError);
-//            if (!stdErrorMessage.isEmpty()) {
-//                candidate.getPipelineLogger().warning(
-//                        String.format("Converson to mab file has written an error message:%n%s%n", stdErrorMessage));
-//            }
-            return mabFilePath;
+            return convertFileWithProcessBuilder(mabFilePath, builder);
 
         } catch (InterruptedException | IOException e) {
 
