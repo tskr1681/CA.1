@@ -12,19 +12,32 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * Class that creates a random set of candidates from the given reactions and reactants with the
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
 class RandomCompoundReactor {
-
     private int maxSamples;
 
+    /**
+     * Constructor of the random compound reactor.
+     *
+     * @param maxSamples how many candidates have to be sampled.
+     */
     RandomCompoundReactor(int maxSamples)
     {
         this.maxSamples = maxSamples;
     }
 
+    /**
+     * Method that generates random candidates.
+     *
+     * @param reactantLists a list of lists of reactants.
+     * @param species a list with species that contain reactions and how reactants map to the reaction.
+     * @return the list of generated candidates.
+     */
     List<Candidate> randReact(List<List<Molecule>> reactantLists, List<Species> species) {
 
         // Amount of products generated
@@ -38,20 +51,8 @@ class RandomCompoundReactor {
         // Try to generate products while the number of products generated is
         // lower than the maximum number of products wanted
         while (nSampled < maxSamples) {
-            // Get iterator from reactant lists
-            Iterator<List<Molecule>> iterator = reactantLists.iterator();
-
-            // Define a list of indices corresponding to the reactants in the genome
-            List<Integer> indexGenome = new ArrayList<>();
-
-            while (iterator.hasNext()) {
-                // Get random reactants for a single reaction
-                List<Molecule> map = iterator.next();
-                // Get a random int within range 0 (inclusive) - n-reactants (exclusive)
-                int index = random.nextInt(map.size());
-                // Add the new reactant in both representations to the list
-                indexGenome.add(index);
-            }
+            // Get a list of randomly selected reactants that can be a genome
+            List<Integer> indexGenome = selectRandomIndexGenome(random, reactantLists);
 
             // Set the reactants
             Candidate candidate = new Candidate(indexGenome);
@@ -63,11 +64,36 @@ class RandomCompoundReactor {
             }
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
+            // Throw an exception if there still is nothing sampled after 10000 milliseconds.
             if (duration > 10000 && nSampled <= 0) {
                 throw new RuntimeException(String.format("Reactants did not react in %d ms. Are they in order?", duration));
             }
         }
         return candidates;
 
+    }
+
+    /**
+     * Method that randomly picks a reactant from every list of reactants.
+     *
+     * @param random An instance of the random class.
+     * @param reactantLists The list of lists of reactants.
+     * @return a randomly combined genome.
+     */
+    private List<Integer> selectRandomIndexGenome(Random random, List<List<Molecule>> reactantLists) {
+        // Get iterator from reactant lists
+        Iterator<List<Molecule>> iterator = reactantLists.iterator();
+        // Define a list of indices corresponding to the reactants in the genome
+        List<Integer> indexGenome = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            // Get random reactants for a single reaction
+            List<Molecule> map = iterator.next();
+            // Get a random int within range 0 (inclusive) - n-reactants (exclusive)
+            int index = random.nextInt(map.size());
+            // Add the new reactant in both representations to the list
+            indexGenome.add(index);
+        }
+        return indexGenome;
     }
 }

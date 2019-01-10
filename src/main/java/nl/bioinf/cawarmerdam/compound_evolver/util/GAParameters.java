@@ -10,7 +10,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -36,6 +35,7 @@ public class GAParameters implements Serializable {
     private Population.SelectionMethod selectionMethod;
     private Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod;
     private Population.SpeciesDeterminationMethod speciesDeterminationMethod;
+    private int targetCandidateCount;
 
     public int getGenerationSize() {
         return generationSize;
@@ -214,5 +214,13 @@ public class GAParameters implements Serializable {
 
     public void setSpeciesDeterminationMethod(Population.SpeciesDeterminationMethod speciesDeterminationMethod) {
         this.speciesDeterminationMethod = speciesDeterminationMethod;
+    }
+
+    public void setTargetCandidateCount(int targetCandidateCount) {
+        this.targetCandidateCount = targetCandidateCount;
+    }
+
+    public int getTargetCandidateCount() {
+        return targetCandidateCount;
     }
 }

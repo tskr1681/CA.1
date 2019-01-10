@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Class that defines how an exclusion shape instance is defined.
+ * The implementation of the exclusive shape functionality is based on the
+ * <a href="https://pubs.acs.org/doi/abs/10.1021/ci200097m">Pharmit</a> implementation of exclusive shape.
+ * <a href="https://sourceforge.net/p/pharmit">pharmit source code</a>
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -130,6 +135,7 @@ public class ExclusionShape {
     private final Grid grid;
 
     /**
+     * Constructor of an exclusion shape. This defines what part of a 3D space is exclusive to a molecule.
      *
      * @param receptor A molecule that represents the excluded space
      * @throws IllegalArgumentException if any atom in the array is a Hydrogen atom
@@ -137,10 +143,15 @@ public class ExclusionShape {
     public ExclusionShape(Molecule receptor, double tolerance) {
         // Make a grid that spans the size of the molecule and has resolution
         DPoint3[] enclosingCube = receptor.getEnclosingCube();
+
+        // The grid should expand a bit further than the enclosing cube.
+        // 5 angstrom is used to maintain a buffer with even the largest elements. (biggest radius is 3.24 angstrom)
         DPoint3 margin = new DPoint3(5, 5, 5);
         DPoint3 referenceCoordinate = DPoint3.subtract(enclosingCube[0], margin);
         DPoint3 endCoordinate = DPoint3.add(enclosingCube[1], margin);
         DPoint3 cubeSize = DPoint3.subtract(endCoordinate, referenceCoordinate);
+
+        // Construct a grid with the calculated dimensions, the reference coordinate, and the resolution of 0.5.
         grid = new Grid(referenceCoordinate, cubeSize.x, cubeSize.y, cubeSize.z, RESOLUTION);
 
         fillAccessibleSurface(receptor);
@@ -153,17 +164,15 @@ public class ExclusionShape {
         }
     }
 
+    /**
+     * @param receptor
+     */
     private void fillAccessibleSurface(Molecule receptor) {
         for (MolAtom atom : receptor.atoms()) {
             grid.markSphere(atom.getLocation(),
                     ELEMENT_VDW_RADII.get(atom.getAtno()) + DEFAULT_PROBE_SIZE, true);
         }
     }
-
-//    public boolean fitsShape(Molecule molecule) {
-//        DPoint3[] enclosingCube = molecule.getEnclosingCube();
-//        enclosingCube
-//    }
 
     public boolean inShape(Molecule other) {
         for (MolAtom atom : other.atoms()) {

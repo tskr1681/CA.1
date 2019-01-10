@@ -43,6 +43,8 @@ public class CompoundEvolver {
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
     private boolean cleanupFiles;
+    private int targetCandidateCount;
+    private int candidatesScored;
 
     /**
      * The constructor for a compound evolver.
@@ -337,6 +339,7 @@ public class CompoundEvolver {
             for (Future<Void> future : futures) {
                 try {
                     future.get();
+                    candidatesScored += 1;
                 } catch (InterruptedException | ExecutionException e) {
                     // Handle exception
                     evolutionProgressConnector.putException(e);
@@ -400,6 +403,9 @@ public class CompoundEvolver {
             return this.hasConverged(generationNumber);
         } else if (this.terminationCondition == TerminationCondition.DURATION) {
             return this.maximumAllowedDuration <= duration;
+        } else if (this.terminationCondition == TerminationCondition.MAXIMUM_CANDIDATE_COUNT) {
+            System.out.println("candidatesScored = " + this.candidatesScored + ", max = " + this.targetCandidateCount);
+            return this.targetCandidateCount <= this.candidatesScored;
         }
         return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
@@ -541,10 +547,28 @@ public class CompoundEvolver {
     /**
      * Setter for the clearing and cleaning of pipeline files.
      *
-     * @param cleanupFiles, True if pipeline files have to be cleared.
+     * @param cleanupFiles True if pipeline files have to be cleared.
      */
     void setCleanupFiles(boolean cleanupFiles) {
         this.cleanupFiles = cleanupFiles;
+    }
+
+    /**
+     * Setter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @param targetCandidateCount The amount of candidates that is sampled.
+     */
+    public void setTargetCandidateCount(int targetCandidateCount) {
+        this.targetCandidateCount = targetCandidateCount;
+    }
+
+    /**
+     * Getter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @return the amount of candidates that is sampled.
+     */
+    public int getTargetCandidateCount() {
+        return targetCandidateCount;
     }
 
     /**
@@ -600,7 +624,8 @@ public class CompoundEvolver {
     public enum TerminationCondition {
         FIXED_GENERATION_NUMBER("fixed"),
         CONVERGENCE("convergence"),
-        DURATION("duration");
+        DURATION("duration"),
+        MAXIMUM_CANDIDATE_COUNT("maximum candidate count");
 
         private final String text;
 
