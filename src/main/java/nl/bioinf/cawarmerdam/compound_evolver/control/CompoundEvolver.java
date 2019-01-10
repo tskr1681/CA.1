@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @version 0.0.1
  */
 public class CompoundEvolver {
-
+    private ExecutorService executor;
     private Map<Long, Integer> clashingConformerCounter = new HashMap<>();
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
@@ -283,6 +283,7 @@ public class CompoundEvolver {
     public void evolve() throws OffspringFailureOverflow, UnSelectablePopulationException {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
+        this.executor = Executors.newFixedThreadPool(25);
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
 
         // Score the initial population
@@ -306,6 +307,15 @@ public class CompoundEvolver {
         } catch (OffspringFailureOverflow | UnSelectablePopulationException e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
             throw e;
+        } finally {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+            }
         }
     }
 
@@ -324,8 +334,6 @@ public class CompoundEvolver {
         if (!dummyFitness) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-            // Get executorService with thread pool size 4
-            ExecutorService executor = Executors.newFixedThreadPool(25);
             // Create list to hold future object associated with Callable
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
@@ -347,7 +355,6 @@ public class CompoundEvolver {
                     e.printStackTrace();
                 }
             }
-            executor.shutdown();
             // Log completed scoring round
             System.out.println("Finished all threads");
         } else {
