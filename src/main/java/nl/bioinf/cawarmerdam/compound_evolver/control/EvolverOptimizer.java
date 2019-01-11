@@ -102,7 +102,7 @@ public class EvolverOptimizer {
                 identifier,
                 bestScore,
                 run.getDuration(),
-                parameterVector.getGenerationSize(),
+                parameterVector.getPopulationSize(),
                 parameterVector.getSelectionRate(),
                 parameterVector.getMutationRate(),
                 parameterVector.getSelectionMethod(),
@@ -204,7 +204,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getGenerationSize());
+                parameters.getPopulationSize());
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

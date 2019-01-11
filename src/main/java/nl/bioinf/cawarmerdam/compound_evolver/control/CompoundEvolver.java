@@ -122,7 +122,7 @@ public class CompoundEvolver {
     }
 
     /**
-     * Getter for the maximum allowed duration of the evolution procedure. No new generation is made when this
+     * Setter for the maximum allowed duration of the evolution procedure. No new generation is made when this
      * duration is surpassed by actual duration.
      *
      * @param maximumAllowedDuration The maximum allowed duration of the evolution procedure.

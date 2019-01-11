@@ -59,7 +59,6 @@ public class Candidate implements Comparable<Candidate> {
     private Random random = new Random();
     private List<Double> conformerScores;
     private Path minimizationOutputFilePath;
-    private double kcalToJouleConstant;
 
     /**
      * Constructor for candidate instance.
@@ -311,8 +310,8 @@ public class Candidate implements Comparable<Candidate> {
      * Method responsible for calculating and setting the ligand lipophilicity efficiency.
      */
     public void calculateLigandLipophilicityEfficiency() {
-        kcalToJouleConstant = 4.186798188;
-        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()*kcalToJouleConstant) - logPPlugin.getlogPTrue();
+        double kcalToJouleConstant = 4.186798188;
+        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()* kcalToJouleConstant) - logPPlugin.getlogPTrue();
     }
 
     /**

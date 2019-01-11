@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * The servlet that makes scores downloadable as a csv.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -52,6 +54,12 @@ public class DownloadCsvServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Method that extracts the scores from a progress connector.
+     *
+     * @param progressConnector A progress connector that holds the a set of generations.
+     * @return the score of every candidate in the generations collection from the progress connector.
+     */
     private List<List<Double>> extractScoresFromGenerations(SessionEvolutionProgressConnector progressConnector) {
         List<Generation> generations = progressConnector.getGenerations();
 

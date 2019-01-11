@@ -116,7 +116,7 @@ public class Population implements Iterable<Candidate> {
     /**
      * Setter for the interspecies crossover method.
      *
-     * @param interspeciesCrossoverMethod the interspecies crossover method.
+     * @param interspeciesCrossoverMethod The interspecies crossover method.
      */
     public void setInterspeciesCrossoverMethod(InterspeciesCrossoverMethod interspeciesCrossoverMethod) {
         this.interspeciesCrossoverMethod = interspeciesCrossoverMethod;
@@ -151,10 +151,10 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Getter for the maximum allowed rmsd between the anchor and
+     * Setter for the maximum allowed rmsd between the anchor and
      * its matching substructure in the candidates best conformer.
      *
-     * @param maxAnchorMinimizedRmsd, the maximum allowed rmsd
+     * @param maxAnchorMinimizedRmsd The maximum allowed rmsd
      */
     public void setMaxAnchorMinimizedRmsd(double maxAnchorMinimizedRmsd) {
         this.maxAnchorMinimizedRmsd = maxAnchorMinimizedRmsd;

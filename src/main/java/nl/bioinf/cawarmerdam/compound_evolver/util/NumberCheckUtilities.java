@@ -7,6 +7,8 @@ package nl.bioinf.cawarmerdam.compound_evolver.util;
 import java.util.regex.Pattern;
 
 /**
+ * Class that has utilities for checking if a string can be parsed to an integer.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -15,6 +17,7 @@ class NumberCheckUtilities {
 
     /**
      * Method that checks if a string is an integer.
+     *
      * @param string, The string that is checked.
      * @param radix, The number of unique digits used to represent numbers in a positional numeral system.
      * @return true if the string is an integer.
@@ -32,7 +35,8 @@ class NumberCheckUtilities {
     }
 
     /**
-     * Method that checks if a string can be a double as suggested by the javaDoc.
+     * Method that checks if a string can be a double as suggested by Oracle's Java documentation.
+     *
      * @param parameter, the string to check.
      * @return true if the string can be a double, false if not.
      */
