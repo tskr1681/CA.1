@@ -5,12 +5,19 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 /**
+ * Exception that gets thrown whenever selection could not be performed.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
 public class UnSelectablePopulationException extends Exception {
-    public UnSelectablePopulationException(String message) {
+    /**
+     * Constructor for the unselectable population exception.
+     *
+     * @param message The exception message.
+     */
+    UnSelectablePopulationException(String message) {
         super(message);
     }
 }

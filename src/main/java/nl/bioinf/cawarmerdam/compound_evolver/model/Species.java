@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
+ * Class that holds a reaction and how the different reactants (different location in the reaction)
+ * map to this reaction.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -23,11 +26,26 @@ public class Species {
     private List<Integer> reactantIndices;
     private Reactor reaction;
 
+    /**
+     * Constructor of a species instance.
+     *
+     * @param reactantIndices A list of indices that each corresponds to a list of reactants out of the list of
+     *                        lists of reactants. this list of reactants should contain reactants that fit in the
+     *                        location of the reaction according to the position of the index in this list.
+     * @param reaction The reactor reaction.
+     */
     Species(List<Integer> reactantIndices, Reactor reaction) {
         this.reactantIndices = reactantIndices;
         this.reaction = reaction;
     }
 
+    /**
+     * Constructs a list of species that map identically between the reactions and the given list of lists of reactants.
+     *
+     * @param reactions The reactor reactions which resemble species.
+     * @param reactantCount The amount of lists of reactants received.
+     * @return a list of species.
+     */
     public static List<Species> constructSpecies(List<Reactor> reactions, int reactantCount) {
         ArrayList<Species> species = new ArrayList<>();
 
@@ -38,14 +56,32 @@ public class Species {
         return species;
     }
 
+    /**
+     * Getter for the reaction in the species.
+     *
+     * @return the reactor reaction in the species.
+     */
     public Reactor getReaction() {
         return reaction;
     }
 
+    /**
+     * Getter for the reactant indices. A list of indices that each corresponds to a list
+     * of reactants out of the list of lists of reactants. this list of reactants should contain reactants that
+     * fit in the location of the reaction according to the position of the index in this list.
+     *
+     * @return the reactant indices.
+     */
     List<Integer> getReactantIndices() {
         return reactantIndices;
     }
 
+    /**
+     * Collects those reactant lists that are used in this species' reaction.
+     *
+     * @param reactantLists the list of lists of reactants.
+     * @return those reactant lists that are used in this species' reaction.
+     */
     List<List<Molecule>> getReactantListsSubset(List<List<Molecule>> reactantLists) {
         return this.getReactantIndices()
                 .stream()
@@ -53,6 +89,12 @@ public class Species {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Collects those reactants that are used in this species' reaction.
+     *
+     * @param reactants the list of reactants that can form a genotype.
+     * @return those reactants that are used in this species' reaction.
+     */
     Molecule[] getReactantsSubset(List<Molecule> reactants) {
         return this.getReactantIndices()
                 .stream()
@@ -60,6 +102,14 @@ public class Species {
                 .toArray(Molecule[]::new);
     }
 
+    /**
+     * Constructs a list of species according to the list of reactor reaction and list of reactant file orders.
+     *
+     * @param reactions The list of reactions that each resembles a species.
+     * @param reactantsFileOrder The list of reactant file orders, each a list with each integer referring to a
+     *                           list of reactants or a specific reactant in a genotype.
+     * @return a list of species.
+     */
     public static List<Species> constructSpecies(List<Reactor> reactions, List<List<Integer>> reactantsFileOrder) {
         ArrayList<Species> species = new ArrayList<>();
 
@@ -70,6 +120,12 @@ public class Species {
         return species;
     }
 
+    /**
+     * A method that determines what parts of two species use the same reactants.
+     *
+     * @param other Another species.
+     * @return the indices of reactants that are used in both this species and the other species.
+     */
     List<Integer> reactantIndexIntersection(Species other) {
         return this.reactantIndices.stream()
                 .distinct()

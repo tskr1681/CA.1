@@ -11,7 +11,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GAParameters;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
-import org.antlr.v4.misc.OrderedHashMap;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,16 +20,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class EvolverOptimizer {
-    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int runDuration, int repetitions) {
+    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int candidateCount, int repetitions) {
         // Get range
         List<GAParameters> gaParameterVectors = new ArrayList<>();
 
-        GAParameters baseParameters = getBaseParameters(runDuration);
+        GAParameters baseParameters = getBaseParameters(candidateCount);
         GeneratePermutations(parameterLists, gaParameterVectors, 0, baseParameters);
         List<GAParameters> filteredGAParameterVectors = gaParameterVectors.stream()
                 .filter(vector -> vector.getCrossoverRate() + vector.getRandomImmigrantRate() <= 1)
@@ -104,7 +102,7 @@ public class EvolverOptimizer {
                 identifier,
                 bestScore,
                 run.getDuration(),
-                parameterVector.getGenerationSize(),
+                parameterVector.getPopulationSize(),
                 parameterVector.getSelectionRate(),
                 parameterVector.getMutationRate(),
                 parameterVector.getSelectionMethod(),
@@ -133,10 +131,10 @@ public class EvolverOptimizer {
         // Construct the initial population
         Path uploadPath = Paths.get(args[args.length - 4]);
         List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 3]);
-        int runDuration = Integer.parseInt(args[args.length - 2]);
+        int candidateCount = Integer.parseInt(args[args.length - 2]);
         int repetitions = Integer.parseInt(args[args.length - 1]);
         // Construct the initial population
-        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, runDuration, repetitions);
+        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, candidateCount, repetitions);
     }
 
     private static List<Pair<String, List<Object>>> parseParameterLists(String arg) throws java.io.IOException {
@@ -172,10 +170,10 @@ public class EvolverOptimizer {
         mapper.writeValue(paramsFilePath.toFile(), parameterVector);
     }
 
-    private GAParameters getBaseParameters(int runDuration) {
+    private GAParameters getBaseParameters(int candidateCount) {
         GAParameters gaParameters = new GAParameters();
         gaParameters.setForceField(CompoundEvolver.ForceField.SMINA);
-        gaParameters.setTerminationCondition(CompoundEvolver.TerminationCondition.DURATION);
+        gaParameters.setTerminationCondition(CompoundEvolver.TerminationCondition.MAXIMUM_CANDIDATE_COUNT);
         gaParameters.setFitnessMeasure(CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY);
         gaParameters.setSelectionMethod(Population.SelectionMethod.TOURNAMENT_SELECTION);
         gaParameters.setMutationMethod(Population.MutationMethod.DISTANCE_INDEPENDENT);
@@ -183,7 +181,7 @@ public class EvolverOptimizer {
         gaParameters.setSpeciesDeterminationMethod(Population.SpeciesDeterminationMethod.FIXED);
         gaParameters.setInterspeciesCrossoverMethod(Population.InterspeciesCrossoverMethod.NONE);
         gaParameters.setMaxAnchorMinimizedRmsd(2.0);
-        gaParameters.setMaximumAllowedDuration(1000 * runDuration);
+        gaParameters.setTargetCandidateCount(candidateCount);
         return gaParameters;
     }
 
@@ -206,7 +204,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getGenerationSize());
+                parameters.getPopulationSize());
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());
@@ -227,7 +225,7 @@ public class EvolverOptimizer {
         compoundEvolver.setTerminationCondition(parameters.getTerminationCondition());
         compoundEvolver.setMaxNumberOfGenerations(parameters.getMaxGenerations());
         compoundEvolver.setupPipeline(uploadPath, receptorPath, anchorPath);
-        compoundEvolver.setMaximumAllowedDuration(parameters.getMaximumAllowedDuration());
+        compoundEvolver.setTargetCandidateCount(parameters.getTargetCandidateCount());
 
         // Evolve compounds
         compoundEvolver.evolve();

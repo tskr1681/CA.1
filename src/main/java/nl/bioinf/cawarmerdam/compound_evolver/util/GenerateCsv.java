@@ -9,12 +9,22 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
+ * Class with a method that generates a csv from a list of lists.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
 public class GenerateCsv {
 
+    /**
+     * Method that generates a csv from a list of lists.
+     *
+     * @param data The list of lists that has to be converted to a list.
+     * @param lineSeparator The line separator to use.
+     * @return a string of all items in the nested lists separated by ', ', which are separated by a line separator that
+     * is given.
+     */
     public static <T> String generateCsvFile(List<List<T>> data, String lineSeparator) {
         // Initialize joiner
         StringJoiner joiner = new StringJoiner(lineSeparator);

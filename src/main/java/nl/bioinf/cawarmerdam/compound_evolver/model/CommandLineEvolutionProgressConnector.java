@@ -22,12 +22,12 @@ public class CommandLineEvolutionProgressConnector implements EvolutionProgressC
 
     @Override
     public void putException(Exception exception) {
-        // Do something
+        // Do nothing
     }
 
     @Override
-    public void setStatus(Status isRunning) {
-        // Do something
+    public void setStatus(Status status) {
+        // Do nothing
     }
 
 }

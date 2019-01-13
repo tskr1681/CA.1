@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @version 0.0.1
  */
 public class CompoundEvolver {
-
+    private ExecutorService executor;
     private Map<Long, Integer> clashingConformerCounter = new HashMap<>();
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
@@ -43,6 +43,8 @@ public class CompoundEvolver {
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
     private boolean cleanupFiles;
+    private int targetCandidateCount;
+    private int candidatesScored;
 
     /**
      * The constructor for a compound evolver.
@@ -120,7 +122,7 @@ public class CompoundEvolver {
     }
 
     /**
-     * Getter for the maximum allowed duration of the evolution procedure. No new generation is made when this
+     * Setter for the maximum allowed duration of the evolution procedure. No new generation is made when this
      * duration is surpassed by actual duration.
      *
      * @param maximumAllowedDuration The maximum allowed duration of the evolution procedure.
@@ -281,6 +283,7 @@ public class CompoundEvolver {
     public void evolve() throws OffspringFailureOverflow, UnSelectablePopulationException {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
+        this.executor = Executors.newFixedThreadPool(25);
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
 
         // Score the initial population
@@ -304,6 +307,15 @@ public class CompoundEvolver {
         } catch (OffspringFailureOverflow | UnSelectablePopulationException e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
             throw e;
+        } finally {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+            }
         }
     }
 
@@ -322,8 +334,6 @@ public class CompoundEvolver {
         if (!dummyFitness) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-            // Get executorService with thread pool size 4
-            ExecutorService executor = Executors.newFixedThreadPool(25);
             // Create list to hold future object associated with Callable
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
@@ -337,6 +347,7 @@ public class CompoundEvolver {
             for (Future<Void> future : futures) {
                 try {
                     future.get();
+                    candidatesScored += 1;
                 } catch (InterruptedException | ExecutionException e) {
                     // Handle exception
                     evolutionProgressConnector.putException(e);
@@ -344,7 +355,6 @@ public class CompoundEvolver {
                     e.printStackTrace();
                 }
             }
-            executor.shutdown();
             // Log completed scoring round
             System.out.println("Finished all threads");
         } else {
@@ -400,6 +410,9 @@ public class CompoundEvolver {
             return this.hasConverged(generationNumber);
         } else if (this.terminationCondition == TerminationCondition.DURATION) {
             return this.maximumAllowedDuration <= duration;
+        } else if (this.terminationCondition == TerminationCondition.MAXIMUM_CANDIDATE_COUNT) {
+            System.out.println("candidatesScored = " + this.candidatesScored + ", max = " + this.targetCandidateCount);
+            return this.targetCandidateCount <= this.candidatesScored;
         }
         return generationNumber == this.maxNumberOfGenerations || evolutionProgressConnector.isTerminationRequired();
     }
@@ -541,10 +554,28 @@ public class CompoundEvolver {
     /**
      * Setter for the clearing and cleaning of pipeline files.
      *
-     * @param cleanupFiles, True if pipeline files have to be cleared.
+     * @param cleanupFiles True if pipeline files have to be cleared.
      */
     void setCleanupFiles(boolean cleanupFiles) {
         this.cleanupFiles = cleanupFiles;
+    }
+
+    /**
+     * Setter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @param targetCandidateCount The amount of candidates that is sampled.
+     */
+    public void setTargetCandidateCount(int targetCandidateCount) {
+        this.targetCandidateCount = targetCandidateCount;
+    }
+
+    /**
+     * Getter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @return the amount of candidates that is sampled.
+     */
+    public int getTargetCandidateCount() {
+        return targetCandidateCount;
     }
 
     /**
@@ -600,7 +631,8 @@ public class CompoundEvolver {
     public enum TerminationCondition {
         FIXED_GENERATION_NUMBER("fixed"),
         CONVERGENCE("convergence"),
-        DURATION("duration");
+        DURATION("duration"),
+        MAXIMUM_CANDIDATE_COUNT("maximum candidate count");
 
         private final String text;
 
