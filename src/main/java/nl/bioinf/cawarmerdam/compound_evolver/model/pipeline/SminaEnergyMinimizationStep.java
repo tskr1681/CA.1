@@ -19,6 +19,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
+ * Minimization step that uses Smina.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -27,6 +29,17 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
     private Path receptorFilePath;
     private String sminaExecutable;
 
+    /**
+     * Constructor for smina energy minimization step.
+     *
+     * @param forcefield The force field that smina should use.
+     * @param receptorFilePath The path of the file that holds the receptor.
+     * @param anchorFilePath The path to the file that holds the anchor.
+     * @param sminaExecutable The path to the executable of Smina.
+     * @param pythonExecutable The path to the python executable to run the prepare receptor tool from ADT.
+     * @param prepareReceptorExecutable The path to the prepare receptor tool from ADT.
+     * @throws PipelineException if the receptor cannot be prepared for energy minimization with Smina.
+     */
     public SminaEnergyMinimizationStep(String forcefield,
                                        Path receptorFilePath,
                                        Path anchorFilePath,
@@ -38,29 +51,61 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         this.sminaExecutable = sminaExecutable;
     }
 
+    /**
+     * Method that executes the minimization of a candidate by use of Smina.
+     *
+     * @param candidate The candidate whose conformers should be scored.
+     * @return the scored candidate.
+     * @throws PipelineException if the candidate cannot be scored.
+     */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
+        // THe output file path will be called smina.sdf, located in the candidate specific folder.
         Path outputPath = inputFile.resolveSibling("smina.sdf");
+        // Run the smina minimization
         ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath, candidate);
+        // Set the conformer scores and output path.
         candidate.setConformerScores(getConformerScores(smina));
         candidate.setMinimizationOutputFilePath(outputPath);
         return candidate;
     }
 
+    /**
+     * Method that parses the smina output and collects the binding affinity score for every conformer.
+     * This is the first value after 'Affinity:'
+     *
+     * @param smina The smina output, line by line.
+     * @return the score for each conformer as given by smina.
+     */
     private List<Double> getConformerScores(ArrayList<String> smina) {
         ArrayList<Double> conformerScores = new ArrayList<>();
         for (String line : smina) {
+            // The scores are on each line starting with 'Affinity:'
             if (line.startsWith("Affinity:")) {
                 String[] split = line.split("\\s+");
+                // The second element(1) is the first value of the two.
                 conformerScores.add(Double.parseDouble(split[1]));
             }
         }
         return conformerScores;
     }
 
-    private ArrayList<String> smina(Path inputFile, Map<String, Double> conformerCoordinates, Path outputPath, Candidate candidate) throws PipelineException {
+    /**
+     * The method responsible for running smina in a process.
+     *
+     * @param inputFile The path to an sdf file that should be scored.
+     * @param conformerCoordinates A map that describes the box to consider for minimization.
+     * @param outputPath The path where the minimized molecule should live.
+     * @param candidate The candidate instance that is scored.
+     * @return the smina output.
+     * @throws PipelineException if smina minimization failed.
+     */
+    private ArrayList<String> smina(Path inputFile,
+                                    Map<String, Double> conformerCoordinates,
+                                    Path outputPath,
+                                    Candidate candidate) throws PipelineException {
         // Initialize string line
         String line = null;
 
@@ -110,6 +155,15 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
+    /**
+     * Converts the input .pdb file to a .pdbqt file that smina wants.
+     *
+     * @param pdbPath The path to the file that holds the pdb structure.
+     * @param pythonExecutable The path to the python executable to run the prepare receptor tool from ADT.
+     * @param prepareReceptorExecutable The path to the prepare receptor tool from ADT.
+     * @return the path to the file that holds the converted pdbqt structure.
+     * @throws PipelineException if the file could not be converted.
+     */
     private Path convertToPdbQt(Path pdbPath, String pythonExecutable, String prepareReceptorExecutable) throws PipelineException {
         String fileName = pdbPath.getFileName().toString();
         Path pdbqtFilePath = Paths.get(FilenameUtils.removeExtension(pdbPath.toString()) + ".pdbqt");
@@ -138,6 +192,13 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
         }
     }
 
+    /**
+     * Method that determines the location and size of a box around the conformer that will be scored.
+     *
+     * @param ligandPath The path to the file that holds the ligand, or compound.
+     * @return a map that describes a box that should be considered for minimization.
+     * @throws PipelineException if the compound file could not be imported.
+     */
     private static Map<String, Double> getConformerCoordinates(Path ligandPath) throws PipelineException {
         try {
 
