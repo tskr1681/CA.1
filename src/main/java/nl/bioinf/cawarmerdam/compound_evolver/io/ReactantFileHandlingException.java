@@ -10,7 +10,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.io;
  * @version 0.0.1
  */
 public class ReactantFileHandlingException extends Exception {
-    private String fileName;
+    private final String fileName;
 
     /**
      * Constructor for reactant file handling exception.

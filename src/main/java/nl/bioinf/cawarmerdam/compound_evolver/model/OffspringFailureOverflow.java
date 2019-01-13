@@ -14,7 +14,7 @@ import java.util.List;
  * @version 0.0.1
  */
 public class OffspringFailureOverflow extends Exception {
-    private List<String> offspringRejectionMessages;
+    private final List<String> offspringRejectionMessages;
 
     /**
      * Constructor for the offspring failure overflow.
@@ -22,7 +22,7 @@ public class OffspringFailureOverflow extends Exception {
      * @param message The exception message.
      * @param offspringRejectionMessages The messages that are created whenever new offspring fails.
      */
-    public OffspringFailureOverflow(String message, List<String> offspringRejectionMessages) {
+    OffspringFailureOverflow(String message, List<String> offspringRejectionMessages) {
         super(message);
         this.offspringRejectionMessages = offspringRejectionMessages;
     }

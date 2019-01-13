@@ -73,10 +73,12 @@ public class CompoundEvolver {
         // Get maximum amount of product
         int maxSamples = Integer.parseInt(args[args.length - 1]);
         // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 2);
+        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 4);
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
-        // Load anchor molecule
-        Path anchor = Paths.get(args[args.length - 2]);
+        // Load anchor and receptor molecules
+        Path pipelineLocation = Paths.get(args[args.length - 2]);
+        Path receptor = Paths.get(args[args.length - 4]);
+        Path anchor = Paths.get(args[args.length - 3]);
         // Construct the initial population
         ArrayList<Reactor> reactions = new ArrayList<>();
         reactions.add(reactor);
@@ -87,7 +89,7 @@ public class CompoundEvolver {
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
-        compoundEvolver.setupPipeline(Paths.get("C:\\Users\\P286514\\uploads"));
+        compoundEvolver.setupPipeline(pipelineLocation, receptor, anchor);
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();
@@ -96,7 +98,7 @@ public class CompoundEvolver {
     /**
      * Getter for the duration of the evolution procedure in ms.
      *
-     * @return the duration of the evolution procudure in ms.
+     * @return the duration of the evolution procedure in ms.
      */
     public double getDuration() {
         return duration;
@@ -392,7 +394,7 @@ public class CompoundEvolver {
         // Get min and max
         Double maxFitness = Collections.max(fitnesses);
         Double minFitness = Collections.min(fitnesses);
-        // We whould like to calculate the fitness with the heavy atom
+        // We would like to calculate the fitness with the heavy atom
         for (Candidate candidate : this.population) {
             // Ligand efficiency
             candidate.calcNormFitness(minFitness, maxFitness);
@@ -432,7 +434,7 @@ public class CompoundEvolver {
         int highestScoringGenerationNumber = 0;
 
         // Initialize maximum of the generation.
-        double max = 0;
+        double max;
         for (int i = 0; i < populationFitness.size(); i++) {
             // Get maximum of the generation
             max = Collections.max(populationFitness.get(i));
@@ -443,9 +445,7 @@ public class CompoundEvolver {
                 highestScoringGenerationNumber = i;
             }
         }
-//        System.out.printf("highscore: %.2f at Ngen %d, curr: %.2f --- ", highestScore, highestScoringGenerationNumber, max);
         double nonImprovingGenerationNumber = highestScoringGenerationNumber * this.nonImprovingGenerationAmountFactor + highestScoringGenerationNumber;
-//        System.out.printf("%f < %d = %s%n", nonImprovingGenerationNumber, generationNumber, nonImprovingGenerationNumber < generationNumber);
         return nonImprovingGenerationNumber < generationNumber;
     }
 

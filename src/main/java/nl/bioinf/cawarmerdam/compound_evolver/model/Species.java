@@ -8,7 +8,6 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -23,8 +22,8 @@ import java.util.stream.IntStream;
  * @version 0.0.1
  */
 public class Species {
-    private List<Integer> reactantIndices;
-    private Reactor reaction;
+    private final List<Integer> reactantIndices;
+    private final Reactor reaction;
 
     /**
      * Constructor of a species instance.
@@ -34,7 +33,7 @@ public class Species {
      *                        location of the reaction according to the position of the index in this list.
      * @param reaction The reactor reaction.
      */
-    Species(List<Integer> reactantIndices, Reactor reaction) {
+    public Species(List<Integer> reactantIndices, Reactor reaction) {
         this.reactantIndices = reactantIndices;
         this.reaction = reaction;
     }
@@ -72,7 +71,7 @@ public class Species {
      *
      * @return the reactant indices.
      */
-    List<Integer> getReactantIndices() {
+    public List<Integer> getReactantIndices() {
         return reactantIndices;
     }
 

@@ -4,18 +4,14 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
-import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
-import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -114,9 +110,6 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
      * @throws PipelineException if the process was not finished successfully.
      */
     private void mol3d(Path inputFile, Candidate candidate) throws PipelineException {
-        // Initialize string line
-        String line = null;
-
         // Build command
         String command = String.format("%s -e \"%s\" \"-w0.01\" \"%s\"",
                 molocExecutable,
@@ -199,7 +192,7 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
 
-//             read the output from the command
+            // Read the output from the command
             System.out.println(
                     String.format("Conversion to mab file has written output:%n%s%n", IOUtils.toString(stdInput)));
 

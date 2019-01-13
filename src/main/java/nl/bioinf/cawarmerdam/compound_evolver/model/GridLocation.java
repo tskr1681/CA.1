@@ -12,10 +12,10 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class GridLocation {
-    private int x;
-    private int y;
-    private int z;
+class GridLocation {
+    private final int x;
+    private final int y;
+    private final int z;
 
     /**
      * Constructor for a grid location.
@@ -24,7 +24,7 @@ public class GridLocation {
      * @param y The y index.
      * @param z The z index.
      */
-    public GridLocation(int x, int y, int z) {
+    GridLocation(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -35,7 +35,7 @@ public class GridLocation {
      *
      * @return the x index.
      */
-    public int getX() {
+    int getX() {
         return x;
     }
 
@@ -44,7 +44,7 @@ public class GridLocation {
      *
      * @return the y index.
      */
-    public int getY() {
+    int getY() {
         return y;
     }
 
@@ -53,7 +53,7 @@ public class GridLocation {
      *
      * @return the z index.
      */
-    public int getZ() {
+    int getZ() {
         return z;
     }
 }

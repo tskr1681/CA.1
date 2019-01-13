@@ -20,7 +20,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,9 +33,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getBooleanParameterFromRequest;
-import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getDoubleParameterFromRequest;
-import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getIntegerParameterFromRequest;
+import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.*;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -50,13 +51,13 @@ public class EvolveServlet extends HttpServlet {
      */
     private static String generateRandomToken() {
         SecureRandom random = new SecureRandom();
-        byte bytes[] = new byte[32];
+        byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString(bytes);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         System.out.printf("Received request from %s%n", ServletUtils.getIpFromRequest(request));
         ObjectMapper mapper = new ObjectMapper();
         // Set response type to JSON
@@ -82,7 +83,6 @@ public class EvolveServlet extends HttpServlet {
             ReactionFileHandlerException,
             ServletUtils.FormFieldHandlingException,
             MisMatchedReactantCount,
-            ReactionException,
             PipelineException {
 
         // Get generation size
@@ -247,10 +247,6 @@ public class EvolveServlet extends HttpServlet {
         return sessionID;
     }
 
-    private List<List<Molecule>> reorderReactantsLists(List<List<Molecule>> reactantLists, List<Integer> reactantsFileOrder) {
-        return reactantsFileOrder.stream().map(reactantLists::get).collect(Collectors.toList());
-    }
-
     private List<List<Integer>> getFileOrderParameterFromRequest(HttpServletRequest request) throws IOException {
         // Get parameter as string
         String fileOrder = request.getParameter("fileOrder");
@@ -333,12 +329,11 @@ public class EvolveServlet extends HttpServlet {
      *
      * @param filePart The file part to write.
      * @param path The path to write the file part to.
-     * @throws IOException if the file path could not be written to the path.
      */
     private void copyFilePart(Part filePart, Path path) {
         try (OutputStream out = new FileOutputStream(path.toFile()); InputStream filecontent = filePart.getInputStream()) {
 
-            int read = 0;
+            int read;
             final byte[] bytes = new byte[1024];
 
             while ((read = filecontent.read(bytes)) != -1) {

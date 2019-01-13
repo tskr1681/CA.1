@@ -319,7 +319,7 @@ public class GAParameters implements Serializable {
      * @param fieldValue The value of the field that should be set.
      * @return true if the field was set, false if not.
      */
-    public static boolean set(Object object, String fieldName, Object fieldValue) {
+    public static void set(Object object, String fieldName, Object fieldValue) {
         Class<?> clazz = object.getClass();
         while (clazz != null) {
             try {
@@ -331,14 +331,12 @@ public class GAParameters implements Serializable {
                     fieldValue = Population.SelectionMethod.valueOf((String) fieldValue);
                 }
                 field.set(object, fieldValue);
-                return true;
             } catch (NoSuchFieldException e) {
                 clazz = clazz.getSuperclass();
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
         }
-        return false;
     }
 
     /**

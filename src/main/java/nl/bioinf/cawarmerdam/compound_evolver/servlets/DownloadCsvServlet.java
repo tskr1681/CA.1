@@ -9,8 +9,8 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Generation;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
+import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getProgressConnector;
+
 /**
  * The servlet that makes scores downloadable as a csv.
  *
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
  */
 @WebServlet(name = "DownloadCsvServlet", urlPatterns = "./csv.download")
 public class DownloadCsvServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
         // get sessions new generations
         try {
@@ -73,16 +75,5 @@ public class DownloadCsvServlet extends HttpServlet {
             scores.add(fitnesses);
         }
         return scores;
-    }
-
-    private SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
-        @SuppressWarnings("unchecked")
-        SessionEvolutionProgressConnector progressConnector =
-                (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
-        if (progressConnector == null) {
-            // Throw exception
-            throw new UnknownProgressException("progress connector is null");
-        }
-        return progressConnector;
     }
 }

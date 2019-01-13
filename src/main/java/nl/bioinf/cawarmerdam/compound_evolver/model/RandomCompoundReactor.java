@@ -19,7 +19,7 @@ import java.util.Random;
  * @version 0.0.1
  */
 class RandomCompoundReactor {
-    private int maxSamples;
+    private final int maxSamples;
 
     /**
      * Constructor of the random compound reactor.

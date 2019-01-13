@@ -5,7 +5,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.struc.DPoint3;
-import org.apache.poi.hssf.record.PrintGridlinesRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +22,8 @@ import java.util.StringJoiner;
  */
 public class Grid {
     private final double resolution;
-    private boolean[][][] grid;
-    private DPoint3 referenceCoordinates;
+    private final boolean[][][] grid;
+    private final DPoint3 referenceCoordinates;
 
     /**
      * Constructor for a grid with a specified size, reference coordinate and resolution.
@@ -425,7 +424,7 @@ public class Grid {
     private String YZPlaneToString(int i) {
         StringJoiner sj = new StringJoiner(System.lineSeparator());
         boolean[][] booleans = grid[i];
-        sj.add(String.valueOf(i) + ":");
+        sj.add(i + ":");
         for (boolean[] aBooleans : booleans) {
             StringBuilder sb = new StringBuilder();
             for (boolean ab : aBooleans) {

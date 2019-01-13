@@ -8,7 +8,6 @@ import chemaxon.marvin.plugin.PluginException;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,10 +22,10 @@ import java.util.logging.*;
  * @version 0.0.1
  */
 public class CallablePipelineContainer implements Callable<Void> {
-    private PipelineStep<Candidate, Void> pipeline;
-    private Path pipelineOutputFilePath;
-    private Candidate candidate;
-    private boolean cleanupFiles;
+    private final PipelineStep<Candidate, Void> pipeline;
+    private final Path pipelineOutputFilePath;
+    private final Candidate candidate;
+    private final boolean cleanupFiles;
 
     /**
      * Constructor of a callable pipeline container.
@@ -55,7 +54,7 @@ public class CallablePipelineContainer implements Callable<Void> {
     public Void call() throws PipelineException, PluginException, IOException {
         // Declare logging details
         Handler fileHandler = null;
-        Formatter simpleFormatter = null;
+        Formatter simpleFormatter;
         Path candidateDirectory = null;
         try {
             // Create new directory
@@ -120,18 +119,11 @@ public class CallablePipelineContainer implements Callable<Void> {
      * Remove candidate specific files from the directory, excluding the log file.
      *
      * @param candidateDirectory The candidate specific directory.
-     * @throws IOException if files could bot be removed.
      */
-    private void removeCandidatePipelineFiles(Path candidateDirectory) throws IOException {
+    private void removeCandidatePipelineFiles(Path candidateDirectory) {
         // Collect specific files.
-        final File[] files = candidateDirectory.toFile().listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept( final File dir,
-                                   final String name ) {
-                boolean isMatch = !name.matches("^pipeline\\.log$");
-                return isMatch;
-            }
-        } );
+        final File[] files = candidateDirectory.toFile().listFiles(
+                (dir, name) -> !name.matches("^pipeline\\.log$"));
         // Remove all files
         if (files != null) {
             for ( final File file : files ) {

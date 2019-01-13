@@ -13,8 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.ibm.db2.jcc.am.hb.e;
-
 /**
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
@@ -22,9 +20,9 @@ import static com.ibm.db2.jcc.am.hb.e;
  */
 public class ConformerFixationStep implements PipelineStep<Candidate, Candidate> {
 
-    private String smartsPattern;
-    private Path referenceMolecule;
-    private String obfitExecutable;
+    private final String smartsPattern;
+    private final Path referenceMolecule;
+    private final String obfitExecutable;
 
     public ConformerFixationStep(Path referenceMolecule, String obfitExecutable) throws PipelineException {
         this.referenceMolecule = referenceMolecule;

@@ -45,7 +45,7 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
      * @throws PipelineException if the given anchor could not be imported.
      */
     private Molecule importReferenceMolecule(Path anchor) throws PipelineException {
-        MolImporter importer = null;
+        MolImporter importer;
         try {
             importer = new MolImporter(anchor.toFile());
 
@@ -60,7 +60,7 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
      *
      * @param candidate The candidate whose conformers have to be aligned.
      * @return the candidate with aligned conformers.
-     * @throws PipelineException if an exception occured in the alignment step.
+     * @throws PipelineException if an exception occurred in the alignment step.
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
@@ -116,7 +116,7 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
         List<Molecule> alignedMolecules = new ArrayList<>();
 
         // Create importer for file
-        MolImporter importer = null;
+        MolImporter importer;
         try {
             importer = new MolImporter(conformersPath.toFile());
 

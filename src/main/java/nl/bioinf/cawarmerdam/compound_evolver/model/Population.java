@@ -4,18 +4,16 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.descriptors.*;
-import chemaxon.jep.function.In;
+import chemaxon.descriptors.CFParameters;
+import chemaxon.descriptors.ChemicalFingerprint;
+import chemaxon.descriptors.MDGeneratorException;
 import chemaxon.reaction.ReactionException;
-import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.jaxen.util.SingletonList;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +26,7 @@ public class Population implements Iterable<Candidate> {
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final List<List<Molecule>> reactantLists;
     private final Random random;
-    private List<Species> species;
+    private final List<Species> species;
     private double maxAnchorMinimizedRmsd;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
@@ -59,13 +57,12 @@ public class Population implements Iterable<Candidate> {
      * @param initialGenerationSize The generation or population size.
      * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
      * in the reaction.
-     * @throws ReactionException if a reaction could not be performed.
      */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+            int initialGenerationSize) throws MisMatchedReactantCount {
 
         this.random = new Random();
         this.reactantLists = reactantLists;
@@ -94,12 +91,11 @@ public class Population implements Iterable<Candidate> {
      * @param initialGenerationSize The generation or population size.
      * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
      * in the reaction.
-     * @throws ReactionException if a reaction could not be performed.
      */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
-            int initialGenerationSize) throws MisMatchedReactantCount, ReactionException {
+            int initialGenerationSize) throws MisMatchedReactantCount {
         this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize);
     }
 

@@ -15,8 +15,8 @@ import java.util.Optional;
  * @version 0.0.1
  */
 public class Generation {
-    private List<Candidate> candidateList;
-    private int number;
+    private final List<Candidate> candidateList;
+    private final int number;
 
     /**
      * Constructor for a generation instance

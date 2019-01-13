@@ -8,15 +8,18 @@ import chemaxon.formats.MolImporter;
 import chemaxon.struc.DPoint3;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
-import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
-import java.nio.file.Files;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Minimization step that uses Smina.
@@ -107,7 +110,7 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                                     Path outputPath,
                                     Candidate candidate) throws PipelineException {
         // Initialize string line
-        String line = null;
+        String line;
 
         // Initialize smina output list.
         ArrayList<String> sminaOutput = new ArrayList<>();

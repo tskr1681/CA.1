@@ -6,14 +6,16 @@ package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -28,7 +30,7 @@ import java.util.zip.ZipOutputStream;
  */
 @WebServlet(name = "DownloadZippedCompoundServlet", urlPatterns = "/compound.download")
 public class DownloadZippedCompoundServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         handleGet(request, response);
     }
 
@@ -132,7 +134,7 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
 
             try {
                 byte[] buffer = new byte[1024];
-                FileInputStream fis = null;
+                FileInputStream fis;
                 fis = new FileInputStream(fileToZip);
 
                 zos.putNextEntry(new ZipEntry(zipEntryName));

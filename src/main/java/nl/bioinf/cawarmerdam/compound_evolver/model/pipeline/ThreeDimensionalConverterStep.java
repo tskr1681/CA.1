@@ -11,7 +11,6 @@ import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -24,8 +23,8 @@ import java.nio.file.Paths;
  */
 public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Candidate> {
 
-    private Path filePath;
-    private int conformerCount;
+    private final Path filePath;
+    private final int conformerCount;
 
     /**
      * Constructor for three dimensional converter step.

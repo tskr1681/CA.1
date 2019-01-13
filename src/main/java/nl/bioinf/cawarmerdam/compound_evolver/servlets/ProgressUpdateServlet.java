@@ -6,15 +6,15 @@ package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import chemaxon.marvin.plugin.PluginException;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
+import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 @WebServlet(name = "ProgressUpdateServlet", urlPatterns = "/progress.update")
 public class ProgressUpdateServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             // Set response type
             response.setContentType("application/json");
@@ -43,10 +43,6 @@ public class ProgressUpdateServlet extends HttpServlet {
 
             // Write new generations
             mapper.writeValue(response.getOutputStream(), progressConnector);
-        } catch (UnknownProgressException e) {
-            ObjectMapper mapper = new ObjectMapper();
-            response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getMessage());
         } catch (Exception e) {
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
@@ -57,29 +53,7 @@ public class ProgressUpdateServlet extends HttpServlet {
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) throws UnknownProgressException {
         HttpSession session = request.getSession();
         // get sessions new generations
-        return getProgressConnector(session);
-    }
-
-    private SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
-        @SuppressWarnings("unchecked")
-        SessionEvolutionProgressConnector progressConnector =
-                (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
-        if (progressConnector == null) {
-            // Throw exception
-            throw new UnknownProgressException("progress connector is null");
-        }
-        return progressConnector;
-    }
-}
-
-/**
- * @author C.A. (Robert) Warmerdam
- * @author c.a.warmerdam@st.hanze.nl
- * @version 0.0.1
- */
-class UnknownProgressException extends Exception {
-    UnknownProgressException(String message) {
-        super(message);
+        return ServletUtils.getProgressConnector(session);
     }
 }
 
@@ -101,17 +75,17 @@ class CandidateSerializer extends StdSerializer<Candidate> {
     @Override
     public void serialize(
             Candidate candidate, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonProcessingException {
+            throws IOException {
 
         jgen.writeStartObject();
         jgen.writeNumberField("id", candidate.getIdentifier());
-        String phenotypeName = null;
+        String phenotypeName;
         try {
             phenotypeName = candidate.getPhenotypeName();
         } catch (PluginException e) {
             phenotypeName = "Anonymous compound";
         }
-        String smilesString = null;
+        String smilesString;
         try {
             smilesString = candidate.getPhenotypeSmiles();
         } catch (IOException e) {

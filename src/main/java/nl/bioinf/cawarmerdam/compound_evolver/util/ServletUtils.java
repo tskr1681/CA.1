@@ -4,9 +4,10 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
-import nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet;
+import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * @author C.A. (Robert) Warmerdam
@@ -63,27 +64,27 @@ public class ServletUtils {
     }
 
     public static class FormFieldHandlingException extends Exception {
-        private String fieldName;
-        private String fieldValue;
-        public Cause cause;
+        private final String fieldName;
+        private final String fieldValue;
+        public final Cause cause;
 
-        public FormFieldHandlingException(String fieldName, String fieldValue, Cause cause) {
+        FormFieldHandlingException(String fieldName, String fieldValue, Cause cause) {
             super(String.format("Field '%s', ('%s') returned '%s'", fieldName, fieldValue, cause));
             this.fieldName = fieldName;
             this.fieldValue = fieldValue;
             this.cause = cause;
         }
 
-        String toJSON() {
-            String jsonFormat =
-                    "{" +
-                            "\"fieldName\": \"%s\"," +
-                            "\"fieldValue\": \"%s\"," +
-                            "\"cause\": \"%s\"," +
-                            "\"message\": \"%s\"}";
-            return String.format(jsonFormat, fieldName, fieldValue, cause, getMessage());
-        }
-
         public enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER, BAD_BOOLEAN}
+    }
+
+    public static SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
+        SessionEvolutionProgressConnector progressConnector =
+                (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
+        if (progressConnector == null) {
+            // Throw exception
+            throw new UnknownProgressException("progress connector is null");
+        }
+        return progressConnector;
     }
 }

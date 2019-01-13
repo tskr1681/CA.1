@@ -19,7 +19,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,7 +47,7 @@ public class EvolverOptimizer {
             GAParameters parameterVector = filteredGAParameterVectors.get(i);
             for (int repetition = 0; repetition < repetitions; repetition++) {
                 String identifier = i + "r" + repetition;
-                Path runPath = null;
+                Path runPath;
                 try {
                     runPath = makeRunDirectory(uploadPath, identifier);
                     writeGAParameters(identifier, parameterVector, runPath);
@@ -63,7 +66,7 @@ public class EvolverOptimizer {
                         System.out.printf("Failed writing %s%n", csvFileName);
                         e.printStackTrace();
                     }
-                } catch (MisMatchedReactantCount | ReactionException | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
+                } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
                     System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
                     e.printStackTrace();
                 }
@@ -198,7 +201,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, ReactionException, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
+    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(
                 reactantLists,

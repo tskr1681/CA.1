@@ -5,11 +5,9 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +22,7 @@ import java.io.IOException;
  */
 @WebServlet(name = "TerminateEvolutionServlet", urlPatterns = "./evolution.terminate")
 public class TerminateEvolutionServlet extends HttpServlet {
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             handleTerminationRequest(request);
 
@@ -39,7 +37,6 @@ public class TerminateEvolutionServlet extends HttpServlet {
 
     private void handleTerminationRequest(HttpServletRequest request) throws UnknownProgressException {
         HttpSession session = request.getSession();
-        @SuppressWarnings("unchecked")
         SessionEvolutionProgressConnector progressConnector =
                 (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
         if (progressConnector == null) {

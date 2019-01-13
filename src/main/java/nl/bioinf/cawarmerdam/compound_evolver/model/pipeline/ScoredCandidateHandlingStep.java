@@ -30,8 +30,8 @@ import java.util.Map;
  */
 public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void> {
 
-    private Path anchorFilePath;
-    private Map<Long, Integer> clashingConformerCounter;
+    private final Path anchorFilePath;
+    private final Map<Long, Integer> clashingConformerCounter;
     private ExclusionShape exclusionShape;
 
     /**

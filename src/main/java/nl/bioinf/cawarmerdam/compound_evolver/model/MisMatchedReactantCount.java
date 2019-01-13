@@ -12,8 +12,8 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
  * @version 0.0.1
  */
 public class MisMatchedReactantCount extends Exception {
-    private int reactantCount;
-    private int listSize;
+    private final int reactantCount;
+    private final int listSize;
 
     /**
      * Constructor for the exception that creates a custom message.
@@ -21,7 +21,7 @@ public class MisMatchedReactantCount extends Exception {
      * @param reactantCount The amount of reactants the reaction expects.
      * @param listSize The amount of reactant sets that was provided.
      */
-    public MisMatchedReactantCount(int reactantCount, int listSize) {
+    MisMatchedReactantCount(int reactantCount, int listSize) {
         super(String.format("%s reactants expected by the reaction. received %s", reactantCount, listSize));
         this.reactantCount = reactantCount;
         this.listSize = listSize;
