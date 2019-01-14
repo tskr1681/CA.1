@@ -4,7 +4,9 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
+import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -30,11 +32,23 @@ import java.util.zip.ZipOutputStream;
  */
 @WebServlet(name = "DownloadZippedCompoundServlet", urlPatterns = "/compound.download")
 public class DownloadZippedCompoundServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        handleGet(request, response);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            handleGet(request, response);
+        } catch (UnknownProgressException e) {
+            ObjectMapper mapper = new ObjectMapper();
+            response.setStatus(400);
+            mapper.writeValue(response.getOutputStream(), e.getMessage());
+        }
     }
 
-    private void handleGet(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Method that handles a get request for a zip archive.
+     *
+     * @param request  The HTTP request.
+     * @param response The HTTP response.
+     */
+    private void handleGet(HttpServletRequest request, HttpServletResponse response) throws UnknownProgressException {
         String pipelineTargetDirectory = System.getenv("PL_TARGET_DIR");
         String sessionId = getSessionId(request);
 
@@ -89,11 +103,18 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
         }
     }
 
-    private String getSessionId(HttpServletRequest request) {
+    /**
+     * Method that gets the session id from from the request if it is present.
+     *
+     * @param request The HTTP request.
+     * @return the session id
+     * @throws UnknownProgressException if the session id is null or the session is new.
+     */
+    private String getSessionId(HttpServletRequest request) throws UnknownProgressException {
         HttpSession session = request.getSession();
         String sessionID;
         if (session.isNew() || session.getAttribute("session_id") == null) {
-            // No session id
+            throw new UnknownProgressException("Session not found");
         }
         sessionID = (String) session.getAttribute("session_id");
         return sessionID;
@@ -114,36 +135,41 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
         return baos.toByteArray();
     }
 
-    private static void addDirToZipArchive(ZipOutputStream zos, File fileToZip, String parrentDirectoryName) {
+    /**
+     * Adds a directory to a zipped archive
+     *
+     * @param zipOutputStream A zip output stream that holds the archive.
+     * @param fileToZip The file object which should be added to the archive.
+     * @param parentDirectoryName The parent path of the file which should be added.
+     */
+    private static void addDirToZipArchive(ZipOutputStream zipOutputStream, File fileToZip, String parentDirectoryName) {
         if (fileToZip == null || !fileToZip.exists()) {
             return;
         }
 
         String zipEntryName = fileToZip.getName();
-        if (parrentDirectoryName!=null && !parrentDirectoryName.isEmpty()) {
-            zipEntryName = parrentDirectoryName + "/" + fileToZip.getName();
+        if (parentDirectoryName != null && !parentDirectoryName.isEmpty()) {
+            zipEntryName = parentDirectoryName + "/" + fileToZip.getName();
         }
 
         if (fileToZip.isDirectory()) {
-
             for (File file : Objects.requireNonNull(fileToZip.listFiles())) {
-                addDirToZipArchive(zos, file, zipEntryName);
+                addDirToZipArchive(zipOutputStream, file, zipEntryName);
             }
 
         } else {
-
             try {
                 byte[] buffer = new byte[1024];
-                FileInputStream fis;
-                fis = new FileInputStream(fileToZip);
+                FileInputStream fileInputStream;
+                fileInputStream = new FileInputStream(fileToZip);
 
-                zos.putNextEntry(new ZipEntry(zipEntryName));
+                zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
                 int length;
-                while ((length = fis.read(buffer)) > 0) {
-                    zos.write(buffer, 0, length);
+                while ((length = fileInputStream.read(buffer)) > 0) {
+                    zipOutputStream.write(buffer, 0, length);
                 }
-                zos.closeEntry();
-                fis.close();
+                zipOutputStream.closeEntry();
+                fileInputStream.close();
 
             } catch (IOException e) {
                 e.printStackTrace();
