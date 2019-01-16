@@ -28,14 +28,7 @@ import java.util.stream.Collectors;
 
 public class EvolverOptimizer {
     private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int candidateCount, int repetitions) {
-        // Get range
-        List<GAParameters> gaParameterVectors = new ArrayList<>();
-
-        GAParameters baseParameters = getBaseParameters(candidateCount);
-        GeneratePermutations(parameterLists, gaParameterVectors, 0, baseParameters);
-        List<GAParameters> filteredGAParameterVectors = gaParameterVectors.stream()
-                .filter(vector -> vector.getCrossoverRate() + vector.getRandomImmigrantRate() <= 1)
-                .collect(Collectors.toList());
+        List<GAParameters> filteredGAParameterVectors = getParameterVectors(parameterLists, candidateCount);
 
         List<List<Object>> resultsTable = getResultsTable();
 
@@ -43,41 +36,72 @@ public class EvolverOptimizer {
                 filteredGAParameterVectors.size(),
                 repetitions,
                 filteredGAParameterVectors.size() * repetitions);
-        for (int i = 0; i < filteredGAParameterVectors.size(); i++) {
-            GAParameters parameterVector = filteredGAParameterVectors.get(i);
-            for (int repetition = 0; repetition < repetitions; repetition++) {
-                String identifier = i + "r" + repetition;
-                Path runPath;
-                try {
-                    runPath = makeRunDirectory(uploadPath, identifier);
-                    writeGAParameters(identifier, parameterVector, runPath);
-                    CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
-                    List<List<Double>> scores = run.getFitness();
-                    double bestScore = scores.stream().flatMap(List::stream)
-                            .mapToDouble(s -> s).max().orElseThrow(NoSuchElementException::new);
-                    addRun(resultsTable, parameterVector, identifier, run, bestScore);
-                    String csvData = GenerateCsv.generateCsvFile(scores, System.lineSeparator());
-                    String csvFileName = String.format("%s-scores.csv", identifier);
-                    Path csvFilePath = runPath.resolve(csvFileName);
-                    System.out.printf("Writing %s", csvFileName);
-                    try (PrintWriter out = new PrintWriter(csvFilePath.toFile())) {
-                        out.println(csvData);
-                    } catch (FileNotFoundException e) {
-                        System.out.printf("Failed writing %s%n", csvFileName);
-                        e.printStackTrace();
-                    }
-                } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
-                    System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
-                    e.printStackTrace();
-                }
-            }
+        for (int runIndex = 0; runIndex < filteredGAParameterVectors.size(); runIndex++) {
+            GAParameters parameterVector = filteredGAParameterVectors.get(runIndex);
+            performRepititions(
+                    reactantLists,
+                    reactor,
+                    receptorPath,
+                    anchorPath,
+                    uploadPath,
+                    repetitions,
+                    resultsTable,
+                    runIndex,
+                    parameterVector);
         }
+        writeOutputCsv(uploadPath, resultsTable);
+    }
+
+    private List<GAParameters> getParameterVectors(List<Pair<String, List<Object>>> parameterLists, int candidateCount) {
+        List<GAParameters> gaParameterVectors = new ArrayList<>();
+
+        GAParameters baseParameters = getBaseParameters(candidateCount);
+        GeneratePermutations(parameterLists, gaParameterVectors, 0, baseParameters);
+        return gaParameterVectors.stream()
+                .filter(vector -> vector.getCrossoverRate() + vector.getRandomImmigrantRate() <= 1)
+                .collect(Collectors.toList());
+    }
+
+    private void writeOutputCsv(Path uploadPath, List<List<Object>> resultsTable) {
         Path outputTable = uploadPath.resolve("out.csv");
         System.out.printf("Writing %s", outputTable);
         try (PrintWriter out = new PrintWriter(outputTable.toFile())) {
             out.println(GenerateCsv.generateCsvFile(resultsTable, System.lineSeparator()));
         } catch (FileNotFoundException e) {
             System.out.printf("Failed writing %s%n", outputTable);
+            e.printStackTrace();
+        }
+    }
+
+    private void performRepititions(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int repetitions, List<List<Object>> resultsTable, int i, GAParameters parameterVector) {
+        for (int repetition = 0; repetition < repetitions; repetition++) {
+            String identifier = i + "r" + repetition;
+            Path runPath;
+            try {
+                runPath = makeRunDirectory(uploadPath, identifier);
+                writeGAParameters(identifier, parameterVector, runPath);
+                CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
+                List<List<Double>> scores = run.getFitness();
+                writeOutput(resultsTable, parameterVector, identifier, runPath, run, scores);
+            } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
+                System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void writeOutput(List<List<Object>> resultsTable, GAParameters parameterVector, String identifier, Path runPath, CompoundEvolver run, List<List<Double>> scores) {
+        double bestScore = scores.stream().flatMap(List::stream)
+                .mapToDouble(s -> s).max().orElseThrow(NoSuchElementException::new);
+        addRun(resultsTable, parameterVector, identifier, run, bestScore);
+        String csvData = GenerateCsv.generateCsvFile(scores, System.lineSeparator());
+        String csvFileName = String.format("%s-scores.csv", identifier);
+        Path csvFilePath = runPath.resolve(csvFileName);
+        System.out.printf("Writing %s", csvFileName);
+        try (PrintWriter out = new PrintWriter(csvFilePath.toFile())) {
+            out.println(csvData);
+        } catch (FileNotFoundException e) {
+            System.out.printf("Failed writing %s%n", csvFileName);
             e.printStackTrace();
         }
     }
