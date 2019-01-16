@@ -1,6 +1,5 @@
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
-import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.annotation.JsonInclude;
