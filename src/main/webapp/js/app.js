@@ -20,17 +20,19 @@ app.directive('multiselectDropdown', [function() {
 }]);
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
+
+    // Define form model with default values
     $scope.formModel = {
         interspeciesCrossoverMethod: 'Complete',
         speciesDeterminationMethod: 'Dynamic',
-        generationSize: 16,
-        numberOfGenerations: 20,
-        selectionSize: 0.4,
+        generationSize: 50,
+        numberOfGenerations: 30,
+        selectionSize: 0.5,
         mutationRate: 0.1,
         crossoverRate: 0.8,
         elitismRate: 0.1,
         randomImmigrantRate: 0.1,
-        selectionMethod: 'Fitness proportionate selection',
+        selectionMethod: 'Tournament selection',
         mutationMethod: 'Distance dependent',
         terminationCondition: 'fixed',
         nonImprovingGenerationQuantity: 0.3,
@@ -46,6 +48,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxPartitionCoefficient: 5
     };
 
+    // Define the properties of reaction files.
     $scope.reactionFiles = {
         wrongExtension: false,
         pristine: true,
