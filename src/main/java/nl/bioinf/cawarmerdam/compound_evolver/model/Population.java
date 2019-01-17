@@ -671,6 +671,7 @@ public class Population implements Iterable<Candidate> {
      * <p>
      * The amount of individuals selected is the amount of candidates multiplied by the selection fraction and rounded
      * up to the nearest integer.
+     * </p>
      *
      * @throws UnSelectablePopulationException if the population was either empty or if the first candidate has a
      *                                         fitness of 0.
