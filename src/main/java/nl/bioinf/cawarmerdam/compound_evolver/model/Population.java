@@ -46,7 +46,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxHydrogenBondDonors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    private Integer tooDistantConformerCounter = 0;
+    public Integer tooDistantConformerCounter = 0;
 
     /**
      * Constructor for population.
@@ -709,7 +709,7 @@ public class Population implements Iterable<Candidate> {
         candidateList = candidateList.stream()
                 .filter(parent -> parent.getCommonSubstructureToAnchorRmsd() <= this.maxAnchorMinimizedRmsd)
                 .collect(Collectors.toList());
-        tooDistantConformerCounter += candidateList.size() - sizeBeforeFiltering;
+        tooDistantConformerCounter += sizeBeforeFiltering - candidateList.size();
     }
 
     /**
