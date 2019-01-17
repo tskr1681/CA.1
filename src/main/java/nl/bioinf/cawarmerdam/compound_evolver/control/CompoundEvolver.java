@@ -319,6 +319,8 @@ public class CompoundEvolver {
                 executor.shutdownNow();
             }
         }
+        System.out.println("population.tooDistantConformerCounter = " + population.tooDistantConformerCounter);
+        System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
     }
 
     /**

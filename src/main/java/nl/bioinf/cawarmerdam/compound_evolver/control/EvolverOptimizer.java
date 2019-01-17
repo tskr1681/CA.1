@@ -37,7 +37,7 @@ public class EvolverOptimizer {
                 filteredGAParameterVectors.size() * repetitions);
         for (int runIndex = 0; runIndex < filteredGAParameterVectors.size(); runIndex++) {
             GAParameters parameterVector = filteredGAParameterVectors.get(runIndex);
-            performRepititions(
+            performRepetitions(
                     reactantLists,
                     reactor,
                     receptorPath,
@@ -72,7 +72,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private void performRepititions(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int repetitions, List<List<Object>> resultsTable, int i, GAParameters parameterVector) {
+    private void performRepetitions(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int repetitions, List<List<Object>> resultsTable, int i, GAParameters parameterVector) {
         for (int repetition = 0; repetition < repetitions; repetition++) {
             String identifier = i + "r" + repetition;
             Path runPath;
@@ -173,7 +173,7 @@ public class EvolverOptimizer {
         Iterator it = parameterRanges.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            List<Object> value = (List<Object>) pair.getValue();
+            List<Object> value = (List<Object>)  pair.getValue();
             parameterLists.add(new ImmutablePair<>(pair.getKey().toString(), value));
             it.remove(); // avoids a ConcurrentModificationException
         }

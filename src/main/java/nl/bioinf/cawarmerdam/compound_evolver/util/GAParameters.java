@@ -317,7 +317,6 @@ public class GAParameters implements Serializable {
      * @param object The parameters object to write the field value to.
      * @param fieldName The name of the field that should be set.
      * @param fieldValue The value of the field that should be set.
-     * @return true if the field was set, false if not.
      */
     public static void set(Object object, String fieldName, Object fieldValue) {
         Class<?> clazz = object.getClass();
@@ -326,11 +325,13 @@ public class GAParameters implements Serializable {
                 Field field = clazz.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 if (field.getType().equals(Population.MutationMethod.class)) {
-                    fieldValue = Population.MutationMethod.valueOf((String) fieldValue);
+                    field.set(object, Population.MutationMethod.valueOf((String) fieldValue));
                 } else if (field.getType().equals(Population.SelectionMethod.class)) {
-                    fieldValue = Population.SelectionMethod.valueOf((String) fieldValue);
+                    field.set(object, Population.SelectionMethod.valueOf((String) fieldValue));
+                } else {
+                    field.set(object, fieldValue);
                 }
-                field.set(object, fieldValue);
+                return;
             } catch (NoSuchFieldException e) {
                 clazz = clazz.getSuperclass();
             } catch (Exception e) {
