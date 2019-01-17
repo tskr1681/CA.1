@@ -75,6 +75,20 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Handles the request of evolution.
+     *
+     * @param request The http request to handle
+     * @return a compound evolver instance set according to the http request.
+     * @throws IOException If an IO related exception was thrown.
+     * @throws ServletException If a servlet exception was thrown.
+     * @throws ReactantFileHandlingException If a reactant file could not be imported.
+     * @throws ReactantFileFormatException If the reactant file could not be imported due to illegal formatting.
+     * @throws ReactionFileHandlerException If the reaction file could not be imported.
+     * @throws ServletUtils.FormFieldHandlingException If a form field could not be handled.
+     * @throws MisMatchedReactantCount If the amount of reactants supplied was not according to the reaction.
+     * @throws PipelineException If the pipeline could not be initialized.
+     */
     private CompoundEvolver handleRequest(HttpServletRequest request)
             throws IOException,
             ServletException,
@@ -200,6 +214,17 @@ public class EvolveServlet extends HttpServlet {
         return evolver;
     }
 
+    /**
+     * Sets the pipeline parameters.
+     *
+     * @param request The http request.
+     * @param evolver The compound evolution instance.
+     * @param outputFileLocation The location of the pipeline files.
+     * @throws IOException If an IO related exception was thrown.
+     * @throws ServletException If a servlet exception was thrown.
+     * @throws PipelineException If the pipeline could not be initialized.
+     * @throws ServletUtils.FormFieldHandlingException If a form field could not be handled.
+     */
     private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, Path outputFileLocation)
             throws IOException, ServletException, PipelineException, ServletUtils.FormFieldHandlingException {
 
@@ -236,6 +261,13 @@ public class EvolveServlet extends HttpServlet {
         System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());
     }
 
+    /**
+     * Generates a session id that is not yet used.
+     *
+     * @param session The http session instance.
+     * @param pipelineTargetDirectory The directory where the sessions are stored.
+     * @return the session id.
+     */
     private String getSessionId(HttpSession session, Path pipelineTargetDirectory) {
         String sessionID;
         // Create new session id
@@ -247,6 +279,13 @@ public class EvolveServlet extends HttpServlet {
         return sessionID;
     }
 
+    /**
+     * Gets the file orders from the request instance.
+     *
+     * @param request The request instance to get the parameters from.
+     * @return the file order per reaction.
+     * @throws IOException if the file order could not be read.
+     */
     private List<List<Integer>> getFileOrderParameterFromRequest(HttpServletRequest request) throws IOException {
         // Get parameter as string
         String fileOrder = request.getParameter("fileOrder");
@@ -345,6 +384,15 @@ public class EvolveServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Gets the files from the field with the given name.
+     *
+     * @param request the http request.
+     * @param fileFieldName the file field to get the files from.
+     * @return a list of file parts that where uploaded.
+     * @throws IOException If the parts could not be obtained due to an IO exception.
+     * @throws ServletException If the parts could not be obtained due to a servlet exception.
+     */
     private List<Part> getFilesFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
         return request.getParts().stream()
                 .filter(part -> fileFieldName
