@@ -63,6 +63,9 @@ public class ServletUtils {
         return Integer.parseInt(parameter);
     }
 
+    /**
+     * Exception that gets thrown whenever a form field value was illegal.
+     */
     public static class FormFieldHandlingException extends Exception {
         private final String fieldName;
         private final String fieldValue;
@@ -78,6 +81,13 @@ public class ServletUtils {
         public enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER, BAD_BOOLEAN}
     }
 
+    /**
+     * Method that gets the progress connector from a http session.
+     *
+     * @param session The http session.
+     * @return the progress connector instance.
+     * @throws UnknownProgressException if the progress connector is null.
+     */
     public static SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
         SessionEvolutionProgressConnector progressConnector =
                 (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");

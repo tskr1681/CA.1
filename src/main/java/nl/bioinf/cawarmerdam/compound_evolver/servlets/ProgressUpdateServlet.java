@@ -23,6 +23,8 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
+ * Servlet used for acquiring updates from the evolution.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -50,6 +52,13 @@ public class ProgressUpdateServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Method that handles the progress update request by getting the progress connector from the session.
+     *
+     * @param request The http request.
+     * @return the progress connector.
+     * @throws UnknownProgressException if the session is new or null.
+     */
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) throws UnknownProgressException {
         HttpSession session = request.getSession();
         // get sessions new generations
@@ -58,6 +67,8 @@ public class ProgressUpdateServlet extends HttpServlet {
 }
 
 /**
+ * Class that is used to slim down candidates for transfer with the client.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -91,6 +102,8 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         } catch (IOException e) {
             smilesString = "";
         }
+
+        // Write all fields that are necessary to the client.
         jgen.writeStringField("smiles", smilesString);
         jgen.writeStringField("iupacName", phenotypeName);
         jgen.writeNumberField("rawScore", candidate.getRawScore());

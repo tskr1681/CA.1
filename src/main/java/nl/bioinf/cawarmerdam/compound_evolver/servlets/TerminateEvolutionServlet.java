@@ -6,6 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
 
 import javax.servlet.annotation.WebServlet;
@@ -16,6 +17,8 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
+ * Servlet that marks that the evolution should terminate.
+ *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
@@ -35,14 +38,13 @@ public class TerminateEvolutionServlet extends HttpServlet {
         }
     }
 
+    /**
+     * @param request The http request.
+     * @throws UnknownProgressException if the progress connector is null.
+     */
     private void handleTerminationRequest(HttpServletRequest request) throws UnknownProgressException {
         HttpSession session = request.getSession();
-        SessionEvolutionProgressConnector progressConnector =
-                (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
-        if (progressConnector == null) {
-            // Throw exception
-            throw new UnknownProgressException("progress connector is null");
-        }
+        SessionEvolutionProgressConnector progressConnector = ServletUtils.getProgressConnector(session);
         progressConnector.terminateEvolutionProgress();
     }
 }
