@@ -1,23 +1,9 @@
 var app = angular.module('compoundEvolver', ['fileReadBinding', 'angularjs-dropdown-multiselect']);
 
 app.run(function ($rootScope) {
-    // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
     $rootScope.generations = [];
     $rootScope.selectedGenerationNumber = null;
 });
-
-app.directive('multiselectDropdown', [function() {
-    return function(scope, element, attributes) {
-
-        element = $(element[0]); // Get the element as a jQuery element
-
-        // Below setup the dropdown:
-
-        element.selectpicker();
-
-        // Below maybe some additional setup
-    }
-}]);
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
     $scope.formModel = {
