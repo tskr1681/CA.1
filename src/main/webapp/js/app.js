@@ -131,6 +131,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 $scope.response.error = "Generic error"
             }
         }
+        // If the error response is in json: extract the message from json.
         if (ct.indexOf('json') > -1) {
             console.log(jqXHR.responseJSON);
             let exception = jqXHR.responseJSON;
@@ -152,6 +153,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         }
     }
 
+    /**
+     * Extracts the form data from the form so that it is ready for posting.
+     */
     function extractFormData() {
         let fileOrder = [];
 
@@ -341,6 +345,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         };
 
         var scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
+        ctx.height = 512;
 
         if (scoreDistributionChart !== null) {
             scoreDistributionChart.destroy();

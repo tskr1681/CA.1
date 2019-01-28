@@ -4,6 +4,10 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
+    <session-config>
+        <session-timeout>43800</session-timeout>
+    </session-config>
+
     <servlet>
         <servlet-name>ApplicationServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.ApplicationServlet</servlet-class>
