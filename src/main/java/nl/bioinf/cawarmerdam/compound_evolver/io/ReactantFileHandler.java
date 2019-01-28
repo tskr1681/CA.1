@@ -7,10 +7,12 @@ package nl.bioinf.cawarmerdam.compound_evolver.io;
 import chemaxon.formats.MolFormatException;
 import chemaxon.formats.MolImporter;
 import chemaxon.struc.Molecule;
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.Part;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,13 +79,19 @@ public final class ReactantFileHandler {
      */
     private static List<Molecule> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<Molecule> moleculeMap = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))) {
+
+        /*
+         * Create byte array with the content of the file
+         */
+        byte[] fileContent = getFileContent(inputStream, fileName);
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fileContent),
+                getCorrectCharset(fileContent)))) {
             int lineNumber = 0;
             for (String line; (line = reader.readLine()) != null; lineNumber++) {
                 try {
                     moleculeMap.add(MolImporter.importMol(line));
                 } catch (MolFormatException e) {
-                    e.printStackTrace();
                     throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }
             }
@@ -91,6 +99,48 @@ public final class ReactantFileHandler {
             throw new ReactantFileHandlingException(e.getMessage(), fileName);
         }
         return moleculeMap;
+    }
+
+    /**
+     * Method that returns the file contents in a byte array.
+     *
+     * @param inputStream The input stream of the file.
+     * @param fileName The filename to read in.
+     * @return The byte array.
+     * @throws ReactantFileHandlingException If the input stream cannot be copied to a byte array output stream.
+     */
+    private static byte[] getFileContent(InputStream inputStream, String fileName) throws ReactantFileHandlingException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            IOUtils.copy(inputStream, outputStream);
+        } catch (IOException e) {
+            throw new ReactantFileHandlingException(e.getMessage(), fileName);
+        }
+        return outputStream.toByteArray();
+    }
+
+    /**
+     * Method that returns the charset that will be used for reading a file.
+     *
+     * @param fileContent The file contents in a byte array.
+     * @return The name of the char set
+     */
+    private static String getCorrectCharset(byte[] fileContent) {
+        String charset = "UTF-8"; //Default char set
+
+        CharsetDetector detector = new CharsetDetector();
+        detector.setText(fileContent);
+
+        CharsetMatch cm = detector.detect();
+
+        if (cm != null) {
+            int confidence = cm.getConfidence();
+            // Only in case the confidence is above 99%, the detected charset is returned.
+            if (confidence > 99) {
+                charset = cm.getName();
+            }
+        }
+        return charset;
     }
 }
 

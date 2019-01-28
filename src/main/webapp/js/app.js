@@ -283,6 +283,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     function initializeSpeciesDistributionChart() {
         var speciesCtx = document.getElementById("species-distribution-chart").getContext("2d");
+        speciesCtx.height = 512;
 
         var options = {
             responsive: true,
@@ -345,7 +346,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         };
 
         var scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
-        ctx.height = 512;
+        scoreCtx.height = 512;
 
         if (scoreDistributionChart !== null) {
             scoreDistributionChart.destroy();
