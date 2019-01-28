@@ -123,7 +123,7 @@ public final class ReactantFileHandler {
      * Method that returns the charset that will be used for reading a file.
      *
      * @param fileContent The file contents in a byte array.
-     * @return The name of the char set
+     * @return The name of the char set.
      */
     private static String getCorrectCharset(byte[] fileContent) {
         String charset = "UTF-8"; //Default char set
