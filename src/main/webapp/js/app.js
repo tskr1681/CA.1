@@ -142,7 +142,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             } else if (jqXHR.status === 0) {
                 $scope.response.error = "Connection failed"
             } else {
-                $scope.response.error = "Generic error"
+                $scope.response.error = jqXHR.statusText;
             }
         }
         if (ct.indexOf('json') > -1) {
@@ -161,7 +161,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             } else if (jqXHR.status === 0) {
                 $scope.response.error = "Connection failed"
             } else {
-                $scope.response.error = "Generic error"
+                $scope.response.error = jqXHR.statusText;
             }
         }
     }
