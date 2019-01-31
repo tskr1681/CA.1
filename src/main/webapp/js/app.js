@@ -1,23 +1,9 @@
 var app = angular.module('compoundEvolver', ['fileReadBinding', 'angularjs-dropdown-multiselect']);
 
 app.run(function ($rootScope) {
-    // $rootScope.generations = [{number:1, mostFitCompound: {iupacName:"2-(1H-indol-3-yl)ethan-1-amine", bb:"other", fitness:-7.43}}];
     $rootScope.generations = [];
     $rootScope.selectedGenerationNumber = null;
 });
-
-app.directive('multiselectDropdown', [function() {
-    return function(scope, element, attributes) {
-
-        element = $(element[0]); // Get the element as a jQuery element
-
-        // Below setup the dropdown:
-
-        element.selectpicker();
-
-        // Below maybe some additional setup
-    }
-}]);
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
@@ -145,6 +131,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 $scope.response.error = jqXHR.statusText;
             }
         }
+        // If the error response is in json: extract the message from json.
         if (ct.indexOf('json') > -1) {
             console.log(jqXHR.responseJSON);
             let exception = jqXHR.responseJSON;
@@ -166,6 +153,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         }
     }
 
+    /**
+     * Extracts the form data from the form so that it is ready for posting.
+     */
     function extractFormData() {
         let fileOrder = [];
 
@@ -293,6 +283,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     function initializeSpeciesDistributionChart() {
         var speciesCtx = document.getElementById("species-distribution-chart").getContext("2d");
+        speciesCtx.height = 512;
 
         var options = {
             responsive: true,
@@ -355,6 +346,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         };
 
         var scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
+        scoreCtx.height = 512;
 
         if (scoreDistributionChart !== null) {
             scoreDistributionChart.destroy();

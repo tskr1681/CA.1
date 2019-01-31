@@ -28,7 +28,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/js/bootstrap-select.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot"></script>
@@ -50,7 +49,36 @@
     <%--Setup dynamic form using angularjs--%>
     <div class="row">
         <div class="col-lg-12">
-            <h2>Set genetic algorithm parameters</h2>
+            <p class="lead">
+                This web application presents a new genetic algorithm (GA) that aims to find the best 'druglike'
+                compounds
+                within a large combinatorial space. A genetic algorithm is an iterative, population based technique
+                to decrease the amount of sampling necessary for finding a good solution. In this GA, the population
+                consists of candidate solutions, that are comprised of reactants (building blocks), which make up a
+                compound.
+            </p>
+            <p>
+                The building blocks for candidate solutions come from
+                libraries of small fragments that can be joined into a molecule. For the fitness function however
+                the potency has to be calculated from a three-dimensional (3D) compound docked in a protein
+                pocket. Therefore, a pipeline was implemented that converts fragments from fragment libraries,
+                into 3D compounds that are ready for docking. The pipeline consists of joining the fragments using
+                ChemAxon Reactor,
+                creating conformers with ChemAxon's Conformer Plugin, Aligning the conformers to an anchor using
+                ChemAxon Alignment and
+                docing with Moloc's Mol3d or Smina.
+            </p>
+            <p>
+                The genotype of a candidate solution, or individual, is essentially a combination of one fragment from
+                every reactant file supplied.
+                Species in this application correspond to the group of candidate solutions that have their genotype
+                reacted
+                with the same reaction scheme.
+            </p>
+            <p>
+                After the form is submitted, it might take a few seconds before the first populations are shown in the
+                graph(s) below. You can terminate the genetic algorithm by hand using the terminate button.
+            </p>
             <form name="compoundEvolverForm"
                   novalidate="novalidate"
                   enctype="multipart/form-data">
@@ -58,6 +86,23 @@
                 <div class="card">
                     <h5 class="card-header"><b>Building blocks and reaction</b></h5>
                     <div id="file-input" class="card-body">
+                        <p>
+                            Through this form you are able to specify reactants, reaction schemes, and how the reactants
+                            map to the reactions, a protein target and an anchor molecule. It is important that the
+                            Reaction schemes work within ChemAxon Reactor according to your expectations. This means
+                            that the rules you have in mind for reactions schemes (for example the rule that says a
+                            fragment from library 'A' with a hydroxyl group
+                            may not be incorporated) should be written in the reaction schemes themselves. It should
+                            also
+                            be clear that the same number of reactants must be applied to the reaction as the reaction
+                            expects.
+                            Ordering the reactants, which is also important, can be done via a button that appears after
+                            reaction files are selected.
+                        </p>
+                        <p>
+                            The anchor that is required is used by the computational pipeline to align conformers to,
+                            and this should thus be located at the position where the conformers should be placed.
+                        </p>
                         <div class="form-group row">
                             <label for="reaction-files" class="col-sm-3 col-form-label">Reaction files (.mrv)</label>
                             <div class="col-sm-9">
@@ -204,8 +249,19 @@
                 <div class="card">
                     <h5 class="card-header"><b>Multiple reactions</b></h5>
                     <div id="multi-reaction-settings" class="card-body">
+                        <p>
+                            In case multiple reaction schemes are selected the following options have to be chosen.
+                            In case a combination of reactants could work with either one of the reaction schemes (for
+                            example,
+                            if one of reactions uses only fragments from library 'A' with a hydroxyl group and the
+                            other reaction uses only fragments from library 'A' without a hydroxyl group)
+                            it makes the most sense to determine the species just by trying them all,
+                            and to always perform crossover between species. If the reaction schemes are independent of
+                            each other, it makes the most sense to have fixed species and not perform crossover.
+                        </p>
                         <div class="form-group row">
-                            <label for="species-determination-method" class="col-sm-3 col-form-label">Reaction determination method
+                            <label for="species-determination-method" class="col-sm-3 col-form-label">Reaction
+                                determination method
                             </label>
                             <div class="col-sm-9">
                                 <select class="form-control"
@@ -214,12 +270,14 @@
                                         name="speciesDeterminationMethod"
                                         required="required">
                                     <option value="Dynamic">By reactants (try reactions until success)</option>
-                                    <option value="Fixed">Fixed (reactions are assigned at random or in equal amounts)</option>
+                                    <option value="Fixed">Fixed (reactions are assigned at random or in equal amounts)
+                                    </option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="interspecies-crossover-method" class="col-sm-3 col-form-label">Interspecies crossover method
+                            <label for="interspecies-crossover-method" class="col-sm-3 col-form-label">Interspecies
+                                crossover method
                             </label>
                             <div class="col-sm-9">
                                 <select class="form-control"
@@ -228,7 +286,8 @@
                                         name="interspeciesCrossoverMethod"
                                         required="required">
                                     <option value="None">No not perform crossover between different species</option>
-                                    <option value="Intersection">Perform crossover at genes used in both species</option>
+                                    <option value="Intersection">Perform crossover at genes used in both species
+                                    </option>
                                     <option value="Complete">Always perform crossover between different species</option>
                                 </select>
                             </div>
@@ -239,6 +298,10 @@
                 <div class="card">
                     <h5 class="card-header"><b>Genetic operators</b></h5>
                     <div id="operator-settings" class="card-body">
+                        <p>
+                            The genetic operators affect the progress and overall behaviour of the genetic algorithm.
+                            The wrong settings might cause convergence to a local optimum or a randomized search.
+                        </p>
                         <div class="form-group row">
                             <label for="generation-size" class="col-sm-3 col-form-label">Population size</label>
                             <div class="col-sm-9">
@@ -255,11 +318,6 @@
                     'is-valid':compoundEvolverForm.generationSize.$valid && (!compoundEvolverForm.generationSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The generation or population size represents the amount of--%>
-                                    <%--candidates that will be produced and scored in each generation.--%>
-                                    <%--This must be at least two.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.generationSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -267,6 +325,11 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.generationSize.$error.number || compoundEvolverForm.generationSize.$error.step || compoundEvolverForm.generationSize.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     An integer value (a whole number) above 2 is required
+                                </small>
+                                <small class="form-text">
+                                    The generation or population size represents the amount of
+                                    candidates that will be produced and scored in each generation.
+                                    This must be at least two.
                                 </small>
                             </div>
                         </div>
@@ -287,9 +350,6 @@
                     'is-valid':compoundEvolverForm.numberOfGenerations.$valid && (!compoundEvolverForm.numberOfGenerations.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--Evolution will terminate when the maximum number of generations is reached.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.numberOfGenerations.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -297,6 +357,9 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.numberOfGenerations.$error.number || compoundEvolverForm.numberOfGenerations.$error.step || compoundEvolverForm.numberOfGenerations.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     An integer value (a whole number) more or equal to 0 is required
+                                </small>
+                                <small class="form-text">
+                                Evolution will terminate when the maximum number of generations is reached.
                                 </small>
                             </div>
                         </div>
@@ -316,10 +379,6 @@
                     'is-valid':compoundEvolverForm.selectionSize.$valid && (!compoundEvolverForm.selectionSize.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The selection size represents the portion of candidates that are selected for--%>
-                                    <%--a next generation through crossover or elitism. The other candidates are 'killed'.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.selectionSize.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -327,6 +386,10 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.selectionSize.$error.number || compoundEvolverForm.selectionSize.$error.min || compoundEvolverForm.selectionSize.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A fraction between 0 and 1 is required
+                                </small>
+                                <small class="form-text">
+                                The selection size represents the portion of candidates that are selected for
+                                a next generation through crossover or elitism. The other candidates are 'killed'.
                                 </small>
                             </div>
                         </div>
@@ -346,10 +409,6 @@
                     'is-valid':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The crossover rate represents the probability of crossover being performed--%>
-                                    <%--for producing a new candidate relative to the elitism and random immigrant rates.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.crossoverRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -357,6 +416,10 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.crossoverRate.$error.number || compoundEvolverForm.crossoverRate.$error.min || compoundEvolverForm.crossoverRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A fraction between 0 and 1 is required
+                                </small>
+                                <small class="form-text">
+                                The crossover rate represents the probability of crossover being performed
+                                for producing a new candidate relative to the elitism and random immigrant rates.
                                 </small>
                             </div>
                         </div>
@@ -376,11 +439,6 @@
                     'is-valid':compoundEvolverForm.elitismRate.$valid && (!compoundEvolverForm.elitismRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The elitism rate represents the probability of the elitism strategy being carried--%>
-                                    <%--out for producing a new candidate relative to the--%>
-                                    <%--crossover and random immigrant rates.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.elitismRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -388,6 +446,11 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.elitismRate.$error.number || compoundEvolverForm.elitismRate.$error.min || compoundEvolverForm.elitismRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A fraction between 0 and 1 is required
+                                </small>
+                                <small class="form-text">
+                                The elitism rate represents the probability of the elitism strategy being carried
+                                out for producing a new candidate relative to the
+                                crossover and random immigrant rates.
                                 </small>
                             </div>
                         </div>
@@ -407,9 +470,6 @@
                     'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The mutation rate represents the probability of a single gene being mutated.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.mutationRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -417,6 +477,9 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.mutationRate.$error.number || compoundEvolverForm.mutationRate.$error.min || compoundEvolverForm.mutationRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A fraction between 0 and 1 is required
+                                </small>
+                                <small class="form-text">
+                                The mutation rate represents the probability of a single gene being mutated.
                                 </small>
                             </div>
                         </div>
@@ -437,10 +500,6 @@
                     'is-valid':compoundEvolverForm.randomImmigrantRate.$valid && (!compoundEvolverForm.randomImmigrantRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
-                                <%--<small class="form-text">--%>
-                                    <%--The random immigrant rate represents the probability of a random immigrant being made--%>
-                                    <%--for producing a new candidate relative to the elitism and crossover rates.--%>
-                                <%--</small>--%>
                                 <small class="form-text text-danger"
                                        ng-show="compoundEvolverForm.randomImmigrantRate.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     This field is required
@@ -448,6 +507,10 @@
                                 <small class="form-text text-danger"
                                        ng-show="(compoundEvolverForm.randomImmigrantRate.$error.number || compoundEvolverForm.randomImmigrantRate.$error.min || compoundEvolverForm.randomImmigrantRate.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
                                     A fraction between 0 and 1 is required
+                                </small>
+                                <small class="form-text">
+                                The random immigrant rate represents the probability of a random immigrant being made
+                                for producing a new candidate relative to the elitism and crossover rates.
                                 </small>
                             </div>
                         </div>
@@ -545,6 +608,21 @@
                 <div class="card">
                     <h5 class="card-header"><b>Scoring</b></h5>
                     <div id="docking-settings" class="card-body">
+                        <p>
+                            Here you should set the number of conformers that is required for the specific experiment.
+                            With your experience and knowledge about the specific experiment it is most likely that you
+                            are able to provide a realistic number for the necessary amount of three-dimensional
+                            conformers.
+                            I should mention that a more restricting protein will result in a lot of conformers being
+                            removed
+                            for clashing.
+                        </p>
+                        <P>
+                            The docking program has a great impact on the score of the candidate solutions. Smina
+                            calculates
+                            binding affinity in kcal/mol, while Moloc's Mol3d uses an arbitrary scale. Smina is also
+                            considerably faster than Mol3d.
+                        </P>
                         <div class="form-group row">
                             <label for="conformer-count" class="col-sm-3 col-form-label">
                                 Maximum number of conformers to generate
@@ -597,6 +675,7 @@
                                         required="required">
                                     <option value="ligandEfficiency">Ligand efficiency</option>
                                     <option value="affinity">Affinity</option>
+                                    <option value="ligandLipophilicityEfficiency">Ligand lipophilic efficiency</option>
                                 </select>
                             </div>
                         </div>
@@ -605,6 +684,19 @@
                 <div class="card">
                     <h5 class="card-header"><b>Filters</b></h5>
                     <div id="filter-settings" class="card-body">
+                        <p>Here a couple of options can be set for filtering the results. The RMSD in Ångström between
+                            the anchor
+                            and anchor matching structure in the minimized conformer is calculated to determine if the
+                            minimized structure deviates to much from the anchor. The receptor exclusion shape, which is
+                            based on the Pharmit exclusion shape, approximates the solvent excluded surface of the
+                            receptor
+                            within a grid like data structure wherein one Ångström corresponds with 2 cubes. A negative
+                            tolerance
+                            value will add the additive inverse of the tolerance value, rounded up to the nearest half
+                            an Ångström,
+                            to the shape. A positive tolerance
+                            will remove the tolerance value from the shape rounded up to the nearest half an
+                            Ångström</p>
                         <div class="form-group row">
                             <label for="max-anchor-minimized-rmsd" class="col-sm-3 col-form-label">
                                 Maximum RMSD allowed from the anchor
