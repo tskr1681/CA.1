@@ -194,30 +194,21 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Initializes a population from the reactant lists and the reactions.
-     *
-     * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
-     *                                 in the reactions.
      */
-    private void initializePopulation() throws MisMatchedReactantCount {
+    private void initializePopulation() {
         int individualsPerSpecies = this.populationSize / this.species.size();
         this.candidateList = new ArrayList<>();
 
+        // initialize population according to the species determination method
         if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
+            // Set
             for (Species species : this.species) {
-                int reactantCount = species.getReaction().getReactantCount();
-
-                // Get only the right reactants
-                List<List<Molecule>> reactants = species.getReactantListsSubset(this.reactantLists);
-
-                if (reactantCount != reactants.size()) {
-                    // Throw exception
-                    throw new MisMatchedReactantCount(reactantCount, reactants.size());
-                }
-                // Make sure only the right reactants are passed on
+                // Create a fixed set of candidates per species.
                 this.candidateList.addAll(new RandomCompoundReactor(individualsPerSpecies)
                         .randReact(this.reactantLists, Collections.singletonList(species)));
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
+            // Create a set of candidates with the species that works best.
             this.candidateList.addAll(new RandomCompoundReactor(this.populationSize)
                     .randReact(this.reactantLists, this.species));
         } else {
@@ -587,7 +578,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param offspringChoice, The choice of reproducing method; use crossover, elitism, or random immigrant.
      * @param i                an index of the current list of candidates at which to pick parents for new offspring.
-     * @return the produced
+     * @return the produced candidate.
      */
     private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
 //        System.out.println("offspringChoice = " + offspringChoice);

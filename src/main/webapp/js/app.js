@@ -121,35 +121,21 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param jqXHR
      */
     function getErrorResponse(jqXHR) {
-        let ct = jqXHR.getResponseHeader("content-type") || "";
-        if (ct.indexOf('html') > -1) {
-            if (jqXHR.responseText !== undefined && jqXHR.responseText !== "") {
-                $scope.response.error = jqXHR.responseText.substr(1).slice(0, -1);
-            } else if (jqXHR.status === 0) {
-                $scope.response.error = "Connection failed"
-            } else {
-                $scope.response.error = jqXHR.statusText;
-            }
-        }
-        // If the error response is in json: extract the message from json.
-        if (ct.indexOf('json') > -1) {
-            console.log(jqXHR.responseJSON);
-            let exception = jqXHR.responseJSON;
+        console.log(jqXHR);
+        const ct = jqXHR.getResponseHeader("content-type") || "";
 
-            if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
-                // $scope.response.error = exception.fieldName + ": "+ exception.cause
-                console.log(exception);
-                if ("offspringRejectionMessages" in exception) {
-                    $scope.response.error = exception.message + " " + exception.offspringRejectionMessages.toString()
-                } else {
-                    console.log(exception.message);
-                    $scope.response.error = exception.message;
-                }
-            } else if (jqXHR.status === 0) {
-                $scope.response.error = "Connection failed"
+        // Set the error message if the response was in json
+        if (ct.indexOf('json') > -1 && jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
+            let exception = jqXHR.responseJSON;
+            if ("offspringRejectionMessages" in exception) {
+                $scope.response.error = exception.message + " " + exception.offspringRejectionMessages.toString()
             } else {
-                $scope.response.error = jqXHR.statusText;
+                $scope.response.error = exception.message;
             }
+        } else if (jqXHR.status === 0) {
+            $scope.response.error = "An error has occurred: the connection has failed (" + jqXHR.status + ")"
+        } else {
+            $scope.response.error = "An error has occurred: " + jqXHR.statusText + " (" + jqXHR.status + ")";
         }
     }
 
@@ -168,7 +154,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             }
             fileOrder.push(reactantFiles);
         });
-        console.log(fileOrder);
 
         // Get form
         let form = $('form')[0];
@@ -184,7 +169,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         let backgroundColors = palette('cb-Set2', datasets.length).map(function(hex) {
             return '#' + hex;
         });
-        console.log(backgroundColors);
         datasets.forEach(function (dataset, i) {
             let species = {
                 label: dataset,
@@ -197,7 +181,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function updateSpeciesDistributionChart(generation) {
-        console.log(speciesDistributionChart.data);
         if (speciesDistributionChart.data.datasets.length === 0) {
             species = generation.candidateList.map(item => item.species)
                 .sort().filter((x, i, a) => a.indexOf(x) === i);

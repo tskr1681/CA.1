@@ -70,7 +70,6 @@ public class EvolveServlet extends HttpServlet {
             mapper.writeValue(response.getOutputStream(), GenerateCsv.generateCsvFile(compoundEvolver.getFitness(), "\n"));
         } catch (Exception e) {
             response.setStatus(400);
-            response.setContentType("application/json");
             mapper.writeValue(response.getOutputStream(), e);
         }
     }

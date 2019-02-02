@@ -33,7 +33,11 @@ public class Species {
      *                        location of the reaction according to the position of the index in this list.
      * @param reaction The reactor reaction.
      */
-    public Species(List<Integer> reactantIndices, Reactor reaction) {
+    public Species(List<Integer> reactantIndices, Reactor reaction) throws MisMatchedReactantCount {
+        if (reactantIndices.size() != reaction.getReactantCount()) {
+            // Throw exception
+            throw new MisMatchedReactantCount(reaction.getReactantCount(), reactantIndices.size());
+        }
         this.reactantIndices = reactantIndices;
         this.reaction = reaction;
     }
@@ -44,8 +48,10 @@ public class Species {
      * @param reactions The reactor reactions which resemble species.
      * @param reactantCount The amount of lists of reactants received.
      * @return a list of species.
+     * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
+     *                                 in the reactions.
      */
-    public static List<Species> constructSpecies(List<Reactor> reactions, int reactantCount) {
+    public static List<Species> constructSpecies(List<Reactor> reactions, int reactantCount) throws MisMatchedReactantCount {
         ArrayList<Species> species = new ArrayList<>();
 
         for (Reactor reaction : reactions) {
@@ -108,8 +114,10 @@ public class Species {
      * @param reactantsFileOrder The list of reactant file orders, each a list with each integer referring to a
      *                           list of reactants or a specific reactant in a genotype.
      * @return a list of species.
+     * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
+     *                                 in the reactions.
      */
-    public static List<Species> constructSpecies(List<Reactor> reactions, List<List<Integer>> reactantsFileOrder) {
+    public static List<Species> constructSpecies(List<Reactor> reactions, List<List<Integer>> reactantsFileOrder) throws MisMatchedReactantCount {
         ArrayList<Species> species = new ArrayList<>();
 
         for (int i = 0; i < reactions.size(); i++) {
