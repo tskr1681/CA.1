@@ -11,13 +11,13 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class UnSelectablePopulationException extends Exception {
+public class TooFewScoredCandidates extends Exception {
     /**
      * Constructor for the unselectable population exception.
      *
      * @param message The exception message.
      */
-    UnSelectablePopulationException(String message) {
+    public TooFewScoredCandidates(String message) {
         super(message);
     }
 }

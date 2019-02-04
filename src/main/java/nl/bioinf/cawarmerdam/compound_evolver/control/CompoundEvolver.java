@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class CompoundEvolver {
     private ExecutorService executor;
     private Map<Long, Integer> clashingConformerCounter = new HashMap<>();
+    private Map<Long, Integer> tooDistantConformerCounter = new HashMap<>();
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
     private ForceField forceField;
@@ -282,7 +283,7 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() throws OffspringFailureOverflow, UnSelectablePopulationException {
+    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         this.executor = Executors.newFixedThreadPool(25);
@@ -306,7 +307,7 @@ public class CompoundEvolver {
                 updateDuration();
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
-        } catch (OffspringFailureOverflow | UnSelectablePopulationException e) {
+        } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
             throw e;
         } finally {
@@ -319,7 +320,7 @@ public class CompoundEvolver {
                 executor.shutdownNow();
             }
         }
-        System.out.println("population.tooDistantConformerCounter = " + population.tooDistantConformerCounter);
+        System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
     }
 
@@ -334,7 +335,7 @@ public class CompoundEvolver {
     /**
      * Scores the candidates in the population.
      */
-    private void scoreCandidates() {
+    private void scoreCandidates() throws TooFewScoredCandidates {
         if (!dummyFitness) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
@@ -373,6 +374,11 @@ public class CompoundEvolver {
                 }
                 candidate.calculateLigandLipophilicityEfficiency();
             }
+        }
+        population.filterUnscoredCandidates();
+        if (population.size() == 0) {
+            throw new TooFewScoredCandidates(
+                    "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
         }
         processRawScores();
     }
@@ -464,7 +470,9 @@ public class CompoundEvolver {
     public void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
         int conformerCount = 15;
         double exclusionShapeTolerance = 0;
-        setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount, exclusionShapeTolerance);
+        double maximumAnchorDistance = 2;
+        setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount, exclusionShapeTolerance,
+                maximumAnchorDistance);
     }
 
     /**
@@ -474,7 +482,8 @@ public class CompoundEvolver {
                               Path receptorFilePath,
                               Path anchor,
                               int conformerCount,
-                              double exclusionShapeTolerance) throws PipelineException {
+                              double exclusionShapeTolerance,
+                              double maximumAnchorDistance) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFilePath(outputFileLocation);
 
@@ -489,7 +498,9 @@ public class CompoundEvolver {
                 anchor,
                 receptorFilePath,
                 exclusionShapeTolerance,
-                clashingConformerCounter);
+                maximumAnchorDistance,
+                clashingConformerCounter,
+                tooDistantConformerCounter);
         // Get the step for energy minimization
         EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.

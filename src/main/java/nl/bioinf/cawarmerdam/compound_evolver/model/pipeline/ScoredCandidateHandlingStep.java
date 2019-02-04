@@ -32,7 +32,9 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
 
     private final Path anchorFilePath;
     private final Map<Long, Integer> clashingConformerCounter;
+    private Map<Long, Integer> tooDistantConformerCounter;
     private ExclusionShape exclusionShape;
+    private double maximumDistanceFromAnchor;
 
     /**
      * Constructor for a scored candidate handling step.
@@ -40,16 +42,23 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      * @param anchorFilePath The path to the file that holds the anchor.
      * @param receptorFilePath The path of the file that holds the receptor.
      * @param exclusionShapeTolerance The tolerance of the exclusion shape in Ångström. default is 0.
+     * @param maximumDistanceFromAnchor The maximum distance the anchor may be from the anchor matching structure
+     *                                  in a conformer.
      * @param clashingConformerCounter A map that is used to count the amount of conformers clashing.
+     * @param tooDistantConformerCounter A map that is used to count the amount of conformers that are too distant
+     *                                   from the anchor.
      * @throws PipelineException if the molecules could not be imported.
      */
     public ScoredCandidateHandlingStep(Path anchorFilePath,
                                        Path receptorFilePath,
                                        double exclusionShapeTolerance,
-                                       Map<Long, Integer> clashingConformerCounter) throws PipelineException {
-
+                                       double maximumDistanceFromAnchor,
+                                       Map<Long, Integer> clashingConformerCounter,
+                                       Map<Long, Integer> tooDistantConformerCounter) throws PipelineException {
         this.anchorFilePath = anchorFilePath;
         this.clashingConformerCounter = clashingConformerCounter;
+        this.tooDistantConformerCounter = tooDistantConformerCounter;
+        this.maximumDistanceFromAnchor = maximumDistanceFromAnchor;
         try {
             Molecule receptor = new MolImporter(String.valueOf(receptorFilePath)).read();
             this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
@@ -71,34 +80,52 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         List<Double> conformerScores = candidate.getConformerScores();
         Path outputFilePath = candidate.getMinimizationOutputFilePath();
         // Declare default score
-        double score = 0.0;
         if (conformerScores.size() > 0) {
 
             // Filter conformers that clash according to the exclusion shape.
-            List<Double> nonClashingConformerScores = new ArrayList<>();
-            List<Molecule> nonClashingConformers = new ArrayList<>();
+            List<Double> validConformerScores = new ArrayList<>();
+            List<Molecule> validConformers = new ArrayList<>();
             for (int i = 0; i < conformerScores.size(); i++) {
                 Molecule conformer = getConformer(outputFilePath, i);
+                boolean isTooDistant = calculateLeastAnchorRmsd(conformer) > maximumDistanceFromAnchor;
                 boolean isInShape = exclusionShape.inShape(conformer);
-                if (!isInShape) {
-                    nonClashingConformerScores.add(conformerScores.get(i));
-                    nonClashingConformers.add(conformer);
+
+                if (!isInShape && !isTooDistant) {
+                    validConformerScores.add(conformerScores.get(i));
+                    validConformers.add(conformer);
                 } else {
-                    // Count the clashing conformer.
-                    clashingConformerCounter.compute(
-                            candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
+                    countInvalidities(candidate, isTooDistant, isInShape);
                 }
             }
-            if (nonClashingConformerScores.size() > 0) {
+
+            if (validConformerScores.size() > 0) {
                 // Get best conformer.
-                score = Collections.min(nonClashingConformerScores);
-                Molecule bestConformer = nonClashingConformers.get(nonClashingConformerScores.indexOf(score));
-                candidate.setCommonSubstructureToAnchorRmsd(calculateLeastAnchorRmsd(bestConformer));
+                double score = Collections.min(validConformerScores);
+                Molecule bestConformer = validConformers.get(validConformerScores.indexOf(score));
                 exportConformer(bestConformer, outputFilePath.resolveSibling("best-conformer.sdf"));
+                candidate.setRawScore(score);
             }
         }
-        candidate.setRawScore(score);
         return null;
+    }
+
+    /**
+     * Counts a too distant conformer or a conformer that is in the restricted space.
+     *
+     * @param candidate The candidate that the conformer belongs to.
+     * @param isTooDistant If the conformer is too distant.
+     * @param isInShape If the conformer is in the excluded shape.
+     */
+    private void countInvalidities(Candidate candidate, boolean isTooDistant, boolean isInShape) {
+        if (isInShape) {
+            // Count the clashing conformer.
+            clashingConformerCounter.compute(
+                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
+        }
+        if (isTooDistant) {
+            tooDistantConformerCounter.compute(
+                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
+        }
     }
 
     /**

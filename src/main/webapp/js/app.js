@@ -28,6 +28,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxAnchorMinimizedRmsd: 2,
         exclusionShapeTolerance: 0,
         useLipinski: false,
+        allowDuplicates: true,
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
         maxHydrogenBondAcceptors: 10,
@@ -491,5 +492,22 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         let url = './compound.download';
 
         download(url);
-    }
+    };
+
+    $scope.downloadSelectedGeneration = function () {
+        // Set data
+        let url = './multi-sdf.download?generationNumber=' + $rootScope.selectedGenerationNumber;
+        console.log(url);
+
+        download(url);
+    };
+
+    $scope.downloadMultiSdf = function (bestOnly) {
+        // Set data
+        console.log(bestOnly);
+        let url = './multi-sdf.download' + (bestOnly ? '?bestOnly=True' : '');
+        console.log(url);
+
+        download(url);
+    };
 });

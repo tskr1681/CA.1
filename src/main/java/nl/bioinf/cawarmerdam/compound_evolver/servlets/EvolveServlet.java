@@ -147,13 +147,12 @@ public class EvolveServlet extends HttpServlet {
         double randomImmigrantRate = getDoubleParameterFromRequest(request, "randomImmigrantRate");
         initialPopulation.setRandomImmigrantRate(randomImmigrantRate);
 
-        // Get the maximum allowed rmsd from the anchor
-        double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
-        initialPopulation.setMaxAnchorMinimizedRmsd(maxAnchorMinimizedRmsd);
-
         // If use lipinski is set to true, handle the filter options.
         boolean useLipinski = getBooleanParameterFromRequest(request, "useLipinski");
         if (useLipinski) handleFilterOptions(request, initialPopulation);
+
+        boolean allowDuplicates = getBooleanParameterFromRequest(request, "allowDuplicates");
+        initialPopulation.setDuplicatesAllowed(allowDuplicates);
 
         // Get mutation method
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
@@ -249,13 +248,17 @@ public class EvolveServlet extends HttpServlet {
         // Get the exclusion shape tolerance
         double exclusionShapeTolerance = getDoubleParameterFromRequest(request, "exclusionShapeTolerance");
 
+        // Get the maximum allowed rmsd from the anchor
+        double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
+
         // Setup the pipeline using the gathered locations paths
         evolver.setupPipeline(
                 outputFileLocation,
                 receptorLocation,
                 anchorLocation,
                 conformerCount,
-                exclusionShapeTolerance);
+                exclusionShapeTolerance,
+                maxAnchorMinimizedRmsd);
 
         System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());
     }

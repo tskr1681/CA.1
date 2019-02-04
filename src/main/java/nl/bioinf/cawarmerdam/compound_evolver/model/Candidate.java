@@ -52,7 +52,7 @@ public class Candidate implements Comparable<Candidate> {
     private List<Integer> genotype;
     private Molecule phenotype;
     private String rejectionMessage;
-    private double CommonSubstructureToAnchorRmsd;
+    private boolean isScored;
     private double normFitness;
     private double ligandEfficiency;
     private Species species;
@@ -233,6 +233,7 @@ public class Candidate implements Comparable<Candidate> {
      */
     public void setRawScore(double rawScore) {
         this.rawScore = rawScore;
+        this.isScored = true;
     }
 
     /**
@@ -617,25 +618,12 @@ public class Candidate implements Comparable<Candidate> {
     }
 
     /**
-     * Getter for the root mean square deviation between the anchor and the corresponding maximum common substructure
-     * in this candidate.
+     * Getter for if this candidate is scored.
      *
-     * @return the root mean square deviation between the anchor and the corresponding maximum common substructure
-     * in this candidate.
+     * @return if this candidate is scored.
      */
-    public double getCommonSubstructureToAnchorRmsd() {
-        return CommonSubstructureToAnchorRmsd;
-    }
-
-    /**
-     * Setter for the root mean square deviation between the anchor and the corresponding maximum common substructure
-     * in this candidate.
-     *
-     * @param commonSubstructureToAnchorRmsd The root mean square deviation between the anchor and the corresponding
-     *                                       maximum common substructure in this candidate.
-     */
-    public void setCommonSubstructureToAnchorRmsd(double commonSubstructureToAnchorRmsd) {
-        CommonSubstructureToAnchorRmsd = commonSubstructureToAnchorRmsd;
+    public boolean isScored() {
+        return isScored;
     }
 
     /**

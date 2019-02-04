@@ -4,8 +4,8 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A class that holds a list of candidates and the generation number.
@@ -43,12 +43,8 @@ public class Generation {
      *
      * @return the fittest candidate in this generation
      */
-    public double getFittestCandidate() {
-        Optional<Double> max = candidateList.stream().map(Candidate::getFitness).max(Double::compare);
-        if (max.isPresent()) {
-            return max.get();
-        }
-        throw new RuntimeException("max not present?");
+    public Candidate getFittestCandidate() {
+        return Collections.max(candidateList);
     }
 
     /**

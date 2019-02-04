@@ -752,7 +752,24 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Filer application
+                            <label for="allow-duplicates" class="col-sm-3 col-form-label">Duplicate candidates
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.allowDuplicates"
+                                           id="allow-duplicates"
+                                           name="allowDuplicates"
+                                           value="allow-duplicates">
+                                    <label class="form-check-label" for="allow-duplicates">
+                                        Allow duplicates within generations
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="use-lipinski" class="col-sm-3 col-form-label">Filer application
                             </label>
                             <div class="col-sm-9">
                                 <div class="form-check">
@@ -890,10 +907,21 @@
             <h5>Results</h5>
             <ul class="nav nav-pills">
                 <li class="nav-item">
-                    <a class="nav-link disabled" href>Download selected generation</a>
+                    <a class="nav-link" href ng-click="downloadSelectedGeneration()">Download selected generation</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href ng-click="downloadRun()">Download all</a>
+                    <a class="nav-link" href ng-click="downloadMultiSdf(1)">best candidates per generation</a>
+                </li>
+                <li class="nav-item">
+                    <div class="dropdown">
+                        <button class="btn btn-link dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Download all candidates
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href ng-click="downloadRun()">Complete compressed zip</a>
+                            <a class="dropdown-item" href ng-click="downloadMultiSdf(0)">Multi-sdf of best conformers</a>
+                        </div>
+                    </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href ng-click="downloadCsv()">Download csv</a>

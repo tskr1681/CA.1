@@ -36,6 +36,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>DownloadMultiSdfServlet</servlet-name>
+        <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.DownloadMultiSdfServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DownloadMultiSdfServlet</servlet-name>
+        <url-pattern>/multi-sdf.download</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>DownloadCsvServlet</servlet-name>
         <servlet-class>nl.bioinf.cawarmerdam.compound_evolver.servlets.DownloadCsvServlet</servlet-class>
     </servlet>

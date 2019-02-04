@@ -7,7 +7,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 import chemaxon.descriptors.CFParameters;
 import chemaxon.descriptors.ChemicalFingerprint;
 import chemaxon.descriptors.MDGeneratorException;
-import chemaxon.reaction.ReactionException;
 import chemaxon.struc.Molecule;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -24,10 +23,10 @@ import java.util.stream.Stream;
 public class Population implements Iterable<Candidate> {
 
     private final List<String> offspringRejectionMessages = new ArrayList<>();
+    private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     private final List<List<Molecule>> reactantLists;
     private final Random random;
     private final List<Species> species;
-    private double maxAnchorMinimizedRmsd;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
     private InterspeciesCrossoverMethod interspeciesCrossoverMethod;
@@ -46,7 +45,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxHydrogenBondDonors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    public Integer tooDistantConformerCounter = 0;
+    private boolean duplicatesAllowed;
 
     /**
      * Constructor for population.
@@ -70,10 +69,9 @@ public class Population implements Iterable<Candidate> {
         this.generationNumber = 0;
         this.mutationRate = 0.1;
         this.selectionFraction = 0.4;
-        this.crossoverRate = 0.8;
+        this.setCrossoverRate(0.8);
         this.elitismRate = 0.1;
-        this.randomImmigrantRate = 0.1;
-        this.maxAnchorMinimizedRmsd = 1;
+        this.setRandomImmigrantRate(0.1);
         this.tournamentSize = 2;
         this.speciesDeterminationMethod = speciesDeterminationMethod;
         this.interspeciesCrossoverMethod = InterspeciesCrossoverMethod.COMPLETE;
@@ -134,26 +132,6 @@ public class Population implements Iterable<Candidate> {
      */
     public void setSpeciesDeterminationMethod(SpeciesDeterminationMethod speciesDeterminationMethod) {
         this.speciesDeterminationMethod = speciesDeterminationMethod;
-    }
-
-    /**
-     * Getter for the maximum allowed rmsd between the anchor and
-     * its matching substructure in the candidates best conformer.
-     *
-     * @return the maximum allowed rmsd
-     */
-    public double getMaxAnchorMinimizedRmsd() {
-        return maxAnchorMinimizedRmsd;
-    }
-
-    /**
-     * Setter for the maximum allowed rmsd between the anchor and
-     * its matching substructure in the candidates best conformer.
-     *
-     * @param maxAnchorMinimizedRmsd The maximum allowed rmsd
-     */
-    public void setMaxAnchorMinimizedRmsd(double maxAnchorMinimizedRmsd) {
-        this.maxAnchorMinimizedRmsd = maxAnchorMinimizedRmsd;
     }
 
     /**
@@ -256,6 +234,7 @@ public class Population implements Iterable<Candidate> {
      */
     public void setRandomImmigrantRate(double randomImmigrantRate) {
         this.randomImmigrantRate = randomImmigrantRate;
+        this.reproductionMethodWeighting.put(ReproductionMethod.RANDOM_IMMIGRANT, this.randomImmigrantRate);
     }
 
     /**
@@ -389,6 +368,7 @@ public class Population implements Iterable<Candidate> {
      */
     public void setCrossoverRate(double crossoverRate) {
         this.crossoverRate = crossoverRate;
+        this.reproductionMethodWeighting.put(ReproductionMethod.CROSSOVER, this.crossoverRate);
     }
 
     /**
@@ -516,7 +496,7 @@ public class Population implements Iterable<Candidate> {
      * Overloaded produceOffspring method with default parameter value population size set to the instance field
      * population size.
      */
-    public void produceOffspring() throws OffspringFailureOverflow, UnSelectablePopulationException {
+    public void produceOffspring() throws OffspringFailureOverflow, TooFewScoredCandidates {
         produceOffspring(this.populationSize);
     }
 
@@ -525,9 +505,9 @@ public class Population implements Iterable<Candidate> {
      *
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
-    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, UnSelectablePopulationException {
+    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, TooFewScoredCandidates {
         // Create list of offspring
-        List<Candidate> offspring = new ArrayList<>();
+        List<Candidate> offspring = elitism();
 
         // Shuffle parents
         Collections.shuffle(this.candidateList);
@@ -545,15 +525,12 @@ public class Population implements Iterable<Candidate> {
 
             // Get some genomes by crossing over according to crossover probability
             if (offspringChoice == ReproductionMethod.CLEAR) {
-                offspringChoice = ReproductionMethod.values()[makeWeightedChoice(new double[]{
-                        this.crossoverRate,
-                        this.elitismRate,
-                        this.randomImmigrantRate})];
+                offspringChoice = makeWeightedReproductionChoice();
             }
 
             // Try to produce offspring
             Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
-            if (newOffspring != null) {
+            if (newOffspring != null && (this.duplicatesAllowed || !offspring.contains(newOffspring))) {
                 // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
                 offspring.add(newOffspring);
                 offspringChoice = ReproductionMethod.CLEAR;
@@ -569,8 +546,20 @@ public class Population implements Iterable<Candidate> {
                 }
             }
         }
-        candidateList = offspring;
+        candidateList = new ArrayList<>(offspring);
         generationNumber++;
+    }
+
+    private ReproductionMethod makeWeightedReproductionChoice() {
+        ArrayList<Map.Entry<ReproductionMethod, Double>> entries = new ArrayList<>(this.reproductionMethodWeighting.entrySet());
+        return entries.get(makeWeightedChoice(
+                entries.stream().map(Map.Entry::getValue).mapToDouble(Double::doubleValue).toArray())).getKey();
+    }
+
+    private List<Candidate> elitism() {
+        Collections.sort(candidateList);
+        int elitistCount = (int) elitismRate * candidateList.size();
+        return candidateList.subList(candidateList.size()-1, candidateList.size()-elitistCount);
     }
 
     /**
@@ -664,19 +653,15 @@ public class Population implements Iterable<Candidate> {
      * up to the nearest integer.
      * </p>
      *
-     * @throws UnSelectablePopulationException if the population was either empty or if the first candidate has a
+     * @throws TooFewScoredCandidates if the population was either empty or if the first candidate has a
      *                                         fitness of 0.
      */
-    private void selectParents() throws UnSelectablePopulationException {
+    private void selectParents() throws TooFewScoredCandidates {
         // Get amount of parents to multiply the selection rate with for the amount of parents to select
         int selectionSize = (int) Math.ceil(this.size() * this.selectionFraction);
-        this.filterTooDeviantParents();
         // Check that the candidates exist and have a score
-        if (candidateList.size() == 0) {
-            throw new UnSelectablePopulationException("The population is empty");
-        }
         if (candidateList.get(0).getFitness() == null) {
-            throw new UnSelectablePopulationException("The first candidate score is null");
+            throw new TooFewScoredCandidates("The first candidate score is null");
         }
         // Select the parents according to the method that is set
         if (this.selectionMethod == SelectionMethod.FITNESS_PROPORTIONATE_SELECTION) {
@@ -690,18 +675,13 @@ public class Population implements Iterable<Candidate> {
     }
 
     /**
-     * Filters the parents with an rmsd larger than the max set rmsd.
-     * The rmsd stands for the deviation between the anchor and
-     * its matching substructure in the candidates best conformer.
+     * Filters the parents that could not be scored due to invalid docking poses.
      */
-    private void filterTooDeviantParents() {
-        // Store size before filtering.
-        int sizeBeforeFiltering = candidateList.size();
-        // When the common substructure to anchor rmsd is lower or equal to the max, keep it.
+    public void filterUnscoredCandidates() {
+        // When the candidate is scored, keep it.
         candidateList = candidateList.stream()
-                .filter(parent -> parent.getCommonSubstructureToAnchorRmsd() <= this.maxAnchorMinimizedRmsd)
+                .filter(Candidate::isScored)
                 .collect(Collectors.toList());
-        tooDistantConformerCounter += sizeBeforeFiltering - candidateList.size();
     }
 
     /**
@@ -905,6 +885,24 @@ public class Population implements Iterable<Candidate> {
     @Override
     public Iterator<Candidate> iterator() {
         return this.candidateList.iterator();
+    }
+
+    /**
+     * Setter for if the duplicates in this population is allowed.
+     *
+     * @param duplicatesAllowed If duplicates are allowed in this population.
+     */
+    public void setDuplicatesAllowed(boolean duplicatesAllowed) {
+        this.duplicatesAllowed = duplicatesAllowed;
+    }
+
+    /**
+     * Setter for if the duplicates in this population is allowed.
+     *
+     * @return if duplicates are allowed.
+     */
+    public boolean isDuplicatesAllowed() {
+        return duplicatesAllowed;
     }
 
     /**

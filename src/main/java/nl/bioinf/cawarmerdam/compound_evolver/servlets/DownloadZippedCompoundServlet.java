@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getSessionId;
+
 /**
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl
@@ -104,35 +106,18 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
     }
 
     /**
-     * Method that gets the session id from from the request if it is present.
-     *
-     * @param request The HTTP request.
-     * @return the session id
-     * @throws UnknownProgressException if the session id is null or the session is new.
-     */
-    private String getSessionId(HttpServletRequest request) throws UnknownProgressException {
-        HttpSession session = request.getSession();
-        String sessionID;
-        if (session.isNew() || session.getAttribute("session_id") == null) {
-            throw new UnknownProgressException("Session not found");
-        }
-        sessionID = (String) session.getAttribute("session_id");
-        return sessionID;
-    }
-
-    /**
      * Compress the given directory with all its files.
      */
     private byte[] zipFiles(Path directory, String[] files) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ZipOutputStream zos = new ZipOutputStream(baos);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(outputStream);
         addDirToZipArchive(zos, directory.toFile(), null);
         zos.flush();
-        baos.flush();
+        outputStream.flush();
         zos.close();
-        baos.close();
+        outputStream.close();
 
-        return baos.toByteArray();
+        return outputStream.toByteArray();
     }
 
     /**

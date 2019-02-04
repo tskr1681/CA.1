@@ -97,4 +97,21 @@ public class ServletUtils {
         }
         return progressConnector;
     }
+
+    /**
+     * Method that gets the session id from from the request if it is present.
+     *
+     * @param request The HTTP request.
+     * @return the session id
+     * @throws UnknownProgressException if the session id is null or the session is new.
+     */
+    public static String getSessionId(HttpServletRequest request) throws UnknownProgressException {
+        HttpSession session = request.getSession();
+        String sessionID;
+        if (session.isNew() || session.getAttribute("session_id") == null) {
+            throw new UnknownProgressException("Session not found");
+        }
+        sessionID = (String) session.getAttribute("session_id");
+        return sessionID;
+    }
 }

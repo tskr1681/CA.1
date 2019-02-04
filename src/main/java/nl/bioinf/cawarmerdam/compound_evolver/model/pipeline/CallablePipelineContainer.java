@@ -85,8 +85,10 @@ public class CallablePipelineContainer implements Callable<Void> {
             }
             if (cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
         }
-        candidate.calculateLigandEfficiency();
-        candidate.calculateLigandLipophilicityEfficiency();
+        if (candidate.isScored()) {
+            candidate.calculateLigandEfficiency();
+            candidate.calculateLigandLipophilicityEfficiency();
+        }
         return null;
     }
 

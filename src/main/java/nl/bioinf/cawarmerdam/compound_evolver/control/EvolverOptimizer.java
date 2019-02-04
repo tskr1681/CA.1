@@ -82,7 +82,7 @@ public class EvolverOptimizer {
                 CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
                 List<List<Double>> scores = run.getFitness();
                 writeOutput(resultsTable, parameterVector, identifier, runPath, run, scores);
-            } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | UnSelectablePopulationException | IOException e) {
+            } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | TooFewScoredCandidates | IOException e) {
                 System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
                 e.printStackTrace();
             }
@@ -206,7 +206,6 @@ public class EvolverOptimizer {
         gaParameters.setMaxGenerations(Integer.MAX_VALUE);
         gaParameters.setSpeciesDeterminationMethod(Population.SpeciesDeterminationMethod.FIXED);
         gaParameters.setInterspeciesCrossoverMethod(Population.InterspeciesCrossoverMethod.NONE);
-        gaParameters.setMaxAnchorMinimizedRmsd(2.0);
         gaParameters.setTargetCandidateCount(candidateCount);
         return gaParameters;
     }
@@ -224,7 +223,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, PipelineException, OffspringFailureOverflow, UnSelectablePopulationException {
+    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, PipelineException, OffspringFailureOverflow, TooFewScoredCandidates {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(
                 reactantLists,
@@ -240,7 +239,6 @@ public class EvolverOptimizer {
         population.setCrossoverRate(parameters.getCrossoverRate());
         population.setRandomImmigrantRate(parameters.getRandomImmigrantRate());
         population.setElitismRate(parameters.getElitistRate());
-        population.setMaxAnchorMinimizedRmsd(parameters.getMaxAnchorMinimizedRmsd());
         population.setInterspeciesCrossoverMethod(parameters.getInterspeciesCrossoverMethod());
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
