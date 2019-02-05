@@ -550,16 +550,26 @@ public class Population implements Iterable<Candidate> {
         generationNumber++;
     }
 
+    /**
+     * Chooses between the reproduction methods within the reproduction method weighting map.
+     *
+     * @return A reproduction method.
+     */
     private ReproductionMethod makeWeightedReproductionChoice() {
         ArrayList<Map.Entry<ReproductionMethod, Double>> entries = new ArrayList<>(this.reproductionMethodWeighting.entrySet());
         return entries.get(makeWeightedChoice(
                 entries.stream().map(Map.Entry::getValue).mapToDouble(Double::doubleValue).toArray())).getKey();
     }
 
+    /**
+     * Copies the top candidates and returns the list.
+     *
+     * @return a list of candidates to keep in the population.
+     */
     private List<Candidate> elitism() {
         Collections.sort(candidateList);
-        int elitistCount = (int) elitismRate * candidateList.size();
-        return candidateList.subList(candidateList.size()-1, candidateList.size()-elitistCount);
+        int elitistCount = (int) ((elitismRate * (1 / (elitismRate + crossoverRate + randomImmigrantRate))) * populationSize);
+        return new ArrayList<>(candidateList.subList(Math.max(0, candidateList.size()-elitistCount), candidateList.size()));
     }
 
     /**

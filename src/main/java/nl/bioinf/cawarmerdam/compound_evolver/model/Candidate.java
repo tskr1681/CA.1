@@ -694,7 +694,7 @@ public class Candidate implements Comparable<Candidate> {
     public String toString() {
         return "Candidate{" +
                 "genotype=" + genotype +
-                ", rawScore=" + rawScore +
+                ", normFitness=" + normFitness +
                 '}';
     }
 }

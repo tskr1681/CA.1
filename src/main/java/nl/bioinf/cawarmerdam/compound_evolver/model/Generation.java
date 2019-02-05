@@ -4,6 +4,7 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class Generation {
      */
     Generation(List<Candidate> candidateList, int number) {
         this.number = number;
-        this.candidateList = candidateList;
+        this.candidateList = new ArrayList<>(candidateList);
     }
 
     /**
