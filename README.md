@@ -1,3 +1,51 @@
 # compound-evolver
 
-Compound optimization by using genetic algorithms
+This web application presents a new genetic algorithm (GA) 
+that aims to find the best 'druglike' compounds within a 
+large combinatorial space. A genetic algorithm is an iterative, 
+population based technique to decrease the amount of sampling 
+necessary for finding a good solution. In this GA, the 
+population consists of candidate solutions, that are comprised 
+of reactants (building blocks), which make up a compound. 
+
+## development
+
+This is a gradle project that should be imported via the build.gradle
+file. In addition, the project requires a `gradle.properties` file that
+is used for the ChemAxon repository. [The ChemAxon website](https://docs.chemaxon.com/display/docs/Public+Repository)
+provides a description on how to obtain such an API-key.
+
+The following setup of the `gradle.properties` file has proven to work well.
+
+```
+artifactory_user = email@email.com
+artifactory_password = API-key
+artifactory_contextUrl = https://hub.chemaxon.com/artifactory/libs-release
+```
+
+## deployment
+
+The web application requires a Tomcat server instance.
+The software was developed with Tomcat version 8.5 downloadable
+from [their website](https://tomcat.apache.org/download-80.cgi).
+The installation process is well described in the various readme files
+the software provides.
+
+To deploy the web application build a .war file using gradle.
+A good development environment is advices for this step.
+By making the file `<TOMCAT_HOME>/conf/Catalina/localhost/ROOT.xml`
+with the following content:
+
+```
+<Context
+  docBase=".../compound_evolver.war"
+  path=""
+  reloadable="true"
+/>
+```
+
+where `.../compound_evolver.war` is the location of the war file within
+the filesystem. Starting the server is done with the `startup.sh`
+or `startup.bat` scripts in the `bin` folder. After tomcat is started the
+web application should be available via `<host>:<port>/app`. The readme files
+tomcat provides gives a more detailed explanation on the running procedure.
