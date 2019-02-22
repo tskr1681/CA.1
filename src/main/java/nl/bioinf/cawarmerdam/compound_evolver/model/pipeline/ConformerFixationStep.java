@@ -81,7 +81,7 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
                 conformerLib,
                 outFile);
 
-        candidate.getPipelineLogger().info(String.format("Starting obfit with this command:%n%s%n", command));
+//        candidate.getPipelineLogger().info(String.format("Starting obfit with this command:%n%s%n", command));
 
         try {
             ProcessBuilder builder = new
@@ -93,22 +93,22 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
 
             p.waitFor();
 
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
+//
+//            // read the output from the command
+//            candidate.getPipelineLogger().info(
+//                    String.format("Obfit has written the following output:%n%s%n", IOUtils.toString(stdInput)));
 
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-            candidate.getPipelineLogger().info(
-                    String.format("Obfit has written the following output:%n%s%n", IOUtils.toString(stdInput)));
-
-            // read any errors from the attempted command
-            String stdErrorMessage = IOUtils.toString(stdError);
-            if (!stdErrorMessage.isEmpty()) {
-                candidate.getPipelineLogger().warning(
-                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
-            }
+//            // read any errors from the attempted command
+//            String stdErrorMessage = IOUtils.toString(stdError);
+//            if (!stdErrorMessage.isEmpty()) {
+//                candidate.getPipelineLogger().warning(
+//                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
+//            }
 
         } catch (IOException | InterruptedException e) {
 

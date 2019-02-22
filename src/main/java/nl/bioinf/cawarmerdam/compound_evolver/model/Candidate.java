@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,7 +36,6 @@ public class Candidate implements Comparable<Candidate> {
     private static AtomicLong currentValue = new AtomicLong(0L);
     private final long identifier;
     private final int genomeSize;
-    private Logger pipelineLogger;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
     private Path conformersFile;
     private Path fixedConformersFile;
@@ -69,7 +67,6 @@ public class Candidate implements Comparable<Candidate> {
         this.genotype = genotype;
         this.genomeSize = this.genotype.size();
         this.identifier = currentValue.getAndIncrement();
-        pipelineLogger = Logger.getLogger(String.valueOf(this.identifier));
     }
 
     /**
@@ -161,15 +158,6 @@ public class Candidate implements Comparable<Candidate> {
         return IntStream.range(0, reactantLists.size())
                 .mapToObj(i -> reactantLists.get(i).get(this.genotype.get(i)))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Getter for the pipeline logger that can be written to.
-     *
-     * @return a logger instance.
-     */
-    public Logger getPipelineLogger() {
-        return pipelineLogger;
     }
 
     /**

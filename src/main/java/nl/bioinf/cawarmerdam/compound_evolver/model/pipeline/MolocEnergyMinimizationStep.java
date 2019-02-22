@@ -131,23 +131,23 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
             final Process p = builder.start();
 
             p.waitFor();
-
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-            candidate.getPipelineLogger().info(
-                    String.format("Mol3d has written the following output:%n%s%n", IOUtils.toString(stdInput)));
-
-            // read any errors from the attempted command
-            String stdErrorMessage = IOUtils.toString(stdError);
-            if (!stdErrorMessage.isEmpty()) {
-                candidate.getPipelineLogger().warning(
-                        String.format("Mol3d has written an error message:%n%s%n", stdErrorMessage));
-            }
+//
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
+//
+//            // read the output from the command
+//            candidate.getPipelineLogger().info(
+//                    String.format("Mol3d has written the following output:%n%s%n", IOUtils.toString(stdInput)));
+//
+//            // read any errors from the attempted command
+//            String stdErrorMessage = IOUtils.toString(stdError);
+//            if (!stdErrorMessage.isEmpty()) {
+//                candidate.getPipelineLogger().warning(
+//                        String.format("Mol3d has written an error message:%n%s%n", stdErrorMessage));
+//            }
 
         } catch (InterruptedException | IOException e) {
 

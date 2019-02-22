@@ -59,30 +59,13 @@ public class CallablePipelineContainer implements Callable<Void> {
         try {
             // Create new directory
             candidateDirectory = createCandidateDirectory();
-            // Creating FileHandler
-            fileHandler = new FileHandler(candidateDirectory.resolve("pipeline.log").toString());
-            // Creating SimpleFormatter
-            simpleFormatter = new SimpleFormatter();
-            // Setting formatter to the handler
-            fileHandler.setFormatter(simpleFormatter);
-            // Assigning handler to logger
-            candidate.getPipelineLogger().addHandler(fileHandler);
-            candidate.getPipelineLogger().setUseParentHandlers(false);
             // Setting Level to ALL
-            fileHandler.setLevel(Level.ALL);
-            candidate.getPipelineLogger().setLevel(Level.ALL);
-            candidate.getPipelineLogger().info(
-                    "Starting scoring pipeline for candidate " + candidate.getIdentifier());
             // Execute pipeline
             this.pipeline.execute(candidate);
-        } catch (PipelineException | IOException e) {
-            candidate.getPipelineLogger().log(Level.SEVERE, e.getMessage(), e);
+        } catch (PipelineException e) {
             throw e;
         } finally {
             // Remove the pipeline files.
-            if (fileHandler != null) {
-                fileHandler.close();
-            }
             if (cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
         }
         if (candidate.isScored()) {

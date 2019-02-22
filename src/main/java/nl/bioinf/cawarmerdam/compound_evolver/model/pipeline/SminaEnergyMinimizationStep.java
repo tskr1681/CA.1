@@ -143,12 +143,12 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
                 sminaOutput.add(line);
             }
 
-            // read any errors from the attempted command
-            String stdErrorMessage = IOUtils.toString(stdError);
-            if (!stdErrorMessage.isEmpty()) {
-                candidate.getPipelineLogger().warning(
-                        String.format("Smina has written an error message:%n%s%n", stdErrorMessage));
-            }
+//            // read any errors from the attempted command
+//            String stdErrorMessage = IOUtils.toString(stdError);
+//            if (!stdErrorMessage.isEmpty()) {
+//                candidate.getPipelineLogger().warning(
+//                        String.format("Smina has written an error message:%n%s%n", stdErrorMessage));
+//            }
             return sminaOutput;
 
         } catch (IOException e) {
@@ -185,11 +185,11 @@ public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
 
             p.waitFor();
 
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
+//            BufferedReader stdInput = new BufferedReader(new
+//                    InputStreamReader(p.getInputStream()));
+//
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
 
 //            // read the output from the command
 //            candidate.getPipelineLogger().info(

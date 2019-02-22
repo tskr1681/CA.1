@@ -30,7 +30,7 @@
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
-    <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot"></script>
+    <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot@1.2.1"></script>
     <script src="https://codepen.io/anon/pen/aWapBE.js"></script>
     <script src="<c:url value = "js/libs/angularjs-dropdown-multiselect.js"/>"></script>
     <%--load custom javascript--%>
