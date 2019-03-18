@@ -11,6 +11,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
+import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -286,7 +287,7 @@ public class CompoundEvolver {
     public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
-        this.executor = Executors.newFixedThreadPool(25);
+        this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
 
         // Score the initial population
@@ -322,6 +323,22 @@ public class CompoundEvolver {
         }
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
+    }
+
+    /**
+     * Gets an environment variable as an integer.
+     *
+     * @param variableName the name of the environment variable that should be parsed to an integer.
+     * @return An integer.
+     */
+    private int getIntegerEnvironmentVariable(String variableName) {
+        String environmentVariable = getEnvironmentVariable(variableName);
+        boolean isInteger = NumberCheckUtilities.isInteger(variableName, 10);
+        if (NumberCheckUtilities.isInteger(variableName, 10)) {
+            return Integer.parseInt(environmentVariable);
+        }
+        // Throw an exception because the environment variables was not an integer.
+        throw new RuntimeException(String.format("Environment variable '%s' was not an integer value", variableName));
     }
 
     /**
@@ -518,8 +535,8 @@ public class CompoundEvolver {
      */
     private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
         if (this.forceField == ForceField.MAB) {
-            String mol3dExecutable = getExecutable("MOL3D_EXE");
-            String esprntoExecutable = getExecutable("ESPRNTO_EXE");
+            String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+            String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
 
             // Return Moloc implementation of the energy minimization step
             return new MolocEnergyMinimizationStep(
@@ -529,9 +546,9 @@ public class CompoundEvolver {
                     mol3dExecutable,
                     esprntoExecutable);
         } else if (this.forceField == ForceField.SMINA) {
-            String sminaExecutable = getExecutable("SMINA_EXE");
-            String pythonExecutable = getExecutable("MGL_PYTHON");
-            String prepareReceptorExecutable = getExecutable("PRPR_REC_EXE");
+            String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
+            String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
+            String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
             // Return Smina implementation of the energy minimization step
             return new SminaEnergyMinimizationStep(
@@ -552,7 +569,7 @@ public class CompoundEvolver {
      * @param variableName The name of the environment variable containing the executable path
      * @return path to the executable as a String
      */
-    private String getExecutable(String variableName) {
+    private String getEnvironmentVariable(String variableName) {
         // Try to get the variable
         String sminaExecutable = System.getenv(variableName);
 
