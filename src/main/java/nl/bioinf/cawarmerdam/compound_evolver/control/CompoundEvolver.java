@@ -51,7 +51,7 @@ public class CompoundEvolver {
     /**
      * The constructor for a compound evolver.
      *
-     * @param population The initial population.
+     * @param population                 The initial population.
      * @param evolutionProgressConnector An object that can be used to write progress to.
      */
     public CompoundEvolver(Population population, EvolutionProgressConnector evolutionProgressConnector) {
@@ -527,38 +527,41 @@ public class CompoundEvolver {
     /**
      * Gets the minimization step that should be included in the pipeline based on the set force field.
      *
-     * @param receptorFile The receptor file path in pdb format.
+     * @param receptorFile   The receptor file path in pdb format.
      * @param anchorFilePath the anchor file path in sdf format.
      * @return The energy minimization step that complies with the set force field.
      * @throws PipelineException if the minimization step could not be initialized.
      */
     private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
-        if (this.forceField == ForceField.MAB) {
-            String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
-            String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
+        switch (this.forceField) {
+            case MAB:
+                String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+                String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
 
-            // Return Moloc implementation of the energy minimization step
-            return new MolocEnergyMinimizationStep(
-                    "",
-                    receptorFile,
-                    anchorFilePath,
-                    mol3dExecutable,
-                    esprntoExecutable);
-        } else if (this.forceField == ForceField.SMINA) {
-            String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
-            String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
-            String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
+                // Return Moloc implementation of the energy minimization step
+                return new MolocEnergyMinimizationStep(
+                        "",
+                        receptorFile,
+                        anchorFilePath,
+                        mol3dExecutable,
+                        esprntoExecutable);
+            case SMINA:
+                String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
+                String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
+                String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
-            // Return Smina implementation of the energy minimization step
-            return new SminaEnergyMinimizationStep(
-                    "",
-                    receptorFile,
-                    anchorFilePath,
-                    sminaExecutable,
-                    pythonExecutable,
-                    prepareReceptorExecutable);
-        } else {
-            throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
+                // Return Smina implementation of the energy minimization step
+                return new SminaEnergyMinimizationStep(
+                        "",
+                        receptorFile,
+                        anchorFilePath,
+                        sminaExecutable,
+                        pythonExecutable,
+                        prepareReceptorExecutable);
+            case SCORPION:
+                return new ScorpionEnergyMinimizationStep("", anchorFilePath);
+            default:
+                throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
     }
 
@@ -612,7 +615,8 @@ public class CompoundEvolver {
      */
     public enum ForceField {
         MAB("mab"),
-        SMINA("smina");
+        SMINA("smina"),
+        SCORPION("scorpion");
 
         private final String text;
 

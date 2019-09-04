@@ -662,6 +662,7 @@
                                         required="required">
                                     <option value="smina">smina</option>
                                     <option value="mab">mab(moloc)</option>
+                                    <option value="scorpion">Scorpion</option>
                                 </select>
                             </div>
                         </div>
