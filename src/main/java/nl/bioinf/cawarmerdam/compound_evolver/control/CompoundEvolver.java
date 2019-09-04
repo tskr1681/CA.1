@@ -333,8 +333,7 @@ public class CompoundEvolver {
      */
     private int getIntegerEnvironmentVariable(String variableName) {
         String environmentVariable = getEnvironmentVariable(variableName);
-        boolean isInteger = NumberCheckUtilities.isInteger(variableName, 10);
-        if (NumberCheckUtilities.isInteger(variableName, 10)) {
+        if (NumberCheckUtilities.isInteger(environmentVariable, 10)) {
             return Integer.parseInt(environmentVariable);
         }
         // Throw an exception because the environment variables was not an integer.
