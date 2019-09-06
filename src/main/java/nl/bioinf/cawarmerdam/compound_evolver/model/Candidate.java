@@ -235,15 +235,15 @@ public class Candidate implements Comparable<Candidate> {
      * @return the fitness according to the fitness measure that is set.
      */
     public Double getFitness() {
-        Double fitness;
-        if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.AFFINITY) {
-            return (-rawScore);
-        } else if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY) {
-            return (-ligandEfficiency);
-        } else if (this.fitnessMeasure == CompoundEvolver.FitnessMeasure.LIGAND_LIPOPHILICITY_EFFICIENCY) {
-            return (-ligandLipophilicityEfficiency);
-        } else {
-            throw new RuntimeException("Not implemented");
+        switch (this.fitnessMeasure) {
+            case AFFINITY:
+                return (-rawScore);
+            case LIGAND_EFFICIENCY:
+                return (-ligandEfficiency);
+            case LIGAND_LIPOPHILICITY_EFFICIENCY:
+                return (-ligandLipophilicityEfficiency);
+            default:
+                throw new RuntimeException("Not implemented");
         }
     }
 
@@ -665,7 +665,7 @@ public class Candidate implements Comparable<Candidate> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Candidate candidate = (Candidate) o;
-        return Objects.equals(getGenotype(), candidate.getGenotype());
+        return genotype.equals(candidate.getGenotype());
     }
 
     @Override

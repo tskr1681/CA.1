@@ -15,6 +15,7 @@ import java.nio.file.Path;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
+@Deprecated
 public abstract class EnergyMinimizationStep implements PipelineStep<Candidate, Candidate> {
 
     private final String forceField;

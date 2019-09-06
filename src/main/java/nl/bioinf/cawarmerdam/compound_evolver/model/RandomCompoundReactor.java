@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Class that creates a random set of candidates from the given reactions and reactants with the
+ * Class that creates a random set of candidates from the given reactions and reactants
  *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl

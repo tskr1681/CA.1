@@ -68,6 +68,7 @@ public class ProgressUpdateServlet extends HttpServlet {
 
 /**
  * Class that is used to slim down candidates for transfer with the client.
+ * This is done by only serializing those fields that the client needs
  *
  * @author C.A. (Robert) Warmerdam
  * @author c.a.warmerdam@st.hanze.nl

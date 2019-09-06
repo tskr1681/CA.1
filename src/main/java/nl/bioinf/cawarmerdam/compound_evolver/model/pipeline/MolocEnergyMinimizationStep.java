@@ -21,7 +21,7 @@ import java.util.List;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
+public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Candidate> {
 
     private Path receptorFilePath;
     private String molocExecutable;
@@ -29,15 +29,12 @@ public class MolocEnergyMinimizationStep extends EnergyMinimizationStep {
     /**
      * Constructor for the Moloc energy minimization step.
      *
-     * @param forceField The force field that moloc should use.
      * @param receptorFilePath The path of the file that holds the receptor.
-     * @param anchorFilePath The path to the file that holds the anchor.
      * @param molocExecutable The path to the executable of moloc's Mol3d program.
      * @param esprntoExecutable The path to the executable of moloc's Esprnto program.
      * @throws PipelineException if an exception occurred when converting the receptor to the mab format.
      */
-    public MolocEnergyMinimizationStep(String forceField, Path receptorFilePath, Path anchorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
-        super(forceField, anchorFilePath);
+    public MolocEnergyMinimizationStep(Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
         this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }

@@ -85,7 +85,7 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
             if (files != null && files.length > 0) {
 
                 // Call the zipFiles method for creating a zip stream.
-                byte[] zip = zipFiles(directory, files);
+                byte[] zip = zipFiles(directory);
 
                 // Sends the response back to the user / browser. The
                 // content for zip file type is "application/zip". We
@@ -106,9 +106,12 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
     }
 
     /**
-     * Compress the given directory with all its files.
+     * Zips the contents of a directory
+     * @param directory the directory to zip
+     * @return a bytearray representing the zipped directory
+     * @throws IOException opening the directory failed
      */
-    private byte[] zipFiles(Path directory, String[] files) throws IOException {
+    private byte[] zipFiles(Path directory) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(outputStream);
         addDirToZipArchive(zos, directory.toFile(), null);

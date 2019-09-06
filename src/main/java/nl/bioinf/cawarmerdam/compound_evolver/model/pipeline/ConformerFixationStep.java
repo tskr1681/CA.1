@@ -18,6 +18,7 @@ import java.nio.file.Paths;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
+@Deprecated
 public class ConformerFixationStep implements PipelineStep<Candidate, Candidate> {
 
     private final String smartsPattern;

@@ -9,7 +9,6 @@ import chemaxon.struc.DPoint3;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,28 +27,23 @@ import java.util.Map;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class SminaEnergyMinimizationStep extends EnergyMinimizationStep {
+public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Candidate> {
     private Path receptorFilePath;
     private String sminaExecutable;
 
     /**
      * Constructor for smina energy minimization step.
      *
-     * @param forcefield The force field that smina should use.
      * @param receptorFilePath The path of the file that holds the receptor.
-     * @param anchorFilePath The path to the file that holds the anchor.
      * @param sminaExecutable The path to the executable of Smina.
      * @param pythonExecutable The path to the python executable to run the prepare receptor tool from ADT.
      * @param prepareReceptorExecutable The path to the prepare receptor tool from ADT.
      * @throws PipelineException if the receptor cannot be prepared for energy minimization with Smina.
      */
-    public SminaEnergyMinimizationStep(String forcefield,
-                                       Path receptorFilePath,
-                                       Path anchorFilePath,
+    public SminaEnergyMinimizationStep(Path receptorFilePath,
                                        String sminaExecutable,
                                        String pythonExecutable,
                                        String prepareReceptorExecutable) throws PipelineException {
-        super(forcefield, anchorFilePath);
         this.receptorFilePath = convertToPdbQt(receptorFilePath, pythonExecutable, prepareReceptorExecutable);
         this.sminaExecutable = sminaExecutable;
     }

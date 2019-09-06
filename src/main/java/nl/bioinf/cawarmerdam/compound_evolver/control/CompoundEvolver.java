@@ -518,7 +518,7 @@ public class CompoundEvolver {
                 clashingConformerCounter,
                 tooDistantConformerCounter);
         // Get the step for energy minimization
-        EnergyMinimizationStep energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
+        PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
         this.pipe = converterStep.pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
@@ -532,7 +532,7 @@ public class CompoundEvolver {
      * @return The energy minimization step that complies with the set force field.
      * @throws PipelineException if the minimization step could not be initialized.
      */
-    private EnergyMinimizationStep getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
+    private PipelineStep<Candidate,Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
         switch (this.forceField) {
             case MAB:
                 String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
@@ -540,9 +540,7 @@ public class CompoundEvolver {
 
                 // Return Moloc implementation of the energy minimization step
                 return new MolocEnergyMinimizationStep(
-                        "",
                         receptorFile,
-                        anchorFilePath,
                         mol3dExecutable,
                         esprntoExecutable);
             case SMINA:
@@ -552,9 +550,7 @@ public class CompoundEvolver {
 
                 // Return Smina implementation of the energy minimization step
                 return new SminaEnergyMinimizationStep(
-                        "",
                         receptorFile,
-                        anchorFilePath,
                         sminaExecutable,
                         pythonExecutable,
                         prepareReceptorExecutable);
