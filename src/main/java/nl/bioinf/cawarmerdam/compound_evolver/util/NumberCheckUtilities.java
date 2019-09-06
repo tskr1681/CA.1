@@ -31,7 +31,7 @@ public class NumberCheckUtilities {
     }
 
     /**
-     * Method that checks if a string can be a double as suggested by Oracle's Java documentation.
+     * Method that checks if a string is a double.
      *
      * @param parameter, the string to check.
      * @return true if the string can be a double, false if not.

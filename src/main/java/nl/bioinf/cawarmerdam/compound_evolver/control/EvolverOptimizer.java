@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class EvolverOptimizer {
     private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int candidateCount, int repetitions) {
         List<GAParameters> filteredGAParameterVectors = getParameterVectors(parameterLists, candidateCount);
@@ -139,29 +140,29 @@ public class EvolverOptimizer {
         }));
     }
 
-    /**
-     * Main for optimization using the command line interface
-     *
-     * @param args An array of strings being the command line input
-     */
-    public static void main(String[] args) throws Exception {
-        // Load reactor from argument
-        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
-        // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 6);
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
-        // Load receptor molecule path
-        Path receptorPath = Paths.get(args[args.length - 6]);
-        // Load anchor molecule path
-        Path anchorPath = Paths.get(args[args.length - 5]);
-        // Construct the initial population
-        Path uploadPath = Paths.get(args[args.length - 4]);
-        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 3]);
-        int candidateCount = Integer.parseInt(args[args.length - 2]);
-        int repetitions = Integer.parseInt(args[args.length - 1]);
-        // Construct the initial population
-        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, candidateCount, repetitions);
-    }
+//    /**
+//     * Main for optimization using the command line interface
+//     *
+//     * @param args An array of strings being the command line input
+//     */
+//    public static void main(String[] args) throws Exception {
+//        // Load reactor from argument
+//        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
+//        // Load molecules
+//        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 6);
+//        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
+//        // Load receptor molecule path
+//        Path receptorPath = Paths.get(args[args.length - 6]);
+//        // Load anchor molecule path
+//        Path anchorPath = Paths.get(args[args.length - 5]);
+//        // Construct the initial population
+//        Path uploadPath = Paths.get(args[args.length - 4]);
+//        List<Pair<String, List<Object>>> parameterLists = parseParameterLists(args[args.length - 3]);
+//        int candidateCount = Integer.parseInt(args[args.length - 2]);
+//        int repetitions = Integer.parseInt(args[args.length - 1]);
+//        // Construct the initial population
+//        new EvolverOptimizer(reactantLists, reactor, receptorPath, anchorPath, uploadPath, parameterLists, candidateCount, repetitions);
+//    }
 
     private static List<Pair<String, List<Object>>> parseParameterLists(String arg) throws java.io.IOException {
         // Parse JSON to java
@@ -210,6 +211,13 @@ public class EvolverOptimizer {
         return gaParameters;
     }
 
+    /**
+     *
+     * @param ParameterLists
+     * @param parameterVectors
+     * @param depth
+     * @param current
+     */
     private void GeneratePermutations(List<Pair<String, List<Object>>> ParameterLists, List<GAParameters> parameterVectors, int depth, GAParameters current) {
         if (depth == ParameterLists.size()) {
             parameterVectors.add(current);
@@ -223,6 +231,20 @@ public class EvolverOptimizer {
         }
     }
 
+    /**
+     * Sets all parameters and runs the compoundevolver
+     * @param reactantLists A list containing lists of molecules. Each sublist is meant to resemble one set of reactants making one product
+     * @param reactor The reactor to run these reactants through. Specifies the reaction to perform
+     * @param receptorPath The path to the receptor protein file
+     * @param anchorPath The path to the anchor fragment file
+     * @param uploadPath The path where all files are uploaded
+     * @param parameters The parameters for the genetic algorithm
+     * @return A new instance of the compoundevolver, with the evolve function having been run
+     * @throws MisMatchedReactantCount when the amount of reactants does not match what the reactor expects
+     * @throws PipelineException when an error occurs when running the pipeline
+     * @throws OffspringFailureOverflow when creation of new offspring has failed too many times
+     * @throws TooFewScoredCandidates when too few candidates are scored to run the next step of the algorithm
+     */
     private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, PipelineException, OffspringFailureOverflow, TooFewScoredCandidates {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(

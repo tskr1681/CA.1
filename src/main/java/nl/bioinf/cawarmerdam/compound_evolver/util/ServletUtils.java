@@ -15,6 +15,12 @@ import javax.servlet.http.HttpSession;
  * @version 0.0.1
  */
 public class ServletUtils {
+    /**
+     * Gets the ip address from a http request
+     *
+     * @param request to get the ip address for
+     * @return the ip address
+     */
     public static String getIpFromRequest(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
@@ -23,7 +29,15 @@ public class ServletUtils {
         return ipAddress.contains(",") ? ipAddress.split(",")[0] : ipAddress;
     }
 
-    public static Double getDoubleParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
+    /**
+     * Parses the given fieldValue to an double
+     *
+     * @param request to get the field parameter from
+     * @param name    of the field to process
+     * @return the retrieved double value
+     * @throws FormFieldHandlingException if the fieldValue is null, empty or not an integer
+     */
+    public static double getDoubleParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
         String parameter = request.getParameter(name);
         if (parameter == null) {
             // Throw exception
@@ -32,11 +46,18 @@ public class ServletUtils {
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.EMPTY);
         } else if (!NumberCheckUtilities.isDouble(parameter)) {
             throw new FormFieldHandlingException(
-                    name, parameter, FormFieldHandlingException.Cause.BAD_FLOAT);
+                    name, parameter, FormFieldHandlingException.Cause.BAD_DOUBLE);
         }
-        return Double.valueOf(parameter); // Will not throw NumberFormatException
+        return Double.parseDouble(parameter);
     }
 
+    /**
+     * Parses the given fieldValue to a boolean
+     *
+     * @param request to get the field parameter from
+     * @param name    of the field to process
+     * @return the retrieved boolean value
+     */
     public static boolean getBooleanParameterFromRequest(HttpServletRequest request, String name) {
         String parameter = request.getParameter(name);
         return parameter != null;
@@ -48,7 +69,7 @@ public class ServletUtils {
      * @param request to get the field parameter from
      * @param name    of the field to process
      * @return the retrieved integer value
-     * @throws IllegalArgumentException if the fieldValue is null or not an integer
+     * @throws FormFieldHandlingException if the fieldValue is null, empty or not an integer
      */
     public static int getIntegerParameterFromRequest(HttpServletRequest request, String name) throws FormFieldHandlingException {
         String parameter = request.getParameter(name);
@@ -78,7 +99,7 @@ public class ServletUtils {
             this.cause = cause;
         }
 
-        public enum Cause {NULL, EMPTY, BAD_FLOAT, BAD_INTEGER, BAD_BOOLEAN}
+        public enum Cause {NULL, EMPTY, BAD_DOUBLE, BAD_INTEGER, BAD_BOOLEAN}
     }
 
     /**
