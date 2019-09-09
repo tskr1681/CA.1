@@ -36,6 +36,7 @@
     <%--load custom javascript--%>
     <script src="<c:url value = "js/app.js"/>"></script>
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
+    <script src="https://unpkg.com/ngl@0.10.4/dist/ngl.js"></script>
 </head>
 <body>
 <div class="container" ng-controller="FormInputCtrl">
@@ -951,6 +952,22 @@
                 </tr>
                 </tbody>
             </table>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    var stage = new NGL.Stage("viewport");
+                    stage.loadFile("test.pdb", {ext: "pdb"}).then(function (o) {
+                        o.addRepresentation("cartoon");
+                        o.addRepresentation("ball+stick");
+                        o.autoView();
+                    });
+                    stage.loadFile("test2.sdf", {ext: "sdf"}).then(function (o) {
+                        console.log(o);
+                        o.addRepresentation("ball+stick");
+                        o.autoView();
+                    });
+                });
+            </script>
+            <div id="viewport" style="width:400px; height:300px;"></div>
         </div>
     </div>
 </div>
