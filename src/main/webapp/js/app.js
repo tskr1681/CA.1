@@ -62,6 +62,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var evolveStatus = null;
     var orderCount = 0;
     var species = [];
+    var stage = new NGL.Stage("viewport");
 
     function getProgressUpdate(handleData){
         jQuery.ajax({
@@ -510,4 +511,23 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         download(url);
     };
+
+    $scope.runVisualization = function() {
+            var population = $scope.getPopulation();
+            if (population.length !== 0) {
+                population.sort((a,b) => a.ligandEfficiency - b.ligandEfficiency)
+            }
+            stage.removeAllComponents();
+            stage.loadFile("get.files?filetype=pdb&compoundId="+population[0].id, {ext: "pdb"}).then(function (o) {
+                o.addRepresentation("cartoon");
+                o.addRepresentation("ball+stick", {colorScheme: "uniform"});
+                o.autoView();
+                o.structure.name = "Protein";
+            });
+            stage.loadFile("get.files?filetype=sdf&compoundId="+population[0].id, {ext: "sdf"}).then(function (o) {
+                o.addRepresentation("ball+stick");
+                o.autoView();
+                o.structure.name = "Drug";
+            });
+    }
 });
