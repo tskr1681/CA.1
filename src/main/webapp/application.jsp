@@ -956,7 +956,9 @@
                     Terminate
                 </button>
 
-            <div id="viewport" style="width:400px; height:300px;"></div>
+            <div id="viewport_best" style="width:15vw; height:20vh; display:inline-block;"></div>
+            <div id="viewport_avg" style="width:15vw; height:20vh; display:inline-block;"></div>
+            <div id="viewport_worst" style="width:15vw; height:20vh; display:inline-block;"></div>
         </div>
     </div>
 </div>
