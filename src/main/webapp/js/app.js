@@ -248,6 +248,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         });
     };
 
+    /**
+     * Stops evolution after the current generation
+     */
     $scope.terminateEvolution = function () {
         $.post("./evolution.terminate", function () {
             console.log("terminating evolution");
@@ -298,6 +301,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         })
     }
 
+    /**
+     * Initializes the chart containing generation data
+     * @param multipleSpecies
+     */
     function initializeChart(multipleSpecies) {
         var chartData = {
             labels: [],
@@ -360,6 +367,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         }
     }
 
+    /**
+     * Runs when the chart containing generation data is clicked
+     * @param event
+     * @param array
+     */
     function chartClickEvent(event, array) {
         if (scoreDistributionChart === 'undefined' || scoreDistributionChart == null) {
             return;
@@ -392,7 +404,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         var i = setInterval(function () {
             // do your thing
             $scope.getProgressUpdate();
-            console.log(evolveStatus);
+            //console.log(evolveStatus);
             if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
                 clearInterval(i);
             }
@@ -448,6 +460,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         }
     };
 
+    /**
+     * Get the population of the selected generation, or nothing if there is no selected generation
+     * @returns {Array|*}
+     */
     $scope.getPopulation = function () {
         if ($scope.hasData() && $scope.generationSelected()) {
             return $rootScope.generations[$rootScope.selectedGenerationNumber].candidateList;
@@ -455,6 +471,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         return [];
     };
 
+    /**
+     * Gets the compound with the highest fitness
+     * @param generation the generation to get the compound from
+     * @returns the compound with the highest fitness
+     */
     $scope.getMostFitCompound = function (generation) {
         let candidates = generation.candidateList;
         return candidates.reduce(function (l, e) {
@@ -462,6 +483,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         });
     };
 
+    /**
+     * Generic file downloading function
+     * @param url the url to download data from
+     */
     function download(url) {
         var iframe = document.createElement("iframe");
         iframe.setAttribute("src", url);
@@ -469,6 +494,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         document.body.appendChild(iframe);
     }
 
+    /**
+     * Downloads a zip for a specific compound
+     * @param compoundId the compound data to download
+     */
     $scope.downloadCompound = function (compoundId) {
         // Set data
         let url = './compound.download?compoundId=' + compoundId;
@@ -476,6 +505,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         download(url);
     };
 
+    /**
+     * Downloads a csv file containing scores for each generation
+     */
     $scope.downloadCsv = function () {
         // Set data
         let url = './csv.download';
@@ -483,6 +515,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         download(url);
     };
 
+    /**
+     * Is there data on generations?
+     * @returns {boolean}
+     */
     $scope.hasData = function () {
         return $rootScope.generations.length > 0;
     };
@@ -515,6 +551,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         download(url);
     };
 
+    /**
+     * Runs the visualization of the best, average and worst proteins
+     */
     $scope.runVisualization = function () {
         var population = $scope.getPopulation();
         if (population.length !== 0) {
@@ -533,6 +572,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         loadsdf(stage_worst, population[population.length - 1].id);
     };
 
+    /**
+     * Loads a pdb file into a stage
+     * @param stage The stage to load the file into
+     * @param id The candidate id to grab the file from
+     */
     function loadpdb(stage, id) {
         stage.loadFile("get.files?filetype=pdb&compoundId="+id, {ext: "pdb"}).then(function (o) {
             // o.addRepresentation("cartoon");
@@ -542,6 +586,12 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             o.structure.name = "Protein";
         });
     }
+
+    /**
+     * Loads a sdf file into a stage
+     * @param stage The stage to load the file into
+     * @param id The candidate id to grab the file from
+     */
     function loadsdf(stage, id) {
         stage.loadFile("get.files?filetype=sdf&compoundId="+id, {ext: "sdf"}).then(function (o) {
             o.addRepresentation("ball+stick");
