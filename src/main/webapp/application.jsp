@@ -951,14 +951,9 @@
                 </tr>
                 </tbody>
             </table>
-                <button type="button" class="btn btn-danger"
-                ng-click="runVisualization()">
-                    Terminate
-                </button>
-
-            <div id="viewport_best" style="width:15vw; height:20vh; display:inline-block;"></div>
-            <div id="viewport_avg" style="width:15vw; height:20vh; display:inline-block;"></div>
-            <div id="viewport_worst" style="width:15vw; height:20vh; display:inline-block;"></div>
+            <div id="viewport_best" style="width:15vw; height:20vh; display:inline-block;">Best compound of selected generation</div>
+            <div id="viewport_avg" style="width:15vw; height:20vh; display:inline-block;">Average (Median) compound of selected generation</div>
+            <div id="viewport_worst" style="width:15vw; height:20vh; display:inline-block;">Worst compound of selected generation</div>
         </div>
     </div>
 </div>

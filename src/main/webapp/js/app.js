@@ -385,6 +385,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         $rootScope.selectedGenerationNumber = idx;
         $rootScope.$apply();
+        $scope.runVisualization();
     }
 
     function setFrequentUpdateInterval() {
@@ -534,8 +535,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     function loadpdb(stage, id) {
         stage.loadFile("get.files?filetype=pdb&compoundId="+id, {ext: "pdb"}).then(function (o) {
-            o.addRepresentation("cartoon");
-            o.addRepresentation("ball+stick", {colorScheme: "uniform"});
+            // o.addRepresentation("cartoon");
+            // o.addRepresentation("ball+stick", {colorScheme: "uniform"});
+            o.addRepresentation("surface", {colorScheme: "element"});
             o.autoView();
             o.structure.name = "Protein";
         });
