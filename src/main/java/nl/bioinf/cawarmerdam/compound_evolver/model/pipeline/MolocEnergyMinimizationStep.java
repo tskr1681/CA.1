@@ -112,7 +112,6 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
                 molocExecutable,
                 receptorFilePath,
                 inputFile);
-        System.out.println("command = " + command);
         try {
             // Build process
             ProcessBuilder builder = new ProcessBuilder(
@@ -120,9 +119,6 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
                     "-e", receptorFilePath.toString(),
                     "-w0.01",
                     inputFile.toString());
-
-            // Print process
-            System.out.println("pb.toString() = " + builder.command().toString());
 
             // Start the process
             final Process p = builder.start();
@@ -149,7 +145,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         } catch (InterruptedException | IOException e) {
 
             // Throw pipeline exception
-            throw new PipelineException("Energy minimization with Smina failed.", e);
+            throw new PipelineException("Energy minimization with Moloc failed.", e);
         }
     }
 
