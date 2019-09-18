@@ -60,7 +60,7 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
         // THe output file path will be called smina.sdf, located in the candidate specific folder.
-        Path outputPath = inputFile.resolveSibling("smina.sdf");
+        Path outputPath = inputFile.resolveSibling("best-conformer.sdf");
         // Run the smina minimization
         ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath, candidate);
         // Set the conformer scores and output path.
