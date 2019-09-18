@@ -22,7 +22,6 @@ public class NumberCheckUtilities {
      */
     public static boolean isInteger(String string, int radix) {
         try {
-            System.out.println("string = " + string);
             Integer.parseInt(string, radix);
             return true;
         } catch (Exception e) {
