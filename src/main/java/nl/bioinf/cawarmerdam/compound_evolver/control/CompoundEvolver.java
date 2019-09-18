@@ -86,7 +86,7 @@ public class CompoundEvolver {
         reactions.add(reactor);
         List<Species> species = Species.constructSpecies(reactions, reactantLists.size());
         Population population = new Population(reactantLists, species, maxSamples);
-        population.initializeAlleleSimilaritiesMatrix();
+//        population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
@@ -555,7 +555,8 @@ public class CompoundEvolver {
                         pythonExecutable,
                         prepareReceptorExecutable);
             case SCORPION:
-                return new ScorpionEnergyMinimizationStep("", anchorFilePath);
+                String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
+                return new ScorpionEnergyMinimizationStep(receptorFile, anchorFilePath, scorpionExecutable);
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
