@@ -5,7 +5,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import chemaxon.formats.MolExporter;
-import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -159,9 +158,9 @@ public class EvolveServlet extends HttpServlet {
                 request.getParameter("mutationMethod"));
         initialPopulation.setMutationMethod(mutationMethod);
 
-        // Compute allele similarity values if mutation method relies on these
-        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT)
-            initialPopulation.initializeAlleleSimilaritiesMatrix();
+//        // Compute allele similarity values if mutation method relies on these
+//        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT)
+//            initialPopulation.initializeAlleleSimilaritiesMatrix();
 
         // Get selection method
         Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
