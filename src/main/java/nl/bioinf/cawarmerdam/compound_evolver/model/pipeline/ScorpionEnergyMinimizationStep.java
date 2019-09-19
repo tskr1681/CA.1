@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class to parse Ene files into a list of doubles
+ * A class to run scorpion as part of the pipeline
  *
  * @author H. (Hylke) Middel
  * @author h.middel@st.hanze.nl
@@ -44,11 +44,18 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
-        scorpion(candidate.getFixedConformersFile());
+        Path fixedconformers = candidate.getFixedConformersFile();
+        scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
-        Path output = anchorFilePath.resolveSibling(anchorFilePath.toString().replaceAll(".sdf", "") + "_scorp.sdf");
-        candidate.setMinimizationOutputFilePath(output);
         try {
+            Thread.sleep(250);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Path output = fixedconformers.resolveSibling(fixedconformers.toString().replaceAll(".sdf", "") + "_scorp.sdf");
+        try {
+            Files.move(Paths.get(System.getProperty("user.dir")).resolve("fixed-conformers_scorp.sdf"), output);
+            candidate.setMinimizationOutputFilePath(output);
             candidate.setConformerScores(getConformerScores(output));
         } catch (IOException e) {
             throw new PipelineException("Something went wrong when running scorpion! " + e);
@@ -117,21 +124,13 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
             // read any errors from the attempted command
             String stdErrorMessage = IOUtils.toString(stdError);
             if (!stdErrorMessage.isEmpty()) {
-                System.out.println(String.format("Smina has written an error message:%n%s%n", stdErrorMessage));
+                System.out.println(String.format("Scorpion has written an error message:%n%s%n", stdErrorMessage));
             }
 
         } catch (IOException e) {
 
             // Throw pipeline exception
             throw new PipelineException("Energy minimization with Scorpion failed.", e);
-        }
-    }
-
-    public static void main(String[] args) {
-        try {
-            System.out.println(getConformerScores(Paths.get("C:\\Users\\F100961\\Documents\\fixed-conformers_3d_scorp.sdf")));
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
