@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,19 +46,20 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
         Path fixedconformers = candidate.getFixedConformersFile();
         scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
+
+        //Make sure scorpion is actually finished
         try {
             Thread.sleep(250);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Path output = fixedconformers.resolveSibling(fixedconformers.toString().replaceAll(".sdf", "") + "_scorp.sdf");
-        try {
-            Files.move(Paths.get(System.getProperty("user.dir")).resolve("fixed-conformers_scorp.sdf"), output);
-            candidate.setMinimizationOutputFilePath(output);
-            candidate.setConformerScores(getConformerScores(output));
-        } catch (IOException e) {
-            throw new PipelineException("Something went wrong when running scorpion! " + e);
-        }
+
+        String output_str = fixedconformers.toString().replaceAll(".sdf", "") + "_scorp";
+        Path output_sdf = fixedconformers.resolveSibling(output_str + ".sdf");
+
+        candidate.setMinimizationOutputFilePath(output_sdf);
+        candidate.setConformerScores(getConformerScores(output_sdf));
+
         return candidate;
     }
 
@@ -67,11 +67,12 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
      * Gets the conformer scores from the output of scorpion
      * @param scorpionoutput the path to the scorpion output file
      * @return a list of scores for each conformer, or positive infinity if the conformer has no score
-     * @throws IOException if reading the file fails
+     * @throws PipelineException if reading the file fails
      */
-    private static List<Double> getConformerScores(Path scorpionoutput) throws IOException {
+    private static List<Double> getConformerScores(Path scorpionoutput) throws PipelineException {
         ArrayList<Double> conformerScores = new ArrayList<>();
-        List<String> l = Files.readAllLines(scorpionoutput);
+        try {
+            List<String> l = Files.readAllLines(scorpionoutput);
         //Does the next line have a score? Used to read the scores without reading other random numbers
         boolean next_has_score = false;
 
@@ -95,6 +96,9 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
             }
         }
         return conformerScores;
+        } catch (IOException e) {
+            throw new PipelineException("Couldn't get conformer scores from file! " + e);
+        }
     }
 
     private void scorpion(Path inputFile) throws PipelineException {
@@ -105,6 +109,7 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
             //The command to run
             ProcessBuilder builder = new ProcessBuilder(
                     scorpionExecutable,
+                    inputFile.getParent().toString(),
                     "-p", String.valueOf(receptorFilePath),
                     "-i", String.valueOf(inputFile));
 
