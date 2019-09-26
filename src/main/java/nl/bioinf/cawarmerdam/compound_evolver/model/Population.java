@@ -8,9 +8,11 @@ import chemaxon.descriptors.CFParameters;
 import chemaxon.descriptors.ChemicalFingerprint;
 import chemaxon.descriptors.MDGeneratorException;
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
@@ -22,6 +24,7 @@ import java.util.stream.Stream;
  */
 public class Population implements Iterable<Candidate> {
 
+    private ExecutorService executor;
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     private final List<List<Molecule>> reactantLists;
@@ -552,6 +555,8 @@ public class Population implements Iterable<Candidate> {
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
     private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, TooFewScoredCandidates {
+        int pool_size = getIntegerEnvironmentVariable("POOL_SIZE");
+        this.executor = Executors.newFixedThreadPool(pool_size);
         // Create list of offspring
         List<Candidate> offspring = elitism();
 
@@ -566,36 +571,94 @@ public class Population implements Iterable<Candidate> {
         ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
         // Count the number of times one offspring could not be created. (Reset when an offspring could be created)
         int failureCounter = 0;
+        List<Future<Candidate>> futures = new ArrayList<>();
         // Loop to fill offspring list to offspring size
-        for (int i = 0; offspring.size() < offspringSize; i++) {
+        int i = 0;
+        while (offspring.size() < offspringSize) {
 
             // Get some genomes by crossing over according to crossover probability
             if (offspringChoice == ReproductionMethod.CLEAR) {
                 offspringChoice = makeWeightedReproductionChoice();
             }
 
+            List<Candidate> newOffspring = new ArrayList<>();
             // Try to produce offspring
-            Candidate newOffspring = ProduceOffspringIndividual(offspringChoice, i);
-            if (newOffspring != null && (this.duplicatesAllowed || !offspring.contains(newOffspring))) {
-                // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
-                offspring.add(newOffspring);
-                offspringChoice = ReproductionMethod.CLEAR;
-                this.offspringRejectionMessages.clear();
-                failureCounter = 0;
-            } else {
-                // Count this failure
-                failureCounter++;
-                if (failureCounter >= this.candidateList.size() * 24) {
-                    throw new OffspringFailureOverflow(
-                            String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
-                            this.offspringRejectionMessages);
+            for (int j = i; j < i + pool_size; j++) {
+                Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j);
+                // Add future, which the executor will return to the list
+                futures.add(executor.submit(candidateCallable));
+            }
+            i += pool_size;
+            // Loop through futures to handle thrown exceptions
+            for (Future<Candidate> future : futures) {
+                try {
+                    newOffspring.add(future.get());
+                } catch (InterruptedException | ExecutionException e) {
+                    // Log exception
+                    e.printStackTrace();
+                }
+            }
+            for (Candidate c : newOffspring) {
+                if (offspring.size() < offspringSize) {
+                    if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
+                        // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
+                        offspring.add(c);
+                        offspringChoice = ReproductionMethod.CLEAR;
+                        this.offspringRejectionMessages.clear();
+                        failureCounter = 0;
+                    } else {
+                        // Count this failure
+                        failureCounter++;
+                        if (failureCounter >= this.candidateList.size() * 24) {
+                            throw new OffspringFailureOverflow(
+                                    String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
+                                    this.offspringRejectionMessages);
+                        }
+                    }
                 }
             }
         }
         candidateList = new ArrayList<>(offspring);
         generationNumber++;
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+        }
     }
 
+    /**
+     * Gets an environment variable as an integer.
+     *
+     * @param variableName the name of the environment variable that should be parsed to an integer.
+     * @return An integer.
+     */
+    private int getIntegerEnvironmentVariable(String variableName) {
+        String environmentVariable = System.getenv(variableName);
+        if (environmentVariable != null && NumberCheckUtilities.isInteger(environmentVariable, 10)) {
+            return Integer.parseInt(environmentVariable);
+        }
+        // Throw an exception because the environment variables was not an integer.
+        throw new RuntimeException(String.format("Environment variable '%s' was not an integer value", variableName));
+    }
+
+    private class OffSpringProducer implements Callable<Candidate> {
+
+        ReproductionMethod m;
+        int i;
+        public OffSpringProducer(ReproductionMethod m, int i) {
+            this.m = m;
+            this.i = i;
+        }
+
+        @Override
+        public Candidate call() {
+            return ProduceOffspringIndividual(this.m, this.i);
+        }
+    }
     /**
      * Chooses between the reproduction methods within the reproduction method weighting map.
      *
