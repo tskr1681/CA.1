@@ -36,6 +36,7 @@
     <script src="<c:url value = "js/app.js"/>"></script>
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
     <script src="https://unpkg.com/ngl@0.10.4/dist/ngl.js"></script>
+    <script src="https://unpkg.com/smiles-drawer@1.0.2/dist/smiles-drawer.min.js"></script>
 </head>
 <body>
 <div class="container" ng-controller="FormInputCtrl">
@@ -944,7 +945,9 @@
                 <tbody>
                 <tr ng-repeat="candidate in getPopulation() | orderBy:'ligandEfficiency'">
                     <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
-                    <td>{{candidate.smiles}}</td>
+                    <td>{{showSmiles(candidate.smiles, $index)}}
+                        <canvas id="{{$index}}" width="300" height="200"></canvas>
+                    </td>
                     <td>{{candidate.rawScore | number:4}}</td>
                     <td>{{candidate.ligandEfficiency | number:4}}</td>
                     <td>{{candidate.ligandLipophilicityEfficiency | number:4}}</td>

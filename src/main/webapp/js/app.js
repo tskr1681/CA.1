@@ -65,6 +65,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var stage_best = new NGL.Stage("viewport_best");
     var stage_avg = new NGL.Stage("viewport_avg");
     var stage_worst = new NGL.Stage("viewport_worst");
+    let smilesDrawer = new SmilesDrawer.Drawer({width:300, height:200});
 
     function getProgressUpdate(handleData){
         jQuery.ajax({
@@ -597,6 +598,13 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             o.addRepresentation("ball+stick");
             o.autoView();
             o.structure.name = "Drug";
+        });
+    }
+
+    $scope.showSmiles = function(smiles, canvas_name) {
+        SmilesDrawer.parse(smiles, function(tree) {
+            // Draw to the canvas
+            smilesDrawer.draw(tree, canvas_name.toString(), 'light', false);
         });
     }
 });
