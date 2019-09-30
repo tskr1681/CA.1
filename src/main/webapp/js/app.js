@@ -66,6 +66,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var stage_avg = new NGL.Stage("viewport_avg");
     var stage_worst = new NGL.Stage("viewport_worst");
     let smilesDrawer = new SmilesDrawer.Drawer({width:300, height:200});
+    var marvinSketcherInstance;
 
     function getProgressUpdate(handleData){
         jQuery.ajax({
@@ -107,6 +108,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             } else if (evolveStatus === "SUCCESS") {
                 // Post success message
             }
+        });
+        MarvinJSUtil.getEditor("#sketch").then(function(sketcherInstance) {
+            marvinSketcherInstance = sketcherInstance
+        }, function(error) {
+            alert("Loading of the sketcher failed"+error)
         });
     });
 
@@ -607,4 +613,17 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             smilesDrawer.draw(tree, canvas_name.toString(), 'light', false);
         });
     }
+
+    $scope.doMarvin = function() {
+        let reactionFiles = document.getElementById("reaction-files");
+        marvinSketcherInstance.exportStructure("mrv", {}).then(function (a) {
+                const dT = new ClipboardEvent('').clipboardData || // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
+                    new DataTransfer(); // specs compliant (as of March 2018 only Chrome)
+                let f = new File([a.toString()], "marvin.mrv")
+                dT.items.add(f);
+                reactionFiles.files = dT.files;
+            }
+        );
+    }
+
 });

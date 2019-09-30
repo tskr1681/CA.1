@@ -37,6 +37,8 @@
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
     <script src="https://unpkg.com/ngl@0.10.4/dist/ngl.js"></script>
     <script src="https://unpkg.com/smiles-drawer@1.0.2/dist/smiles-drawer.min.js"></script>
+    <script src="marvin/gui/lib/promise-1.0.0.min.js"></script>
+    <script src="marvin/js/marvinjslauncher.js"></script>
 </head>
 <body>
 <div class="container" ng-controller="FormInputCtrl">
@@ -109,7 +111,6 @@
                             <div class="col-sm-9">
                                 <div class="custom-file">
                                     <input type="file"
-                                           class="custom-file-input"
                                            name="reactionFiles"
                                            id="reaction-files"
                                            required="required"
@@ -136,6 +137,9 @@
                                 </small>
                             </div>
                         </div>
+                        <iframe id="sketch" data-reaction="BASIC" data-toolbars="reaction" src="marvin/editor.html"
+                                style="overflow: hidden; min-width: 55vw; min-height: 40vh; border: 1px solid darkgray;"></iframe>
+                        <button ng-click="doMarvin()">Click Me!</button>
                         <div class="form-group row">
                             <label for="reactant-files" class="col-sm-3 col-form-label">Reactants files
                                 (.smiles,
@@ -957,6 +961,8 @@
             <div id="viewport_best" style="width:15vw; height:20vh; display:inline-block;">Best compound of selected generation</div>
             <div id="viewport_avg" style="width:15vw; height:20vh; display:inline-block;">Average (Median) compound of selected generation</div>
             <div id="viewport_worst" style="width:15vw; height:20vh; display:inline-block;">Worst compound of selected generation</div>
+
+
         </div>
     </div>
 </div>
