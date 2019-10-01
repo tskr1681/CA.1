@@ -48,7 +48,8 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
-
+        if (candidate == null)
+            throw new PipelineException("Candidate was null!");
         // Get the file names from the input
         Path inputFile = candidate.getFixedConformersFile();
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));

@@ -27,9 +27,9 @@ public class Population implements Iterable<Candidate> {
     private ExecutorService executor;
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
-    private final List<List<Molecule>> reactantLists;
+    public final List<List<Molecule>> reactantLists;
     private final Random random;
-    private final List<Species> species;
+    public final List<Species> species;
     private SelectionMethod selectionMethod;
     private MutationMethod mutationMethod;
     private InterspeciesCrossoverMethod interspeciesCrossoverMethod;
@@ -373,6 +373,14 @@ public class Population implements Iterable<Candidate> {
     public void setCrossoverRate(double crossoverRate) {
         this.crossoverRate = crossoverRate;
         this.reproductionMethodWeighting.put(ReproductionMethod.CROSSOVER, this.crossoverRate);
+    }
+
+    public List<Candidate> getCandidateList() {
+        return candidateList;
+    }
+
+    public void setCandidateList(List<Candidate> candidateList) {
+        this.candidateList = candidateList;
     }
 
     /**

@@ -35,6 +35,7 @@ public class CompoundEvolver {
     private ForceField forceField;
     private TerminationCondition terminationCondition;
     private PipelineStep<Candidate, Void> pipe;
+    private PipelineStep<Candidate, Candidate> pipe2;
     private Population population;
     private EvolutionProgressConnector evolutionProgressConnector;
     private FitnessMeasure fitnessMeasure;
@@ -284,13 +285,26 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
+    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates, MisMatchedReactantCount {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
 
         // Score the initial population
+        List<Candidate> candidates = getInitialCandidates();
+        List<Candidate> validCandidates = new ArrayList<>(candidates);
+        System.out.println("candidates = " + candidates);
+        System.out.println("validCandidates.size() = " + validCandidates.size());
+        while (validCandidates.size() < 10) {
+            population = new Population(population.reactantLists,population.species,population.getSpeciesDeterminationMethod(),population.getPopulationSize());
+            candidates = getInitialCandidates();
+            validCandidates.addAll(candidates);
+            System.out.println("candidates = " + candidates);
+            System.out.println("validCandidates.size() = " + validCandidates.size());
+        }
+        population.setCandidateList(validCandidates);
+        
         scoreCandidates();
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         updateDuration();
@@ -360,7 +374,7 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             for (Candidate candidate : this.population) {
                 // Setup callable
-                Callable<Void> PipelineContainer = new CallablePipelineContainer(pipe, pipelineOutputFilePath, candidate, cleanupFiles);
+                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidate, cleanupFiles);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -397,6 +411,41 @@ public class CompoundEvolver {
                     "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
         }
         processRawScores();
+    }
+
+    /**
+     * Gets the candidates in the population.
+     */
+    private List<Candidate> getInitialCandidates() throws MisMatchedReactantCount {
+        List<Candidate> candidates = new ArrayList<>();
+        if (!dummyFitness) {
+            // Check if pipe is present
+            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
+            // Create list to hold future object associated with Callable
+            List<Future<Candidate>> futures = new ArrayList<>();
+            // Loop through candidates to produce and submit new tasks
+            for (Candidate candidate : this.population) {
+                // Setup callable
+                Callable<Candidate> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidate, cleanupFiles);
+                // Add future, which the executor will return to the list
+                futures.add(executor.submit(PipelineContainer));
+            }
+            // Loop through futures to handle thrown exceptions
+            for (Future<Candidate> future : futures) {
+                try {
+                    Candidate c = future.get();
+                    if(c != null) {
+                        candidates.add(c);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    // Handle exception
+                    evolutionProgressConnector.putException(e);
+                    // Log exception
+                    e.printStackTrace();
+                }
+            }
+        }
+        return candidates;
     }
 
     /**
@@ -521,7 +570,10 @@ public class CompoundEvolver {
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
-        this.pipe = converterStep.pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
+
+        PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor,receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
+        this.pipe2 = converterStep.pipe(validifyStep);
+        this.pipe = converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
     }
 
     /**

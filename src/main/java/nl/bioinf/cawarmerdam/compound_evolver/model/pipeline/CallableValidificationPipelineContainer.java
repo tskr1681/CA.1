@@ -21,8 +21,8 @@ import java.util.logging.*;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class CallablePipelineContainer implements Callable<Void> {
-    private final PipelineStep<Candidate, Void> pipeline;
+public class CallableValidificationPipelineContainer implements Callable<Candidate> {
+    private final PipelineStep<Candidate, Candidate> pipeline;
     private final Path pipelineOutputFilePath;
     private final Candidate candidate;
     private final boolean cleanupFiles;
@@ -35,7 +35,7 @@ public class CallablePipelineContainer implements Callable<Void> {
      * @param candidate The candidate that this container will score.
      * @param cleanupFiles If this should remove temporary files.
      */
-    public CallablePipelineContainer(PipelineStep<Candidate, Void> pipeline, Path pipelineOutputFilePath, Candidate candidate, boolean cleanupFiles) {
+    public CallableValidificationPipelineContainer(PipelineStep<Candidate, Candidate> pipeline, Path pipelineOutputFilePath, Candidate candidate, boolean cleanupFiles) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
         this.candidate = candidate;
@@ -51,28 +51,22 @@ public class CallablePipelineContainer implements Callable<Void> {
      * @throws IOException if an IO related exception occurred.
      */
     @Override
-    public Void call() throws PipelineException, PluginException, IOException {
+    public Candidate call() throws PipelineException {
         // Declare logging details
         Handler fileHandler = null;
         Formatter simpleFormatter;
         Path candidateDirectory = null;
+        Candidate c;
         try {
             // Create new directory
             candidateDirectory = createCandidateDirectory();
             // Setting Level to ALL
             // Execute pipeline
-            this.pipeline.execute(candidate);
+            c = this.pipeline.execute(candidate);
         } catch (PipelineException e) {
             throw e;
-        } finally {
-            // Remove the pipeline files.
-            if (cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
         }
-        if (candidate.isScored()) {
-            candidate.calculateLigandEfficiency();
-            candidate.calculateLigandLipophilicityEfficiency();
-        }
-        return null;
+        return c;
     }
 
     /**

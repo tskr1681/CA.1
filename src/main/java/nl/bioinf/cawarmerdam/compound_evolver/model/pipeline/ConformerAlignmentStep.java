@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Conformer alignment step that uses the alignment functionality in the chemaxon package.
@@ -128,6 +129,19 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
 
                 // Align molecules
                 alignment.addMolecule(m, false, true);
+                ExecutorService executor = Executors.newCachedThreadPool();
+                Callable<Void> task = () -> {
+                    alignment.align();
+                    return null;
+                };
+                Future<Void> future = executor.submit(task);
+                try {
+                    future.get(300, TimeUnit.SECONDS);
+                } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                    throw new PipelineException("Alignment took too long, ", ex);
+                } finally {
+                    future.cancel(true); // may or may not desire this
+                }
                 alignment.align();
                 alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
 

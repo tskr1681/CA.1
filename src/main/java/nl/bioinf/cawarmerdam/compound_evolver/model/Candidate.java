@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -132,15 +133,26 @@ public class Candidate implements Comparable<Candidate> {
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
+        Molecule[] result = null;
         try {
             Reactor reaction = species.getReaction();
             reaction.setReactants(reactants);
             Molecule[] products;
-            if ((products = reaction.react()) != null) {
+            ExecutorService executor = Executors.newCachedThreadPool();
+            Callable<Molecule[]> task = reaction::react;
+            Future<Molecule[]> future = executor.submit(task);
+            try {
+                result = future.get(120, TimeUnit.SECONDS);
+            } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                return false;
+            } finally {
+                future.cancel(true); // may or may not desire this
+            }
+            if ((products = result) != null) {
                 this.phenotype = products[0];
                 return this.isValid();
             }
-        } catch (ReactionException e) {
+        } catch (ReactionException | IllegalArgumentException | IndexOutOfBoundsException e) {
             this.rejectionMessage = e.getMessage();
             return false;
         }
