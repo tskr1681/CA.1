@@ -296,7 +296,7 @@ public class CompoundEvolver {
         List<Candidate> validCandidates = new ArrayList<>(candidates);
         System.out.println("candidates = " + candidates);
         System.out.println("validCandidates.size() = " + validCandidates.size());
-        while (validCandidates.size() < 10) {
+        while (validCandidates.size() < population.getPopulationSize()) {
             population = new Population(population.reactantLists,population.species,population.getSpeciesDeterminationMethod(),population.getPopulationSize());
             candidates = getInitialCandidates();
             validCandidates.addAll(candidates);
@@ -433,11 +433,11 @@ public class CompoundEvolver {
             // Loop through futures to handle thrown exceptions
             for (Future<Candidate> future : futures) {
                 try {
-                    Candidate c = future.get();
+                    Candidate c = future.get(180, TimeUnit.SECONDS);
                     if(c != null) {
                         candidates.add(c);
                     }
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     // Handle exception
                     evolutionProgressConnector.putException(e);
                     // Log exception

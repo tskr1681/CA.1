@@ -133,20 +133,23 @@ public class Candidate implements Comparable<Candidate> {
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
-        Molecule[] result = null;
+        Molecule[] result;
         try {
             Reactor reaction = species.getReaction();
             reaction.setReactants(reactants);
             Molecule[] products;
-            ExecutorService executor = Executors.newCachedThreadPool();
+            ExecutorService executor = Executors.newSingleThreadExecutor();
             Callable<Molecule[]> task = reaction::react;
             Future<Molecule[]> future = executor.submit(task);
             try {
                 result = future.get(120, TimeUnit.SECONDS);
             } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                future.cancel(true);
+                executor.shutdownNow();
                 return false;
             } finally {
-                future.cancel(true); // may or may not desire this
+                future.cancel(true);
+                executor.shutdownNow();
             }
             if ((products = result) != null) {
                 this.phenotype = products[0];

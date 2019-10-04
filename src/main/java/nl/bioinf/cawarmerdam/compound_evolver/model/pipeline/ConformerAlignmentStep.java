@@ -129,18 +129,21 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
 
                 // Align molecules
                 alignment.addMolecule(m, false, true);
-                ExecutorService executor = Executors.newCachedThreadPool();
+                ExecutorService executor = Executors.newSingleThreadExecutor();
                 Callable<Void> task = () -> {
                     alignment.align();
                     return null;
                 };
                 Future<Void> future = executor.submit(task);
                 try {
-                    future.get(300, TimeUnit.SECONDS);
+                    future.get(10, TimeUnit.SECONDS);
                 } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                    future.cancel(true);
+                    executor.shutdownNow();
                     throw new PipelineException("Alignment took too long, ", ex);
                 } finally {
-                    future.cancel(true); // may or may not desire this
+                    future.cancel(true);
+                    executor.shutdownNow();
                 }
                 alignment.align();
                 alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
