@@ -138,18 +138,19 @@ public class Candidate implements Comparable<Candidate> {
             Reactor reaction = species.getReaction();
             reaction.setReactants(reactants);
             Molecule[] products;
-            ExecutorService executor = Executors.newSingleThreadExecutor();
             Callable<Molecule[]> task = reaction::react;
-            Future<Molecule[]> future = executor.submit(task);
+            FutureTask<Molecule[]> future = new FutureTask<>(task);
+            Thread t = new Thread(future);
+            t.start();
             try {
                 result = future.get(120, TimeUnit.SECONDS);
             } catch (TimeoutException | ExecutionException | InterruptedException ex) {
                 future.cancel(true);
-                executor.shutdownNow();
+                t.stop();
                 return false;
             } finally {
                 future.cancel(true);
-                executor.shutdownNow();
+                t.stop();
             }
             if ((products = result) != null) {
                 this.phenotype = products[0];
