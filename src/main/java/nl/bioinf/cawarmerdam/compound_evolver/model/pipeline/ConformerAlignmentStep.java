@@ -148,7 +148,6 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
                     future.cancel(true);
                     t.stop();
                 }
-                alignment.align();
                 alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
 
                 // read the next molecule from the input file
