@@ -14,14 +14,12 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -130,21 +128,31 @@ public class Candidate implements Comparable<Candidate> {
      * @param species       The species to use for this candidate.
      * @return true if this candidate was viable and valid, false if not.
      */
+    @SuppressWarnings("deprecation")
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
         Molecule[] result;
         try {
-            Reactor reaction = species.getReaction();
+            Reactor reaction = SerializationUtils.clone(species.getReaction());
+            reaction.restart();
             reaction.setReactants(reactants);
             Molecule[] products;
-            Callable<Molecule[]> task = reaction::react;
+            Callable<Molecule[]> task = () -> {
+                try {
+                    return reaction.react();
+                } catch (Exception e) {
+                    System.out.println("e.getMessage() = " + e.getMessage());
+                    return null;
+                }
+            };
             FutureTask<Molecule[]> future = new FutureTask<>(task);
             Thread t = new Thread(future);
             t.start();
             try {
-                result = future.get(120, TimeUnit.SECONDS);
+                result = future.get(5, TimeUnit.SECONDS);
             } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                this.rejectionMessage = ex.getMessage() != null ? ex.getMessage() : Arrays.toString(ex.getStackTrace());
                 future.cancel(true);
                 t.stop();
                 return false;
@@ -157,7 +165,8 @@ public class Candidate implements Comparable<Candidate> {
                 return this.isValid();
             }
         } catch (ReactionException | IllegalArgumentException | IndexOutOfBoundsException e) {
-            this.rejectionMessage = e.getMessage();
+            this.rejectionMessage = "Reactor produced an error";
+            e.printStackTrace();
             return false;
         }
         this.rejectionMessage = "Reactor could not produce a reactions product";
