@@ -57,6 +57,8 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
+        if (candidate == null)
+            throw new PipelineException("Smina got null as a candidate, validification failed?");
         Path inputFile = candidate.getFixedConformersFile();
         Map<String, Double> conformerCoordinates = getConformerCoordinates(inputFile);
         // THe output file path will be called smina.sdf, located in the candidate specific folder.

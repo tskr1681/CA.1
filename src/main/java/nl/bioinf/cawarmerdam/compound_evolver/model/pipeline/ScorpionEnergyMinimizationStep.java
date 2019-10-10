@@ -43,6 +43,9 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
+        if (candidate == null) {
+            throw new PipelineException("Scorpion got null as a candidate, validification failed?");
+        }
         Path fixedconformers = candidate.getFixedConformersFile();
         scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
