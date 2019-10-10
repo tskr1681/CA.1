@@ -134,9 +134,12 @@ public class Candidate implements Comparable<Candidate> {
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
         Molecule[] result;
         try {
+            // Not sure of the exact cause, but this is needed to prevent random, otherwise unexplainable errors
             Reactor reaction = SerializationUtils.clone(species.getReaction());
             reaction.restart();
             reaction.setReactants(reactants);
+
+            // Setup for multithreading, which in case is used for a timeout
             Molecule[] products;
             Callable<Molecule[]> task = () -> {
                 try {
@@ -149,6 +152,7 @@ public class Candidate implements Comparable<Candidate> {
             FutureTask<Molecule[]> future = new FutureTask<>(task);
             Thread t = new Thread(future);
             t.start();
+            // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
             try {
                 result = future.get(5, TimeUnit.SECONDS);
             } catch (TimeoutException | ExecutionException | InterruptedException ex) {
@@ -160,6 +164,7 @@ public class Candidate implements Comparable<Candidate> {
                 future.cancel(true);
                 t.stop();
             }
+            // If there's an actual product, set it as the phenotype and check if the candidate is valid
             if ((products = result) != null) {
                 this.phenotype = products[0];
                 return this.isValid();
