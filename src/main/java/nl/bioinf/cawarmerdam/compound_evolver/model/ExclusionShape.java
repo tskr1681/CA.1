@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class ExclusionShape {
     private static final double DEFAULT_PROBE_SIZE = 1.4;
-    private static final double RESOLUTION = 0.5;
+    private static final double RESOLUTION = 0.1;
 
     private static final Map<Integer, Double> ELEMENT_VDW_RADII = new HashMap<>();
 
@@ -166,6 +166,8 @@ public class ExclusionShape {
         // The grid should expand a bit further than the enclosing cube.
         // 5 angstrom is used to maintain a buffer with even the largest elements. (biggest radius is 3.24 angstrom)
         DPoint3 margin = new DPoint3(5, 5, 5);
+
+        // The reference point is a corner of the enclosing grid
         DPoint3 referenceCoordinate = DPoint3.subtract(enclosingCube[0], margin);
         DPoint3 endCoordinate = DPoint3.add(enclosingCube[1], margin);
         DPoint3 cubeSize = DPoint3.subtract(endCoordinate, referenceCoordinate);
