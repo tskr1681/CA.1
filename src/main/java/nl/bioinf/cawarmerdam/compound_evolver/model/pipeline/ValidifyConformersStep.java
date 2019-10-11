@@ -47,8 +47,14 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
     public Candidate execute(Candidate candidate) throws PipelineException {
         List<Molecule> validConformers = new ArrayList<>();
         Path outputFilePath = candidate.getFixedConformersFile();
-        //TODO use amount of conformers instead of 15
-        for (int i = 0; i < 15; i++) {
+
+        int conformer_count = 15;
+        try {
+           conformer_count  = getConformerCount(outputFilePath);
+        } catch(IOException ignored) {
+
+        }
+        for (int i = 0; i < conformer_count; i++) {
             Molecule conformer = getConformer(outputFilePath, i);
             boolean isTooDistant = calculateLeastAnchorRmsd(conformer) > maximumDistanceFromAnchor;
             boolean isInShape = exclusionShape.inShape(conformer);
@@ -236,5 +242,23 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
         } catch (IOException e) {
             throw new PipelineException("Could not import minimized file", e);
         }
+    }
+
+    private int getConformerCount(Path conformerPath) throws IOException {
+        MolImporter importer = new MolImporter(conformerPath.toFile());
+
+        // Current conformer index
+        int currentConformerIndex = 0;
+
+        // read the first molecule from the file
+        Molecule m = importer.read();
+        while (m != null) {
+            currentConformerIndex += 1;
+
+            // read the next molecule from the input file
+            m = importer.read();
+        }
+        importer.close();
+        return currentConformerIndex;
     }
 }
