@@ -9,6 +9,7 @@ import com.chemaxon.search.mcs.McsSearchOptions;
 import com.chemaxon.search.mcs.McsSearchResult;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.model.ExclusionShape;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -70,6 +71,11 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
             System.out.println("candidate = " + candidate);
             return candidate;
         } else {
+            try {
+                FileUtils.deleteDirectory(candidate.getConformersFile().getParent().toFile());
+            } catch (IOException ignored) {
+
+            }
             return null;
         }
     }
