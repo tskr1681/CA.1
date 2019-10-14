@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,7 +62,12 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
         Path output_sdf = fixedconformers.resolveSibling(output_str + ".sdf");
 
         candidate.setMinimizationOutputFilePath(output_sdf);
-        candidate.setConformerScores(getConformerScores(output_sdf));
+
+        List<Double> scores = getConformerScores(output_sdf);
+        if (Collections.min(scores) == Double.POSITIVE_INFINITY) {
+            throw new PipelineException("Scorpion did not produce any valid scores");
+        }
+        candidate.setConformerScores(scores);
 
         return candidate;
     }
