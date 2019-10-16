@@ -882,6 +882,34 @@
                                 </small>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="min-qed" class="col-sm-3 col-form-label">
+                                Minimum QED (Quantitative Estimate of Drug-likeness)
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.minQED"
+                                       id="min-qed"
+                                       name="minQED"
+                                       required="required"
+                                       min="0"
+                                       max="1"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.minQED.$valid && (!compoundEvolverForm.minQED.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.minQED.$valid && (!compoundEvolverForm.minQED.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.minQED.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.minQED.$error.number || compoundEvolverForm.minQED.$error.min || compoundEvolverForm.minQED.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A value below 0 or above 1 is forbidden
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="submit">

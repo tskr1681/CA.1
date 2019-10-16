@@ -50,6 +50,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
     private boolean duplicatesAllowed;
+    private double minQED;
 
     /**
      * Constructor for population.
@@ -653,6 +654,10 @@ public class Population implements Iterable<Candidate> {
         throw new RuntimeException(String.format("Environment variable '%s' was not an integer value", variableName));
     }
 
+    public void setMinQED(double minQED) {
+        this.minQED = minQED;
+    }
+
     private class OffSpringProducer implements Callable<Candidate> {
 
         ReproductionMethod m;
@@ -737,6 +742,7 @@ public class Population implements Iterable<Candidate> {
         newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
         newCandidate.setMaxMolecularMass(this.maxMolecularMass);
         newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
+        newCandidate.setMinQED(this.minQED);
 
         if (speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED &&
                 newCandidate.finish(this.reactantLists)) {

@@ -32,7 +32,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxMolecularMass: 500,
         maxHydrogenBondDonors: 5,
         maxHydrogenBondAcceptors: 10,
-        maxPartitionCoefficient: 5
+        maxPartitionCoefficient: 5,
+        minQED: 0
     };
 
     // Define the properties of reaction files.

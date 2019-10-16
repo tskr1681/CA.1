@@ -2,6 +2,8 @@ package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import chemaxon.calculations.Ring;
 import chemaxon.calculations.TopologyAnalyser;
+import chemaxon.formats.MolFormatException;
+import chemaxon.formats.MolImporter;
 import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.TPSAPlugin;
 import chemaxon.marvin.calculations.logPPlugin;
@@ -177,12 +179,14 @@ public class QuantitativeDrugEstimateCalculator {
      * @return the QED value for the molecule
      * @throws PluginException if one of the plugins needed for calculation fails
      */
-    public static double getQED(Molecule m) throws PluginException, SearchException {
+    public static double getQED(Molecule m) {
         Ring r = new Ring();
         r.setMolecule(m);
 
         // Set up plugins
-        lpPlugin.setMolecule(m);
+        try {
+            lpPlugin.setMolecule(m);
+
         lpPlugin.run();
 
         hbdaPlugin.setMolecule(m);
@@ -224,5 +228,13 @@ public class QuantitativeDrugEstimateCalculator {
 
         System.out.println("qed = " + qed);
         return qed;
+        } catch (PluginException | SearchException e) {
+            e.printStackTrace();
+            return 0.0d;
+        }
+    }
+
+    public static void main(String[] args) throws MolFormatException {
+        getQED(MolImporter.importMol("n3c1c(ncn1[C@H]2/C=C\\[C@@H](CO)C2)c(nc3N)NC4CC4"));
     }
 }

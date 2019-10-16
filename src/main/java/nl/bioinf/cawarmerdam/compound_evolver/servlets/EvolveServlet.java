@@ -153,6 +153,10 @@ public class EvolveServlet extends HttpServlet {
         boolean allowDuplicates = getBooleanParameterFromRequest(request, "allowDuplicates");
         initialPopulation.setDuplicatesAllowed(allowDuplicates);
 
+        double minQED = getDoubleParameterFromRequest(request, "minQED");
+        System.out.println("minQED = " + minQED);
+        initialPopulation.setMinQED(minQED);
+
         // Get mutation method
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
                 request.getParameter("mutationMethod"));

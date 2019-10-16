@@ -14,6 +14,7 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
+import nl.bioinf.cawarmerdam.compound_evolver.util.QuantitativeDrugEstimateCalculator;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -57,6 +58,7 @@ public class Candidate implements Comparable<Candidate> {
     private Random random = new Random();
     private List<Double> conformerScores;
     private Path minimizationOutputFilePath;
+    private double minQED;
 
     /**
      * Constructor for candidate instance.
@@ -216,6 +218,14 @@ public class Candidate implements Comparable<Candidate> {
      */
     void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
         this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
+    }
+
+    public double getMinQED() {
+        return minQED;
+    }
+
+    public void setMinQED(double minQED) {
+        this.minQED = minQED;
     }
 
     /**
@@ -461,7 +471,10 @@ public class Candidate implements Comparable<Candidate> {
             if (!isMolecularMassValid()) return false;
         }
         if (maxPartitionCoefficient != null) {
-            return isPartitionCoefficientValid();
+            if (!isPartitionCoefficientValid()) return false;
+        }
+        if (minQED != 0) {
+            return !(QuantitativeDrugEstimateCalculator.getQED(this.phenotype) < minQED);
         }
         return true;
     }
