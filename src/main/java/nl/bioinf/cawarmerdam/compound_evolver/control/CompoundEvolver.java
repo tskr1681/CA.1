@@ -385,9 +385,9 @@ public class CompoundEvolver {
                     candidatesScored += 1;
                 } catch (InterruptedException | ExecutionException e) {
                     // Handle exception
-                    evolutionProgressConnector.putException(e);
+//                    evolutionProgressConnector.putException(e);
                     // Log exception
-                    e.printStackTrace();
+                    System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
                 }
             }
             // Log completed scoring round
@@ -439,9 +439,9 @@ public class CompoundEvolver {
                     }
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     // Handle exception
-                    evolutionProgressConnector.putException(e);
+//                    evolutionProgressConnector.putException(e);
                     // Log exception
-                    e.printStackTrace();
+                    System.err.println("Encountered exception while generating initial candidates: " + e.getMessage());
                 }
             }
         }
@@ -567,12 +567,17 @@ public class CompoundEvolver {
                 clashingConformerCounter,
                 tooDistantConformerCounter);
         // Get the step for energy minimization
-        PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor);
+        PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
 
         PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor,receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
-        this.pipe2 = converterStep.pipe(validifyStep);
+        String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+        String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
+        this.pipe2 = converterStep.pipe(validifyStep).pipe(new MolocEnergyMinimizationStep(
+                receptorFilePath,
+                mol3dExecutable,
+                esprntoExecutable)).pipe(validifyStep);
         this.pipe = converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
     }
 
@@ -584,31 +589,31 @@ public class CompoundEvolver {
      * @return The energy minimization step that complies with the set force field.
      * @throws PipelineException if the minimization step could not be initialized.
      */
-    private PipelineStep<Candidate,Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath) throws PipelineException {
+    private PipelineStep<Candidate,Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath, double exclusionShapeTolerance, double maximumAnchorDistance) throws PipelineException {
+        String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+        String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
+        PipelineStep<Candidate,Candidate> step = new MolocEnergyMinimizationStep(
+                receptorFile,
+                mol3dExecutable,
+                esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));;
         switch (this.forceField) {
             case MAB:
-                String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
-                String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
-
                 // Return Moloc implementation of the energy minimization step
-                return new MolocEnergyMinimizationStep(
-                        receptorFile,
-                        mol3dExecutable,
-                        esprntoExecutable);
+                return step;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
                 String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
                 String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
                 // Return Smina implementation of the energy minimization step
-                return new SminaEnergyMinimizationStep(
+                return step.pipe(new SminaEnergyMinimizationStep(
                         receptorFile,
                         sminaExecutable,
                         pythonExecutable,
-                        prepareReceptorExecutable);
+                        prepareReceptorExecutable));
             case SCORPION:
                 String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
-                return new ScorpionEnergyMinimizationStep(receptorFile, anchorFilePath, scorpionExecutable);
+                return step.pipe(new ScorpionEnergyMinimizationStep(receptorFile, anchorFilePath, scorpionExecutable));
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }

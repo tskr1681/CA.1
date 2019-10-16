@@ -47,7 +47,7 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
         if (candidate == null) {
             throw new PipelineException("Scorpion got null as a candidate, validification failed?");
         }
-        Path fixedconformers = candidate.getFixedConformersFile();
+        Path fixedconformers = candidate.getMinimizationOutputFilePath();
         scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
 
@@ -61,7 +61,7 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
         String output_str = fixedconformers.toString().replaceAll(".sdf", "") + "_scorp";
         Path output_sdf = fixedconformers.resolveSibling(output_str + ".sdf");
 
-        candidate.setMinimizationOutputFilePath(output_sdf);
+        candidate.setScoredConformersFile(output_sdf);
 
         List<Double> scores = getConformerScores(output_sdf);
         if (Collections.min(scores) == Double.POSITIVE_INFINITY) {

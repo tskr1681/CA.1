@@ -38,6 +38,7 @@ public class Candidate implements Comparable<Candidate> {
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
     private Path conformersFile;
     private Path fixedConformersFile;
+    private Path scoredConformersFile;
     private Double rawScore;
     private Double ligandLipophilicityEfficiency;
     private Double maxHydrogenBondDonors = null;
@@ -634,6 +635,25 @@ public class Candidate implements Comparable<Candidate> {
     public void setFixedConformersFile(Path fixedConformersFile) {
         this.fixedConformersFile = fixedConformersFile;
     }
+
+    /**
+     * Getter for the scored conformers file path.
+     *
+     * @return the path to the fixed conformers file.
+     */
+    public Path getScoredConformersFile() {
+        return scoredConformersFile;
+    }
+
+    /**
+     * Setter for the conformers file path.
+     *
+     * @param scoredConformersFile The path to the conformers file.
+     */
+    public void setScoredConformersFile(Path scoredConformersFile) {
+        this.scoredConformersFile = scoredConformersFile;
+    }
+
 
     /**
      * Getter for if this candidate is scored.

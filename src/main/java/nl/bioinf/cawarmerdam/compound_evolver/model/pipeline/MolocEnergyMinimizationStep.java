@@ -71,6 +71,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         // Set scores.
         candidate.setConformerScores(getConformerScores(inputFile.getParent(), ligandName, receptorName));
         candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);
+        candidate.setScoredConformersFile(newMinimizedConformersFilePath);
         return candidate;
     }
 
