@@ -55,7 +55,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     $scope.response = {hasError: false};
 
-    $scope.reactantsMappingMultiSelectSettings = { checkBoxes: true, displayProp: 'name'};
+    $scope.reactantsMappingMultiSelectSettings = {checkBoxes: true, displayProp: 'name'};
 
     var scoreDistributionChart = null;
     var speciesDistributionChart = null;
@@ -65,10 +65,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     var stage_best = new NGL.Stage("viewport_best");
     var stage_avg = new NGL.Stage("viewport_avg");
     var stage_worst = new NGL.Stage("viewport_worst");
-    let smilesDrawer = new SmilesDrawer.Drawer({width:300, height:200});
+    let smilesDrawer = new SmilesDrawer.Drawer({width: 300, height: 200});
     var marvinSketcherInstance;
 
-    function getProgressUpdate(handleData){
+    function getProgressUpdate(handleData) {
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
@@ -92,7 +92,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     angular.element(document).ready(function () {
-        getProgressUpdate(function(jsonData) {
+        getProgressUpdate(function (jsonData) {
             if (jsonData == null) {
                 return;
             }
@@ -109,10 +109,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 // Post success message
             }
         });
-        MarvinJSUtil.getEditor("#sketch").then(function(sketcherInstance) {
+        MarvinJSUtil.getEditor("#sketch").then(function (sketcherInstance) {
             marvinSketcherInstance = sketcherInstance
-        }, function(error) {
-            alert("Loading of the sketcher failed"+error)
+        }, function (error) {
+            alert("Loading of the sketcher failed" + error)
         });
     });
 
@@ -177,7 +177,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function addDatasets(chart, datasets) {
-        let backgroundColors = palette('cb-Set2', datasets.length).map(function(hex) {
+        let backgroundColors = palette('cb-Set2', datasets.length).map(function (hex) {
             return '#' + hex;
         });
         datasets.forEach(function (dataset, i) {
@@ -209,9 +209,9 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         addData(speciesDistributionChart, generation.number, Object.values(counts));
     }
 
-    $scope.getReactantNames = function(reactionFile) {
+    $scope.getReactantNames = function (reactionFile) {
         let names = [];
-        reactionFile.reactants.forEach( function (reactant) {
+        reactionFile.reactants.forEach(function (reactant) {
             names.push(reactant.name);
         });
         return names.join(", ");
@@ -571,8 +571,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         loadsdf(stage_best, population[0].id);
 
         stage_avg.removeAllComponents();
-        loadpdb(stage_avg, population[Math.floor(population.length/2)].id);
-        loadsdf(stage_avg, population[Math.floor(population.length/2)].id);
+        loadpdb(stage_avg, population[Math.floor(population.length / 2)].id);
+        loadsdf(stage_avg, population[Math.floor(population.length / 2)].id);
 
         stage_worst.removeAllComponents();
         loadpdb(stage_worst, population[population.length - 1].id);
@@ -585,7 +585,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param id The candidate id to grab the file from
      */
     function loadpdb(stage, id) {
-        stage.loadFile("get.files?filetype=pdb&compoundId="+id, {ext: "pdb"}).then(function (o) {
+        stage.loadFile("get.files?filetype=pdb&compoundId=" + id, {ext: "pdb"}).then(function (o) {
             // o.addRepresentation("cartoon");
             // o.addRepresentation("ball+stick", {colorScheme: "uniform"});
             o.addRepresentation("surface", {colorScheme: "element"});
@@ -600,30 +600,44 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param id The candidate id to grab the file from
      */
     function loadsdf(stage, id) {
-        stage.loadFile("get.files?filetype=sdf&compoundId="+id, {ext: "sdf"}).then(function (o) {
+        stage.loadFile("get.files?filetype=sdf&compoundId=" + id, {ext: "sdf"}).then(function (o) {
             o.addRepresentation("ball+stick");
             o.autoView();
             o.structure.name = "Drug";
         });
     }
 
-    $scope.showSmiles = function(smiles, canvas_name) {
-        SmilesDrawer.parse(smiles, function(tree) {
+    $scope.showSmiles = function (smiles, canvas_name) {
+        SmilesDrawer.parse(smiles, function (tree) {
             // Draw to the canvas
             smilesDrawer.draw(tree, canvas_name.toString(), 'light', false);
         });
     }
 
-    $scope.doMarvin = function() {
+    $scope.doMarvin = function () {
         let reactionFiles = document.getElementById("reaction-files");
         marvinSketcherInstance.exportStructure("mrv", {}).then(function (a) {
+            console.log(a);
                 const dT = new ClipboardEvent('').clipboardData || // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
                     new DataTransfer(); // specs compliant (as of March 2018 only Chrome)
-                let f = new File([a.toString()], "marvin.mrv")
+                let f = new File([a.toString()], "marvin.mrv");
                 dT.items.add(f);
+                for (let i = 0; i < reactionFiles.files.length; i++) {
+                    dT.items.add(reactionFiles.files[i])
+                }
+
                 reactionFiles.files = dT.files;
+            names = [];
+            console.log(JSON.stringify(reactionFiles.files));
+            for (let i = 0; i < reactionFiles.files.length; i++) {
+                names.push(reactionFiles.files[i].name);
+            }
+            console.log(JSON.stringify(names));
+            $scope.$apply();
             }
         );
+
+        // document.getElementById('reactions-label').innerText = names.join(", ")
     }
 
 });

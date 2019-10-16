@@ -121,7 +121,7 @@
                     'is-valid':!reactionFiles.wrongExtension && (!reactionFiles.pristine || compoundEvolverForm.$submitted)}">
                                     <label class="custom-file-label overflow-hidden"
                                            for="reaction-files">
-                                        <span ng-repeat="file in reactionFiles.files">{{file.name}} </span>
+                                        <span ng-repeat="file in reactionFiles.files" id="reactions-label">{{file.name}} </span>
                                         <span ng-hide="reactionFiles.files.length">Choose reaction files</span>
                                     </label>
                                 </div>
