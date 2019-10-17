@@ -51,6 +51,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxPartitionCoefficient = null;
     private boolean duplicatesAllowed;
     private double minQED;
+    private boolean adaptive;
 
     /**
      * Constructor for population.
@@ -83,6 +84,7 @@ public class Population implements Iterable<Candidate> {
         this.selectionMethod = SelectionMethod.FITNESS_PROPORTIONATE_SELECTION;
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.species = species;
+        this.adaptive = true;
         initializePopulation();
     }
 
@@ -585,14 +587,19 @@ public class Population implements Iterable<Candidate> {
         int i = 0;
         while (offspring.size() < offspringSize) {
 
-            // Get some genomes by crossing over according to crossover probability
-            if (offspringChoice == ReproductionMethod.CLEAR) {
-                offspringChoice = makeWeightedReproductionChoice();
-            }
-
             List<Candidate> newOffspring = new ArrayList<>();
             // Try to produce offspring
             for (int j = i; j < i + pool_size; j++) {
+                // Get some genomes by crossing over according to crossover probability
+                if (this.adaptive) {
+                    ImmutablePair<Candidate, Candidate> parents = getParents(i);
+                    double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
+                    double f_avg = candidateList.stream().mapToDouble(Candidate::getNormFitness).sum()/candidateList.size();
+                    this.crossoverRate = Math.min((1 - f_high)/(1 - f_avg), 1);
+                    double f = candidateList.get(i % populationSize).getNormFitness();
+                    this.mutationRate = Math.min(0.5*(1 - f)/(1 - f_avg), 0.5);
+                }
+                offspringChoice = makeWeightedReproductionChoice();
                 Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(candidateCallable));
@@ -612,7 +619,6 @@ public class Population implements Iterable<Candidate> {
                     if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
                         // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
                         offspring.add(c);
-                        offspringChoice = ReproductionMethod.CLEAR;
                         this.offspringRejectionMessages.clear();
                         failureCounter = 0;
                     } else {
@@ -705,7 +711,7 @@ public class Population implements Iterable<Candidate> {
 //        System.out.println("offspringChoice = " + offspringChoice);
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
-            ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(i);
+            ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(getParents(i));
             if (newGenome == null) return null;
             // Mutate the recombined genome
             List<Integer> reactantGenome = newGenome.right;
@@ -807,6 +813,16 @@ public class Population implements Iterable<Candidate> {
         // Do nothing if the flag is cleared
     }
 
+    private ImmutablePair<Candidate,Candidate> getParents(int i) {
+        // Get the index of two parents to perform crossover between the two
+        int firstParentIndex = i % this.candidateList.size();
+        int otherParentIndex = (i + 1) % this.candidateList.size();
+        // Get the two parents
+        Candidate firstParent = this.candidateList.get(firstParentIndex);
+        Candidate otherParent = this.candidateList.get(otherParentIndex);
+        return new ImmutablePair<>(firstParent, otherParent);
+    }
+
     /**
      * Filters the parents that could not be scored due to invalid docking poses.
      */
@@ -901,21 +917,16 @@ public class Population implements Iterable<Candidate> {
     /**
      * Recombines genomes of two individuals.
      *
-     * @param i the index to get individuals from.
+     * @param parents the parents to recombine the genomes of
      * @return the recombined genome as a list
      */
-    private ImmutablePair<Species, List<Integer>> getRecombinedGenome(int i) {
-        // Get the index of two parents to perform crossover between the two
-        int firstParentIndex = i % this.candidateList.size();
-        int otherParentIndex = (i + 1) % this.candidateList.size();
-        // Get the two parents
-        Candidate firstParent = this.candidateList.get(firstParentIndex);
-        Candidate otherParent = this.candidateList.get(otherParentIndex);
+    private ImmutablePair<Species, List<Integer>> getRecombinedGenome(ImmutablePair<Candidate, Candidate> parents) {
+
 //        System.out.printf("%s (%s) * %s (%s)%n",
 //                firstParent.getGenotype(), firstParent.getSpecies(),
 //                otherParent.getGenotype(), otherParent.getSpecies());
         // Perform crossover between the two
-        return firstParent.crossover(otherParent, interspeciesCrossoverMethod);
+        return parents.left.crossover(parents.right, interspeciesCrossoverMethod);
     }
 
     @Override
