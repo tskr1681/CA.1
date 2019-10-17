@@ -574,11 +574,11 @@ public class CompoundEvolver {
         PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor,receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
         String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
         String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
-        this.pipe2 = converterStep.pipe(validifyStep).pipe(new MolocEnergyMinimizationStep(
+        this.pipe2 = converterStep.pipe(new MolocEnergyMinimizationStep(
                 receptorFilePath,
                 mol3dExecutable,
                 esprntoExecutable)).pipe(validifyStep);
-        this.pipe = converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
+        this.pipe = converterStep.pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
     }
 
     /**
@@ -595,7 +595,7 @@ public class CompoundEvolver {
         PipelineStep<Candidate,Candidate> step = new MolocEnergyMinimizationStep(
                 receptorFile,
                 mol3dExecutable,
-                esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));;
+                esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
         switch (this.forceField) {
             case MAB:
                 // Return Moloc implementation of the energy minimization step
