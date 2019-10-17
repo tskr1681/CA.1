@@ -35,6 +35,7 @@ public class QuantitativeDrugEstimateCalculator {
     private QuantitativeDrugEstimateCalculator() {
     }
 
+    // A list of possibly problematic structural descriptors, because of either toxicity or instability
     private static final String[] alertParts = new String[]{
             "C(=O)O[C,H1].C(=O)O[C,H1].C(=O)O[C,H1]",
             "n1c([F,Cl,Br,I])cccc1",
@@ -143,6 +144,12 @@ public class QuantitativeDrugEstimateCalculator {
             "C#C"
     };
 
+    /**
+     * Gets the amount of possibly bad structural components in a molecule, as described in <href>https://doi.org/10.1002/cmdc.200700139</href>
+     * @param m the molecule to get the alerts/bad structural components from
+     * @return the amount of alerts
+     * @throws SearchException when searching for a structural component fails
+     */
     private static int getAlerts(Molecule m) throws SearchException {
         MolSearch s = new MolSearch();
         int alerts = 0;
@@ -176,8 +183,7 @@ public class QuantitativeDrugEstimateCalculator {
      * It should be noted that the values this function outputs are slightly different than those described in the paper,
      * because of a different implementation of the logP algorithm.
      * @param m The molecule to get the QED for
-     * @return the QED value for the molecule
-     * @throws PluginException if one of the plugins needed for calculation fails
+     * @return the QED value for the molecule, or 0 if an error is thrown while trying to calculate the QED
      */
     public static double getQED(Molecule m) {
         Ring r = new Ring();
