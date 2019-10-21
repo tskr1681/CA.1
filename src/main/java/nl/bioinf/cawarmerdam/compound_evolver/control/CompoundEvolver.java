@@ -574,11 +574,11 @@ public class CompoundEvolver {
         PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor,receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
         String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
         String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
-        this.pipe2 = converterStep.pipe(new MolocEnergyMinimizationStep(
+        this.pipe2 = converterStep.pipe(validifyStep).pipe(new MolocEnergyMinimizationStep(
                 receptorFilePath,
                 mol3dExecutable,
                 esprntoExecutable)).pipe(validifyStep);
-        this.pipe = converterStep.pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
+        this.pipe = converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
     }
 
     /**
