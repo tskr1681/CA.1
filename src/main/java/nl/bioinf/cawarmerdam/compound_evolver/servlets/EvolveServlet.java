@@ -126,17 +126,23 @@ public class EvolveServlet extends HttpServlet {
                 fromString(request.getParameter("interspeciesCrossoverMethod"));
         initialPopulation.setInterspeciesCrossoverMethod(interspeciesCrossoverMethod);
 
-        // Get crossover rate
-        double crossoverRate = getDoubleParameterFromRequest(request, "crossoverRate");
-        initialPopulation.setCrossoverRate(crossoverRate);
+        // Get crossover rate and mutation rate, but only if not running an adaptive GA
+        boolean adaptive = getBooleanParameterFromRequest(request,"setAdaptive");
+        System.out.println("adaptive = " + adaptive);
+        initialPopulation.setAdaptive(adaptive);
+        if (adaptive) {
+            initialPopulation.setCrossoverRate(1);
+            initialPopulation.setMutationRate(0.5);
+        } else {
+            double crossoverRate = getDoubleParameterFromRequest(request, "crossoverRate");
+            double mutationRate = getDoubleParameterFromRequest(request, "mutationRate");
+            initialPopulation.setCrossoverRate(crossoverRate);
+            initialPopulation.setMutationRate(mutationRate);
+        }
 
         // Get selection size
         double selectionSize = getDoubleParameterFromRequest(request, "selectionSize");
         initialPopulation.setSelectionFraction(selectionSize);
-
-        // Get mutation rate
-        double mutationRate = getDoubleParameterFromRequest(request, "mutationRate");
-        initialPopulation.setMutationRate(mutationRate);
 
         // Get elitist rate
         double elitismRate = getDoubleParameterFromRequest(request, "elitismRate");
@@ -154,7 +160,6 @@ public class EvolveServlet extends HttpServlet {
         initialPopulation.setDuplicatesAllowed(allowDuplicates);
 
         double minQED = getDoubleParameterFromRequest(request, "minQED");
-        System.out.println("minQED = " + minQED);
         initialPopulation.setMinQED(minQED);
 
         // Get mutation method

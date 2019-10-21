@@ -177,6 +177,14 @@ public class Population implements Iterable<Candidate> {
         this.maxPartitionCoefficient = maxPartitionCoefficient;
     }
 
+    public boolean isAdaptive() {
+        return adaptive;
+    }
+
+    public void setAdaptive(boolean adaptive) {
+        this.adaptive = adaptive;
+    }
+
     /**
      * Initializes a population from the reactant lists and the reactions.
      */
@@ -595,9 +603,9 @@ public class Population implements Iterable<Candidate> {
                     ImmutablePair<Candidate, Candidate> parents = getParents(i);
                     double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
                     double f_avg = candidateList.stream().mapToDouble(Candidate::getNormFitness).sum()/candidateList.size();
-                    this.crossoverRate = Math.min((1 - f_high)/(1 - f_avg), 1);
-                    double f = candidateList.get(i % populationSize).getNormFitness();
-                    this.mutationRate = Math.min(0.5*(1 - f)/(1 - f_avg), 0.5);
+                    this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
+                    double f = candidateList.get(i % candidateList.size()).getNormFitness();
+                    this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));
                 }
                 offspringChoice = makeWeightedReproductionChoice();
                 Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j);
