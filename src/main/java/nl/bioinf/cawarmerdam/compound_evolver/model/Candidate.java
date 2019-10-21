@@ -75,7 +75,7 @@ public class Candidate implements Comparable<Candidate> {
      * Constructor for candidate instance with dynamic species.
      *
      * @param genotype The genotype that corresponds to the candidate.
-     * @param species A list of possible species to select from
+     * @param species  A list of possible species to select from
      */
     public Candidate(List<Integer> genotype, Species species) {
         this(genotype);
@@ -135,41 +135,22 @@ public class Candidate implements Comparable<Candidate> {
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
-        Molecule[] result;
+        Molecule[] products;
         try {
             // Not sure of the exact cause, but this is needed to prevent random, otherwise unexplainable errors
             Reactor reaction = SerializationUtils.clone(species.getReaction());
-            reaction.restart();
-            reaction.setReactants(reactants);
+            Molecule[] result = react(reaction, reactants);
 
             // Setup for multithreading, which in case is used for a timeout
-            Molecule[] products;
-            Callable<Molecule[]> task = () -> {
-                try {
-                    return reaction.react();
-                } catch (Exception e) {
-                    System.out.println("e.getMessage() = " + e.getMessage());
-                    return null;
-                }
-            };
-            FutureTask<Molecule[]> future = new FutureTask<>(task);
-            Thread t = new Thread(future);
-            t.start();
-            // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
-            try {
-                result = future.get(5, TimeUnit.SECONDS);
-            } catch (TimeoutException | ExecutionException | InterruptedException ex) {
-                this.rejectionMessage = ex.getMessage() != null ? ex.getMessage() : Arrays.toString(ex.getStackTrace());
-                future.cancel(true);
-                t.stop();
-                return false;
-            } finally {
-                future.cancel(true);
-                t.stop();
-            }
+
+            List<Molecule> phenotypes = new ArrayList<>();
             // If there's an actual product, set it as the phenotype and check if the candidate is valid
-            if ((products = result) != null) {
-                this.phenotype = products[0];
+            while ((products = result) != null) {
+                phenotypes.add(products[0]);
+                result = react(reaction, reactants);
+            }
+            if (phenotypes.size() != 0) {
+                this.phenotype = phenotypes.get((int) (Math.random() * phenotypes.size()));
                 return this.isValid();
             }
         } catch (ReactionException | IllegalArgumentException | IndexOutOfBoundsException e) {
@@ -179,6 +160,31 @@ public class Candidate implements Comparable<Candidate> {
         }
         this.rejectionMessage = "Reactor could not produce a reactions product";
         return false;
+    }
+
+    private Molecule[] react(Reactor reaction, Molecule[] reactants) throws ReactionException {
+        reaction.restart();
+        reaction.setReactants(reactants);
+        Callable<Molecule[]> task = () -> {
+            try {
+                return reaction.react();
+            } catch (Exception e) {
+                System.out.println("e.getMessage() = " + e.getMessage());
+                return null;
+            }
+        };
+        FutureTask<Molecule[]> future = new FutureTask<>(task);
+        Thread t = new Thread(future);
+        t.start();
+        // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
+        try {
+            return future.get(5, TimeUnit.SECONDS);
+        } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+            this.rejectionMessage = ex.getMessage() != null ? ex.getMessage() : Arrays.toString(ex.getStackTrace());
+            future.cancel(true);
+            t.stop();
+            return null;
+        }
     }
 
     /**
@@ -341,7 +347,7 @@ public class Candidate implements Comparable<Candidate> {
      */
     public void calculateLigandLipophilicityEfficiency() {
         double kcalToJouleConstant = 4.186798188;
-        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()* kcalToJouleConstant) - logPPlugin.getlogPTrue();
+        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore() * kcalToJouleConstant) - logPPlugin.getlogPTrue();
     }
 
     /**
