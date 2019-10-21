@@ -33,6 +33,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxHydrogenBondDonors: 5,
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5,
+        setAdaptive: true,
         minQED: 0
     };
 
@@ -618,7 +619,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     $scope.doMarvin = function () {
         let reactionFiles = document.getElementById("reaction-files");
         marvinSketcherInstance.exportStructure("mrv", {}).then(function (a) {
-            console.log(a);
+                console.log(a);
                 const dT = new ClipboardEvent('').clipboardData || // Firefox < 62 workaround exploiting https://bugzilla.mozilla.org/show_bug.cgi?id=1422655
                     new DataTransfer(); // specs compliant (as of March 2018 only Chrome)
                 let f = new File([a.toString()], "marvin.mrv");
@@ -628,13 +629,12 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 }
 
                 reactionFiles.files = dT.files;
-            names = [];
-            console.log(JSON.stringify(reactionFiles.files));
-            for (let i = 0; i < reactionFiles.files.length; i++) {
-                names.push(reactionFiles.files[i].name);
-            }
-            console.log(JSON.stringify(names));
-            $scope.$apply();
+                // names = [];
+                // console.log(JSON.stringify(reactionFiles.files));
+                // for (let i = 0; i < reactionFiles.files.length; i++) {
+                //     names.push(reactionFiles.files[i].name);
+                // }
+                // console.log(JSON.stringify(names));
             }
         );
 

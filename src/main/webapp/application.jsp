@@ -399,6 +399,23 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="set-adaptive" class="col-sm-3 col-form-label">Adaptive GA
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.setAdaptive"
+                                           id="set-adaptive"
+                                           name="setAdaptive"
+                                           value="adaptive">
+                                    <label class="form-check-label" for="set-adaptive">
+                                        Use an adaptive genetic algorithm
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="crossover-rate" class="col-sm-3 col-form-label">Crossover rate</label>
                             <div class="col-sm-9">
                                 <input type="number"
@@ -409,9 +426,10 @@
                                        required="required"
                                        min="0"
                                        max="1"
+                                       ng-disabled="formModel.setAdaptive"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.crossoverRate.$valid && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.crossoverRate.$valid && !formModel.setAdaptive && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.crossoverRate.$valid && !formModel.setAdaptive && (!compoundEvolverForm.crossoverRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"
@@ -470,9 +488,10 @@
                                        required="required"
                                        min="0"
                                        max="1"
+                                       ng-disabled="formModel.setAdaptive"
                                        ng-class="{
-                    'is-invalid':!compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted),
-                    'is-valid':compoundEvolverForm.mutationRate.$valid && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
+                    'is-invalid':!compoundEvolverForm.mutationRate.$valid && !formModel.setAdaptive && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.mutationRate.$valid && !formModel.setAdaptive && (!compoundEvolverForm.mutationRate.$pristine || compoundEvolverForm.$submitted)}">
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text text-danger"
@@ -884,7 +903,7 @@
                         </div>
                         <div class="form-group row">
                             <label for="min-qed" class="col-sm-3 col-form-label">
-                                Minimum QED (Quantitative Estimate of Drug-likeness)
+                                Minimum QED (Quantitative Estimate of Drug-likeness, see also the relevant <a href="https://www.doi.org/10.1038/nchem.1243">paper</a>)
                             </label>
                             <div class="col-sm-9">
                                 <input type="number"
