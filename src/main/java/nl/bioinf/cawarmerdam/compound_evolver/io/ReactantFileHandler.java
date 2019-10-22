@@ -9,6 +9,7 @@ import chemaxon.formats.MolImporter;
 import chemaxon.struc.Molecule;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ReactantFilter;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.Part;
@@ -29,15 +30,23 @@ public final class ReactantFileHandler {
      * @param filenames The files that should be loaded.
      * @return lists of molecules in a list.
      * @throws ReactantFileHandlingException If a reactant file could not be read.
-     * @throws ReactantFileFormatException If a erroneous reactant format was encountered.
+     * @throws ReactantFileFormatException   If a erroneous reactant format was encountered.
      */
-    public static List<List<Molecule>> loadMolecules(String[] filenames) throws ReactantFileHandlingException, ReactantFileFormatException {
+    public static List<List<Molecule>> loadMolecules(String[] filenames, double weight) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (String fileName : filenames) {
             File initialFile = new File(fileName);
             try {
-                // Read file by file.
-                reactantLists.add(readSmileFile(new FileInputStream(initialFile), fileName));
+                if (weight == 0) {
+                    // Read file by file.
+                    reactantLists.add(readSmileFile(new FileInputStream(initialFile), fileName));
+                } else {
+                    List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(new FileInputStream(initialFile), fileName), weight);
+                    if (filtered.size() < 3) {
+                        throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
+                    }
+                    reactantLists.add(filtered);
+                }
             } catch (FileNotFoundException e) {
                 throw new ReactantFileHandlingException(e.getMessage(), fileName);
             }
@@ -51,16 +60,24 @@ public final class ReactantFileHandler {
      * @param fileParts, files as parts that starts with a SMILES string on each line.
      * @return a list of reactant lists.
      * @throws ReactantFileHandlingException if an IO exception is encountered.
-     * @throws ReactantFileFormatException if a SMILES molecule could not be read.
+     * @throws ReactantFileFormatException   if a SMILES molecule could not be read.
      */
-    public static List<List<Molecule>> loadMolecules(List<Part> fileParts) throws ReactantFileHandlingException, ReactantFileFormatException {
+    public static List<List<Molecule>> loadMolecules(List<Part> fileParts, double weight) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             try {
-                reactantLists.add(readSmileFile(
-                        filePart.getInputStream(),
-                        fileName));
+                if (weight == 0) {
+                    reactantLists.add(readSmileFile(
+                            filePart.getInputStream(),
+                            fileName));
+                } else {
+                    List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(filePart.getInputStream(), fileName), weight);
+                    if (filtered.size() < 3) {
+                        throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
+                    }
+                    reactantLists.add(filtered);
+                }
             } catch (IOException e) {
                 throw new ReactantFileHandlingException(e.getMessage(), fileName);
             }
@@ -72,13 +89,13 @@ public final class ReactantFileHandler {
      * Method responsible for reading a reactants file from an inputStream.
      *
      * @param inputStream, starting with a SMILES string on each line.
-     * @param fileName, name of the file that is read.
+     * @param fileName,    name of the file that is read.
      * @return a list of reactants (molecules).
      * @throws ReactantFileHandlingException if an IO exception is encountered.
-     * @throws ReactantFileFormatException if the molecules could not be read due to a formatting problem.
+     * @throws ReactantFileFormatException   if the molecules could not be read due to a formatting problem.
      */
     private static List<Molecule> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
-        List<Molecule> moleculeMap = new ArrayList<>();
+        List<Molecule> moleculeList = new ArrayList<>();
 
         /*
          * Create byte array with the content of the file
@@ -89,8 +106,11 @@ public final class ReactantFileHandler {
                 getCorrectCharset(fileContent)))) {
             int lineNumber = 0;
             for (String line; (line = reader.readLine()) != null; lineNumber++) {
+                // Don't bother with lines with multiple molecules
+                if (line.contains("."))
+                    continue;
                 try {
-                    moleculeMap.add(MolImporter.importMol(line));
+                    moleculeList.add(MolImporter.importMol(line));
                 } catch (MolFormatException e) {
                     throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }
@@ -98,14 +118,14 @@ public final class ReactantFileHandler {
         } catch (IOException e) {
             throw new ReactantFileHandlingException(e.getMessage(), fileName);
         }
-        return moleculeMap;
+        return moleculeList;
     }
 
     /**
      * Method that returns the file contents in a byte array.
      *
      * @param inputStream The input stream of the file.
-     * @param fileName The filename to read in.
+     * @param fileName    The filename to read in.
      * @return The byte array.
      * @throws ReactantFileHandlingException If the input stream cannot be copied to a byte array output stream.
      */

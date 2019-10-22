@@ -9,6 +9,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     // Define form model with default values
     $scope.formModel = {
+        maxReactantWeight: 0,
         interspeciesCrossoverMethod: 'Complete',
         speciesDeterminationMethod: 'Dynamic',
         generationSize: 50,

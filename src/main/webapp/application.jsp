@@ -174,6 +174,34 @@
                                 </small>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="max-reactant-weight" class="col-sm-3 col-form-label">Maximum reactant weight (0 for no limit)</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.maxReactantWeight"
+                                       id="max-reactant-weight"
+                                       name="maxReactantWeight"
+                                       required="required"
+                                       min="0"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.maxReactantWeight.$valid && (!compoundEvolverForm.maxReactantWeight.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.maxReactantWeight.$valid && (!compoundEvolverForm.maxReactantWeight.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.maxReactantWeight.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.maxReactantWeight.$error.number || compoundEvolverForm.maxReactantWeight.$error.min) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A maximum weight of at least 0 is required
+                                </small>
+                                <small class="form-text">
+                                    The maximum reactant weight is a filter on the reactants to remove very high weight compounds that won't yield useful results.
+                                </small>
+                            </div>
+                        </div>
                         <div class="form-group row" ng-repeat="reactionFile in reactionFiles.files track by $index">
                             <label class="col-sm-3 col-form-label">Reactants for {{reactionFile.name}}</label>
                             <div class="col-sm-9">
