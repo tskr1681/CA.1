@@ -139,17 +139,12 @@ public class Candidate implements Comparable<Candidate> {
         try {
             // Not sure of the exact cause, but this is needed to prevent random, otherwise unexplainable errors
             Reactor reaction = SerializationUtils.clone(species.getReaction());
-            Molecule[] result = react(reaction, reactants);
-
+            reaction.restart();
             // Setup for multithreading, which in case is used for a timeout
 
-            List<Molecule> phenotypes = new ArrayList<>();
-            // If there's an actual product, set it as the phenotype and check if the candidate is valid
-            while ((products = result) != null) {
-                phenotypes.add(products[0]);
-                result = react(reaction, reactants);
-            }
-            if (phenotypes.size() != 0) {
+            List<Molecule> phenotypes;
+            phenotypes = react(reaction, reactants);
+            if (phenotypes != null && phenotypes.size() != 0) {
                 this.phenotype = phenotypes.get((int) (Math.random() * phenotypes.size()));
                 return this.isValid();
             }
@@ -162,18 +157,22 @@ public class Candidate implements Comparable<Candidate> {
         return false;
     }
 
-    private Molecule[] react(Reactor reaction, Molecule[] reactants) throws ReactionException {
-        reaction.restart();
+    private List<Molecule> react(Reactor reaction, Molecule[] reactants) throws ReactionException {
         reaction.setReactants(reactants);
-        Callable<Molecule[]> task = () -> {
+        Callable<List<Molecule>> task = () -> {
             try {
-                return reaction.react();
+                List<Molecule> temp = new ArrayList<>();
+                Molecule[] product;
+                while ((product = reaction.react())!=null) {
+                    temp.add(product[0]);
+                }
+                return temp;
             } catch (Exception e) {
                 System.out.println("e.getMessage() = " + e.getMessage());
                 return null;
             }
         };
-        FutureTask<Molecule[]> future = new FutureTask<>(task);
+        FutureTask<List<Molecule>> future = new FutureTask<>(task);
         Thread t = new Thread(future);
         t.start();
         // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
