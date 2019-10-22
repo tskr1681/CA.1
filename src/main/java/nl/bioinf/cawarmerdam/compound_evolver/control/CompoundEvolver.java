@@ -11,6 +11,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
+import nl.bioinf.cawarmerdam.compound_evolver.util.GenerationDataFileManager;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class CompoundEvolver {
     private boolean cleanupFiles;
     private int targetCandidateCount;
     private int candidatesScored;
+    private GenerationDataFileManager manager;
 
     /**
      * The constructor for a compound evolver.
@@ -185,6 +187,7 @@ public class CompoundEvolver {
             }
         }
         this.pipelineOutputFilePath = pipelineOutputFilePath;
+
     }
 
     /**
@@ -306,6 +309,11 @@ public class CompoundEvolver {
         population.setCandidateList(validCandidates);
         
         scoreCandidates();
+        try {
+            manager.writeGeneration(population);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         updateDuration();
         try {
@@ -318,6 +326,9 @@ public class CompoundEvolver {
 
                 // Score the candidates
                 scoreCandidates();
+                try {
+                    manager.writeGeneration(population);
+                }catch (Exception ignored) {}
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
                 updateDuration();
             }
@@ -337,6 +348,7 @@ public class CompoundEvolver {
         }
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
+        this.manager.close();
     }
 
     /**
@@ -579,6 +591,12 @@ public class CompoundEvolver {
                 mol3dExecutable,
                 esprntoExecutable)).pipe(validifyStep);
         this.pipe = converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep);
+        System.out.println("Initializing generation manager");
+        try {
+            this.manager = new GenerationDataFileManager(pipelineOutputFilePath.resolve("gen-info.txt").toFile());
+        } catch (IOException e) {
+            System.err.println("Initializing generation data file manager failed.");
+        }
     }
 
     /**
