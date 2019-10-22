@@ -103,8 +103,10 @@ public class EvolveServlet extends HttpServlet {
         // Get reactionList
         List<Reactor> reactionList = ReactionFileHandler.loadReactions(getFilesFromRequest(request, "reactionFiles"));
 
+        double maxWeight = getDoubleParameterFromRequest(request, "maxReactantWeight");
+        System.out.println("maxWeight = " + maxWeight);
         // Get reactants
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"));
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight);
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
 
@@ -128,7 +130,6 @@ public class EvolveServlet extends HttpServlet {
 
         // Get crossover rate and mutation rate, but only if not running an adaptive GA
         boolean adaptive = getBooleanParameterFromRequest(request,"setAdaptive");
-        System.out.println("adaptive = " + adaptive);
         initialPopulation.setAdaptive(adaptive);
         if (adaptive) {
             initialPopulation.setCrossoverRate(1);
