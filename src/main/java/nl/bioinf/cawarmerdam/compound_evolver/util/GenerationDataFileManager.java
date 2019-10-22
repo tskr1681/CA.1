@@ -27,7 +27,7 @@ public class GenerationDataFileManager {
         List<Candidate> sortedList = population.getCandidateList();
         sortedList.sort(Candidate::compareTo);
         for (int i = 0; i < sortedList.size(); i++) {
-            this.writer.write(i + ": " + getCandidateId(sortedList.get(i))+ "\n");
+            this.writer.write(i + ": " + getCandidateId(sortedList.get(i)) + "; Fitness: " + sortedList.get(i).getFitness() + "\n");
         }
         this.writer.flush();
     }
