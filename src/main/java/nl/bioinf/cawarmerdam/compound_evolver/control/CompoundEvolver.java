@@ -77,7 +77,7 @@ public class CompoundEvolver {
         int maxSamples = Integer.parseInt(args[args.length - 1]);
         // Load molecules
         String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 4);
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles);
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles, 0);
         // Load anchor and receptor molecules
         Path pipelineLocation = Paths.get(args[args.length - 2]);
         Path receptor = Paths.get(args[args.length - 4]);
@@ -613,7 +613,7 @@ public class CompoundEvolver {
                         prepareReceptorExecutable));
             case SCORPION:
                 String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
-                return step.pipe(new ScorpionEnergyMinimizationStep(receptorFile, anchorFilePath, scorpionExecutable));
+                return step.pipe(new ScorpionScoringStep(receptorFile, anchorFilePath, scorpionExecutable));
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }

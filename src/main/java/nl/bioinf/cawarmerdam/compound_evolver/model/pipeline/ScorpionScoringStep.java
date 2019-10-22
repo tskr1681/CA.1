@@ -19,7 +19,7 @@ import java.util.List;
  * @author h.middel@st.hanze.nl
  * @version 0.0.1
  */
-public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, Candidate> {
+public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
     private Path receptorFilePath;
     private String scorpionExecutable;
     private Path anchorFilePath;
@@ -30,7 +30,7 @@ public class ScorpionEnergyMinimizationStep implements PipelineStep<Candidate, C
      * @param anchorFilePath The path of the file that holds the anchor.
      * @param scorpionExecutable The executable to run scorpion, or specifically, viewpaths3.py
      */
-    public ScorpionEnergyMinimizationStep(Path receptor, Path anchorFilePath, String scorpionExecutable) {
+    public ScorpionScoringStep(Path receptor, Path anchorFilePath, String scorpionExecutable) {
         this.receptorFilePath = receptor;
         this.scorpionExecutable = scorpionExecutable;
         this.anchorFilePath = anchorFilePath;
