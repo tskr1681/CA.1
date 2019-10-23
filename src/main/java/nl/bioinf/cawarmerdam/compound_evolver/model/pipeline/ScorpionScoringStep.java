@@ -118,11 +118,11 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
             //The command to run
             ProcessBuilder builder = new ProcessBuilder(
                     scorpionExecutable,
-                    inputFile.getParent().toString(),
                     "-p", String.valueOf(receptorFilePath),
                     "-i", String.valueOf(inputFile));
 
             // Build process with the command
+            builder.directory(inputFile.getParent().toFile());
             Process p = builder.start();
 
             BufferedReader stdInput = new BufferedReader(new
@@ -132,8 +132,9 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     InputStreamReader(p.getErrorStream()));
 
             // read the output from the command
-            while ((stdInput.readLine()) != null) {
-            }
+            String stdOutMessage = IOUtils.toString(stdInput);
+            System.out.println("Scorption wrote the following output: " + stdOutMessage);
+
 
             // read any errors from the attempted command
             String stdErrorMessage = IOUtils.toString(stdError);
