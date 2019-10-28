@@ -51,11 +51,9 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         if (candidate == null)
             throw new PipelineException("Moloc got null as a candidate, validification failed?");
 
-        // We already ran this through moloc at some point, no need to do it again
-        if (candidate.getScoredConformersFile() != null)
-            return candidate;
         // Get the file names from the input
-        Path inputFile = candidate.getFixedConformersFile();
+        // If we've already minimized, used the minimized versions as input, otherwise use the fixed conformers
+        Path inputFile = candidate.getMinimizationOutputFilePath() != null ? candidate.getMinimizationOutputFilePath() : candidate.getFixedConformersFile();
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
 

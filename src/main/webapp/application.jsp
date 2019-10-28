@@ -714,6 +714,19 @@
                                         required="required">
                                     <option value="smina">smina</option>
                                     <option value="mab">mab(moloc)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="scoring-option" class="col-sm-3 col-form-label">Scoring option</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="scoring-option"
+                                        ng-model="formModel.scoringOption"
+                                        name="scoringOption"
+                                        required="required">
+                                    <option value="smina">smina</option>
+                                    <option value="mab">mab(moloc)</option>
                                     <option value="scorpion">Scorpion</option>
                                 </select>
                             </div>

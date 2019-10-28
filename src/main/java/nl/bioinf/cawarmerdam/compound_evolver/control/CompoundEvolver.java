@@ -34,6 +34,7 @@ public class CompoundEvolver {
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
     private ForceField forceField;
+    private ScoringOption scoringOption;
     private TerminationCondition terminationCondition;
     private PipelineStep<Candidate, Void> pipe;
     private PipelineStep<Candidate, Candidate> pipe2;
@@ -232,6 +233,24 @@ public class CompoundEvolver {
     }
 
     /**
+     * Getter for the scoring method that is used in scoring and minimization.
+     *
+     * @return the scoring method.
+     */
+    public ScoringOption getScoringOption() {
+        return scoringOption;
+    }
+
+    /**
+     * Setter for the scoring method that is used in scoring and minimization.
+     *
+     * @param scoringOption The scoring option.
+     */
+    public void setScoringOption(ScoringOption scoringOption) {
+        this.scoringOption = scoringOption;
+    }
+
+    /**
      * Getter for the fitness measure that is used.
      *
      * @return the fitness measure.
@@ -300,18 +319,18 @@ public class CompoundEvolver {
         System.out.println("candidates = " + candidates);
         System.out.println("validCandidates.size() = " + validCandidates.size());
         while (validCandidates.size() < population.getPopulationSize()) {
-            population = new Population(population.reactantLists,population.species,population.getSpeciesDeterminationMethod(),population.getPopulationSize());
+            population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize());
             candidates = getInitialCandidates();
             validCandidates.addAll(candidates);
             System.out.println("candidates = " + candidates);
             System.out.println("validCandidates.size() = " + validCandidates.size());
         }
         population.setCandidateList(validCandidates);
-        
+
         scoreCandidates();
         try {
             manager.writeGeneration(population);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
@@ -328,7 +347,8 @@ public class CompoundEvolver {
                 scoreCandidates();
                 try {
                     manager.writeGeneration(population);
-                }catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
                 updateDuration();
             }
@@ -446,7 +466,7 @@ public class CompoundEvolver {
             for (Future<Candidate> future : futures) {
                 try {
                     Candidate c = future.get(180, TimeUnit.SECONDS);
-                    if(c != null) {
+                    if (c != null) {
                         candidates.add(c);
                     }
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -583,7 +603,7 @@ public class CompoundEvolver {
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
 
-        PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor,receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
+        PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
         String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
         String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
         this.pipe2 = converterStep.pipe(validifyStep).pipe(new MolocEnergyMinimizationStep(
@@ -607,33 +627,64 @@ public class CompoundEvolver {
      * @return The energy minimization step that complies with the set force field.
      * @throws PipelineException if the minimization step could not be initialized.
      */
-    private PipelineStep<Candidate,Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath, double exclusionShapeTolerance, double maximumAnchorDistance) throws PipelineException {
-        String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
-        String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
-        PipelineStep<Candidate,Candidate> step = new MolocEnergyMinimizationStep(
-                receptorFile,
-                mol3dExecutable,
-                esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
+    private PipelineStep<Candidate, Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath, double exclusionShapeTolerance, double maximumAnchorDistance) throws PipelineException {
+        PipelineStep<Candidate, Candidate> step;
         switch (this.forceField) {
             case MAB:
-                // Return Moloc implementation of the energy minimization step
-                return step;
+                String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+                String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
+                step = new MolocEnergyMinimizationStep(
+                        receptorFile,
+                        mol3dExecutable,
+                        esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
+                break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
                 String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
                 String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
                 // Return Smina implementation of the energy minimization step
-                return step.pipe(new SminaEnergyMinimizationStep(
+                step = new SminaEnergyMinimizationStep(
                         receptorFile,
                         sminaExecutable,
                         pythonExecutable,
-                        prepareReceptorExecutable));
-            case SCORPION:
-                String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
-                return step.pipe(new ScorpionScoringStep(receptorFile, anchorFilePath, scorpionExecutable));
+                        prepareReceptorExecutable);
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
+        }
+        switch (this.scoringOption) {
+            case MAB:
+                if (this.forceField == ForceField.MAB) {
+                    return step;
+                } else {
+                    String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
+                    String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
+                    return step.pipe(new MolocEnergyMinimizationStep(
+                            receptorFile,
+                            mol3dExecutable,
+                            esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter)));
+                }
+            case SMINA:
+                if (this.forceField == ForceField.SMINA) {
+                    return step;
+                } else {
+                    String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
+                    String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
+                    String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
+
+                    // Return Smina implementation of the energy minimization step
+                    return step.pipe(new SminaEnergyMinimizationStep(
+                            receptorFile,
+                            sminaExecutable,
+                            pythonExecutable,
+                            prepareReceptorExecutable));
+                }
+            case SCORPION:
+                String scorpionExecutable = getEnvironmentVariable("SCORPION_EXE");
+                return step.pipe(new ScorpionScoringStep(receptorFile, anchorFilePath, scorpionExecutable));
+            default:
+                throw new RuntimeException(String.format("Scoring step '%s' is not implemented", this.scoringOption.toString()));
+
         }
     }
 
@@ -687,8 +738,7 @@ public class CompoundEvolver {
      */
     public enum ForceField {
         MAB("mab"),
-        SMINA("smina"),
-        SCORPION("scorpion");
+        SMINA("smina");
 
         private final String text;
 
@@ -698,6 +748,30 @@ public class CompoundEvolver {
 
         public static ForceField fromString(String text) {
             for (ForceField condition : ForceField.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    /**
+     * The force field or program enum.
+     */
+    public enum ScoringOption {
+        MAB("mab"),
+        SMINA("smina"),
+        SCORPION("scorpion");
+
+        private final String text;
+
+        ScoringOption(String text) {
+            this.text = text;
+        }
+
+        public static ScoringOption fromString(String text) {
+            for (ScoringOption condition : ScoringOption.values()) {
                 if (condition.text.equalsIgnoreCase(text)) {
                     return condition;
                 }

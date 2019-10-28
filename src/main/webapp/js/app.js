@@ -26,6 +26,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         conformerCount: 15,
         fitnessMeasure: 'ligandEfficiency',
         forceField: 'smina',
+        scoringOption: 'smina',
         maxAnchorMinimizedRmsd: 2,
         exclusionShapeTolerance: 0,
         useLipinski: false,

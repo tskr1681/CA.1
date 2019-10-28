@@ -245,6 +245,9 @@ public class EvolveServlet extends HttpServlet {
         evolver.setForceField(CompoundEvolver.ForceField.fromString(
                 request.getParameter("forceField")));
 
+        evolver.setScoringOption(CompoundEvolver.ScoringOption.fromString(
+                request.getParameter("scoringOption")));
+
         // Get conformer count
         int conformerCount = getIntegerParameterFromRequest(request, "conformerCount");
 
