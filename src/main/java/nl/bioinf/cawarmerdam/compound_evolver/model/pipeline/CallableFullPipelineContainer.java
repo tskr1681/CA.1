@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
-import java.util.logging.*;
 
 /**
  * The pipeline container implements the callable interface so it can be called in multiple threads.
@@ -48,13 +47,10 @@ public class CallableFullPipelineContainer implements Callable<Void> {
      * @return void
      * @throws PipelineException if an exception occurred during the pipeline execution.
      * @throws PluginException if a Chemaxon plugin failed.
-     * @throws IOException if an IO related exception occurred.
      */
     @Override
-    public Void call() throws PipelineException, PluginException, IOException {
+    public Void call() throws PipelineException, PluginException {
         // Declare logging details
-        Handler fileHandler = null;
-        Formatter simpleFormatter;
         Path candidateDirectory = null;
         try {
             // Create new directory
@@ -62,11 +58,9 @@ public class CallableFullPipelineContainer implements Callable<Void> {
             // Setting Level to ALL
             // Execute pipeline
             this.pipeline.execute(candidate);
-        } catch (PipelineException e) {
-            throw e;
         } finally {
             // Remove the pipeline files.
-            if (cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
+            if (candidateDirectory != null && cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
         }
         if (candidate.isScored()) {
             candidate.calculateLigandEfficiency();

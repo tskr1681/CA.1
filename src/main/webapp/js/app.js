@@ -61,16 +61,16 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
     $scope.reactantsMappingMultiSelectSettings = {checkBoxes: true, displayProp: 'name'};
 
-    var scoreDistributionChart = null;
-    var speciesDistributionChart = null;
-    var evolveStatus = null;
-    var orderCount = 0;
-    var species = [];
-    var stage_best = new NGL.Stage("viewport_best");
-    var stage_avg = new NGL.Stage("viewport_avg");
-    var stage_worst = new NGL.Stage("viewport_worst");
+    let scoreDistributionChart = null;
+    let speciesDistributionChart = null;
+    let evolveStatus = null;
+    let orderCount = 0;
+    let species = [];
+    let stage_best = new NGL.Stage("viewport_best");
+    let stage_avg = new NGL.Stage("viewport_avg");
+    let stage_worst = new NGL.Stage("viewport_worst");
     let smilesDrawer = new SmilesDrawer.Drawer({width: 300, height: 200});
-    var marvinSketcherInstance;
+    let marvinSketcherInstance;
 
     function getProgressUpdate(handleData) {
         jQuery.ajax({
@@ -247,11 +247,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             // log data to the console so we can see
             console.log(jsonData);
 
-            // update variables with new data
-            function getSum(total, num) {
-                return total + num;
-            }
-
             let generations = jsonData.generationBuffer;
             evolveStatus = jsonData.status;
 
@@ -283,10 +278,10 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function initializeSpeciesDistributionChart() {
-        var speciesCtx = document.getElementById("species-distribution-chart").getContext("2d");
+        let speciesCtx = document.getElementById("species-distribution-chart").getContext("2d");
         speciesCtx.height = 512;
 
-        var options = {
+        let options = {
             responsive: true,
             legend: {
                 position: 'top',
@@ -317,7 +312,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param multipleSpecies
      */
     function initializeChart(multipleSpecies) {
-        var chartData = {
+        let chartData = {
             labels: [],
             datasets: [
                 {
@@ -350,7 +345,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             ]
         };
 
-        var scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
+        let scoreCtx = document.getElementById("score-distribution-chart").getContext('2d');
         scoreCtx.height = 512;
 
         if (scoreDistributionChart !== null) {
@@ -397,14 +392,14 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             return;
         }
 
-        var elementIndex = 0;
+        let elementIndex = 0;
 
-        var chartData = array[elementIndex]['_chart'].config.data;
-        var idx = array[elementIndex]['_index'];
+        let chartData = array[elementIndex]['_chart'].config.data;
+        let idx = array[elementIndex]['_index'];
 
-        var label = chartData.labels[idx];
-        var value = chartData.datasets[elementIndex].data[idx];
-        var series = chartData.datasets[elementIndex].label;
+        let label = chartData.labels[idx];
+        let value = chartData.datasets[elementIndex].data[idx];
+        let series = chartData.datasets[elementIndex].label;
 
         $rootScope.selectedGenerationNumber = idx;
         $rootScope.$apply();
@@ -412,7 +407,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function setFrequentUpdateInterval() {
-        var i = setInterval(function () {
+        let i = setInterval(function () {
             // do your thing
             $scope.getProgressUpdate();
             //console.log(evolveStatus);
@@ -432,7 +427,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             $scope.response.hasError = false;
             $rootScope.generations = [];
 
-            var formData = extractFormData();
+            let formData = extractFormData();
 
             // process the form
             jQuery.ajax({
@@ -499,7 +494,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param url the url to download data from
      */
     function download(url) {
-        var iframe = document.createElement("iframe");
+        let iframe = document.createElement("iframe");
         iframe.setAttribute("src", url);
         iframe.setAttribute("style", "display: none");
         document.body.appendChild(iframe);
@@ -566,7 +561,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * Runs the visualization of the best, average and worst proteins
      */
     $scope.runVisualization = function () {
-        var population = $scope.getPopulation();
+        let population = $scope.getPopulation();
         if (population.length !== 0) {
             population.sort((a, b) => a.ligandEfficiency - b.ligandEfficiency)
         }
@@ -616,7 +611,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             // Draw to the canvas
             smilesDrawer.draw(tree, canvas_name.toString(), 'light', false);
         });
-    }
+    };
 
     $scope.doMarvin = function () {
         let reactionFiles = document.getElementById("reaction-files");

@@ -6,7 +6,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Generation;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
-import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -94,14 +93,4 @@ public class DownloadMultiSdfServlet extends HttpServlet {
         }
     }
 
-    private static void appendFile(OutputStream output, FileInputStream inputStream)
-            throws IOException {
-        InputStream input = null;
-        try {
-            input = new BufferedInputStream(inputStream);
-            IOUtils.copy(input, output);
-        } finally {
-            IOUtils.closeQuietly(input);
-        }
-    }
 }

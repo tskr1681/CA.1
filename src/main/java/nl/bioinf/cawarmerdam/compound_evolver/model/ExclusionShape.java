@@ -186,7 +186,8 @@ public class ExclusionShape {
     }
 
     /**
-     * @param receptor
+     * Marks grid spheres based on the receptor
+     * @param receptor the receptor to mark the grid from
      */
     private void fillAccessibleSurface(Molecule receptor) {
         for (MolAtom atom : receptor.atoms()) {
@@ -195,6 +196,11 @@ public class ExclusionShape {
         }
     }
 
+    /**
+     * Checks for collisions with the grid
+     * @param other the molecule to check for collisions
+     * @return are there collisions?
+     */
     public boolean inShape(Molecule other) {
         for (MolAtom atom : other.atoms()) {
             boolean marked = grid.isMarked(atom.getLocation());
@@ -207,6 +213,10 @@ public class ExclusionShape {
         return grid;
     }
 
+    /**
+     * Getter for the map of VDW radii
+     * @return the map of VDW radii
+     */
     public static Map<Integer, Double> getElementVdwRadii() {
         return ELEMENT_VDW_RADII;
     }

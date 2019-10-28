@@ -46,7 +46,9 @@ public class VisualizationFileServlet extends HttpServlet {
                 in = new FileInputStream(compound_directory.resolve("best-conformer.sdf").toFile());
             } else if (filetype.equals("pdb")) {
                 File[] temp = directory.toFile().listFiles((dir, filename) -> filename.endsWith(".pdb"));
-                in = new FileInputStream(temp[0]);
+                if(temp != null) {
+                    in = new FileInputStream(temp[0]);
+                }
             }
 
         } catch (ServletUtils.FormFieldHandlingException ignored) {

@@ -10,6 +10,7 @@ import chemaxon.descriptors.MDGeneratorException;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,7 +25,6 @@ import java.util.stream.Stream;
  */
 public class Population implements Iterable<Candidate> {
 
-    private ExecutorService executor;
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     public final List<List<Molecule>> reactantLists;
@@ -60,14 +60,12 @@ public class Population implements Iterable<Candidate> {
      * @param species List of possible species.
      * @param speciesDeterminationMethod The method that determines which species to use.
      * @param initialGenerationSize The generation or population size.
-     * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
-     * in the reaction.
      */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize) throws MisMatchedReactantCount {
+            int initialGenerationSize) {
 
         this.random = new Random();
         this.reactantLists = reactantLists;
@@ -94,13 +92,11 @@ public class Population implements Iterable<Candidate> {
      * @param reactantLists Lists of reactants in a list.
      * @param species List of possible species.
      * @param initialGenerationSize The generation or population size.
-     * @throws MisMatchedReactantCount if the amount of reactants given is unequal to the amount of reactants
-     * in the reaction.
      */
     public Population(
             List<List<Molecule>> reactantLists,
             List<Species> species,
-            int initialGenerationSize) throws MisMatchedReactantCount {
+            int initialGenerationSize) {
         this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize);
     }
 
@@ -408,6 +404,7 @@ public class Population implements Iterable<Candidate> {
      * Compensated   | 4,5 |  0,2 |  0,3
      * Fraction      | 0,9 | 0,04 | 0,06
      */
+    @Deprecated
     public void computeAlleleSimilarities() {
         this.alleleSimilarities = new double[reactantLists.size()][][];
 
@@ -575,7 +572,7 @@ public class Population implements Iterable<Candidate> {
      */
     private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, TooFewScoredCandidates {
         int pool_size = getIntegerEnvironmentVariable("POOL_SIZE");
-        this.executor = Executors.newFixedThreadPool(pool_size);
+        ExecutorService executor = Executors.newFixedThreadPool(pool_size);
         // Create list of offspring
         List<Candidate> offspring = elitism();
 
@@ -587,7 +584,7 @@ public class Population implements Iterable<Candidate> {
         // Set the offspring choice to clear. For every new individual (offspring) to create a new offspring choice
         // is selected according to the set crossover, random immigrant, and elitist parameters.
         // (A random weighted choice is performed each time. )
-        ReproductionMethod offspringChoice = ReproductionMethod.CLEAR;
+        ReproductionMethod offspringChoice;
         // Count the number of times one offspring could not be created. (Reset when an offspring could be created)
         int failureCounter = 0;
         List<Future<Candidate>> futures = new ArrayList<>();
@@ -676,7 +673,7 @@ public class Population implements Iterable<Candidate> {
 
         ReproductionMethod m;
         int i;
-        public OffSpringProducer(ReproductionMethod m, int i) {
+        OffSpringProducer(ReproductionMethod m, int i) {
             this.m = m;
             this.i = i;
         }
@@ -1050,6 +1047,7 @@ public class Population implements Iterable<Candidate> {
         return candidateList.size();
     }
 
+    @NotNull
     @Override
     public Iterator<Candidate> iterator() {
         return this.candidateList.iterator();

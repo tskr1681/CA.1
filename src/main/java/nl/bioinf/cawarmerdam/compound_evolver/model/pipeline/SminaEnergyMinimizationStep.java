@@ -65,7 +65,7 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         // THe output file path will be called smina.sdf, located in the candidate specific folder.
         Path outputPath = inputFile.resolveSibling("smina.sdf");
         // Run the smina minimization
-        ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath, candidate);
+        ArrayList<String> smina = smina(inputFile, conformerCoordinates, outputPath);
         // Set the conformer scores and output path.
         candidate.setFixedConformersFile(outputPath);
         candidate.setConformerScores(getConformerScores(smina));
@@ -99,14 +99,12 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      * @param inputFile The path to an sdf file that should be scored.
      * @param conformerCoordinates A map that describes the box to consider for minimization.
      * @param outputPath The path where the minimized molecule should live.
-     * @param candidate The candidate instance that is scored.
      * @return the smina output.
      * @throws PipelineException if smina minimization failed.
      */
     private ArrayList<String> smina(Path inputFile,
                                     Map<String, Double> conformerCoordinates,
-                                    Path outputPath,
-                                    Candidate candidate) throws PipelineException {
+                                    Path outputPath) throws PipelineException {
         // Initialize string line
         String line;
 
@@ -133,20 +131,14 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
 
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
+//            BufferedReader stdError = new BufferedReader(new
+//                    InputStreamReader(p.getErrorStream()));
 
             // read the output from the command
             while ((line = stdInput.readLine()) != null) {
                 sminaOutput.add(line);
             }
 
-//            // read any errors from the attempted command
-//            String stdErrorMessage = IOUtils.toString(stdError);
-//            if (!stdErrorMessage.isEmpty()) {
-//                candidate.getPipelineLogger().warning(
-//                        String.format("Smina has written an error message:%n%s%n", stdErrorMessage));
-//            }
             return sminaOutput;
 
         } catch (IOException e) {
@@ -166,10 +158,8 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      * @throws PipelineException if the file could not be converted.
      */
     private Path convertToPdbQt(Path pdbPath, String pythonExecutable, String prepareReceptorExecutable) throws PipelineException {
-        String fileName = pdbPath.getFileName().toString();
         Path pdbqtFilePath = Paths.get(FilenameUtils.removeExtension(pdbPath.toString()) + ".pdbqt");
 
-        String line = null;
         try {
             // Build process
             ProcessBuilder builder = new ProcessBuilder(
@@ -182,23 +172,6 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
             final Process p = builder.start();
 
             p.waitFor();
-
-//            BufferedReader stdInput = new BufferedReader(new
-//                    InputStreamReader(p.getInputStream()));
-//
-//            BufferedReader stdError = new BufferedReader(new
-//                    InputStreamReader(p.getErrorStream()));
-
-//            // read the output from the command
-//            candidate.getPipelineLogger().info(
-//                    String.format("Obfit has written the following output:%n%s%n", IOUtils.toString(stdInput)));
-//
-//            // read any errors from the attempted command
-//            String stdErrorMessage = IOUtils.toString(stdError);
-//            if (!stdErrorMessage.isEmpty()) {
-//                candidate.getPipelineLogger().warning(
-//                        String.format("Obfit has written an error message:%n%s%n", stdErrorMessage));
-//            }
             return pdbqtFilePath;
         } catch (IOException | InterruptedException e) {
 

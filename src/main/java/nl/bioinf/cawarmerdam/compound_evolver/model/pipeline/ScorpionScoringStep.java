@@ -22,18 +22,16 @@ import java.util.List;
 public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
     private Path receptorFilePath;
     private String scorpionExecutable;
-    private Path anchorFilePath;
+
     /**
      * Constructor for the scorpion energy minimization step.
      *
      * @param receptor     The force field that should be chosen in minimization.
-     * @param anchorFilePath The path of the file that holds the anchor.
      * @param scorpionExecutable The executable to run scorpion, or specifically, viewpaths3.py
      */
-    public ScorpionScoringStep(Path receptor, Path anchorFilePath, String scorpionExecutable) {
+    public ScorpionScoringStep(Path receptor, String scorpionExecutable) {
         this.receptorFilePath = receptor;
         this.scorpionExecutable = scorpionExecutable;
-        this.anchorFilePath = anchorFilePath;
     }
 
     /**

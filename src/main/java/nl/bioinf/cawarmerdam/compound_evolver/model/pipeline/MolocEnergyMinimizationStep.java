@@ -58,7 +58,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
 
         // Run mol3d
-        mol3d(inputFile, candidate);
+        mol3d(inputFile);
 
         // Get the output files.
         File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
@@ -107,15 +107,9 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      * Runs Moloc's Mol3d program in a process.
      *
      * @param inputFile The input .sdf file path with conformers.
-     * @param candidate The candidate instance that is being scored.
      * @throws PipelineException if the process was not finished successfully.
      */
-    private void mol3d(Path inputFile, Candidate candidate) throws PipelineException {
-        // Build command
-        String command = String.format("%s -e \"%s\" \"-w0.01\" \"%s\"",
-                molocExecutable,
-                receptorFilePath,
-                inputFile);
+    private void mol3d(Path inputFile) throws PipelineException {
         try {
             // Build process
             ProcessBuilder builder = new ProcessBuilder(
@@ -128,23 +122,6 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
             final Process p = builder.start();
 
             p.waitFor();
-//
-//            BufferedReader stdInput = new BufferedReader(new
-//                    InputStreamReader(p.getInputStream()));
-//
-//            BufferedReader stdError = new BufferedReader(new
-//                    InputStreamReader(p.getErrorStream()));
-//
-//            // read the output from the command
-//            candidate.getPipelineLogger().info(
-//                    String.format("Mol3d has written the following output:%n%s%n", IOUtils.toString(stdInput)));
-//
-//            // read any errors from the attempted command
-//            String stdErrorMessage = IOUtils.toString(stdError);
-//            if (!stdErrorMessage.isEmpty()) {
-//                candidate.getPipelineLogger().warning(
-//                        String.format("Mol3d has written an error message:%n%s%n", stdErrorMessage));
-//            }
 
         } catch (InterruptedException | IOException e) {
 

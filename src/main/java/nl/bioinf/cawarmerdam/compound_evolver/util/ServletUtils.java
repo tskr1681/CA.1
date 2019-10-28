@@ -41,7 +41,7 @@ public class ServletUtils {
         String parameter = request.getParameter(name);
         if (parameter == null) {
             // Throw exception
-            throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.NULL);
+            throw new FormFieldHandlingException(name, null, FormFieldHandlingException.Cause.NULL);
         } else if (parameter.length() == 0) {
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.EMPTY);
         } else if (!NumberCheckUtilities.isDouble(parameter)) {
@@ -75,7 +75,7 @@ public class ServletUtils {
         String parameter = request.getParameter(name);
         if (parameter == null) {
             // Throw exception
-            throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.NULL);
+            throw new FormFieldHandlingException(name, null, FormFieldHandlingException.Cause.NULL);
         } else if (parameter.length() == 0) {
             throw new FormFieldHandlingException(name, parameter, FormFieldHandlingException.Cause.EMPTY);
         } else if (!NumberCheckUtilities.isInteger(parameter, 10)) {

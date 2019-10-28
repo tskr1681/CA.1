@@ -140,6 +140,24 @@ public class CompoundEvolver {
     }
 
     /**
+     * Setter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @param targetCandidateCount The amount of candidates that is sampled.
+     */
+    public void setTargetCandidateCount(int targetCandidateCount) {
+        this.targetCandidateCount = targetCandidateCount;
+    }
+
+    /**
+     * Getter for the amount of candidates that is sampled during the entire evolution process.
+     *
+     * @return the amount of candidates that is sampled.
+     */
+    public int getTargetCandidateCount() {
+        return targetCandidateCount;
+    }
+
+    /**
      * Getter for the dummy fitness setting.
      *
      * @return true if the dummy fitness will be applied. (the molecular mass is the raw score)
@@ -448,7 +466,7 @@ public class CompoundEvolver {
     /**
      * Gets the candidates in the population.
      */
-    private List<Candidate> getInitialCandidates() throws MisMatchedReactantCount {
+    private List<Candidate> getInitialCandidates() {
         List<Candidate> candidates = new ArrayList<>();
         if (!dummyFitness) {
             // Check if pipe is present
@@ -458,7 +476,7 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             for (Candidate candidate : this.population) {
                 // Setup callable
-                Callable<Candidate> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidate, cleanupFiles);
+                Callable<Candidate> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidate);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -554,17 +572,7 @@ public class CompoundEvolver {
         return nonImprovingGenerationNumber < generationNumber;
     }
 
-    /**
-     * @param outputFileLocation The output file location.
-     * @throws PipelineException If the pipeline setup throws an error.
-     */
-    private void setupPipeline(Path outputFileLocation) throws PipelineException {
-        Path anchor = Paths.get("X:\\Internship\\reference_fragment\\anchor.sdf");
-        Path receptor = Paths.get("X:\\Internship\\receptor\\rec.mab");
-        setupPipeline(outputFileLocation, receptor, anchor);
-    }
-
-    public void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
+    void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
         int conformerCount = 15;
         double exclusionShapeTolerance = 0;
         double maximumAnchorDistance = 2;
@@ -592,12 +600,7 @@ public class CompoundEvolver {
         ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
         // Get step that handles scored candidates
         ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
-                anchor,
-                receptorFilePath,
-                exclusionShapeTolerance,
-                maximumAnchorDistance,
-                clashingConformerCounter,
-                tooDistantConformerCounter);
+        );
         // Get the step for energy minimization
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
         // Combine the steps and set the pipe.
@@ -649,6 +652,7 @@ public class CompoundEvolver {
                         sminaExecutable,
                         pythonExecutable,
                         prepareReceptorExecutable);
+                break;
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
         }
@@ -681,7 +685,7 @@ public class CompoundEvolver {
                 }
             case SCORPION:
                 String scorpionExecutable = getEnvironmentVariable("SCORPION_EXE");
-                return step.pipe(new ScorpionScoringStep(receptorFile, anchorFilePath, scorpionExecutable));
+                return step.pipe(new ScorpionScoringStep(receptorFile, scorpionExecutable));
             default:
                 throw new RuntimeException(String.format("Scoring step '%s' is not implemented", this.scoringOption.toString()));
 
@@ -713,24 +717,6 @@ public class CompoundEvolver {
      */
     void setCleanupFiles(boolean cleanupFiles) {
         this.cleanupFiles = cleanupFiles;
-    }
-
-    /**
-     * Setter for the amount of candidates that is sampled during the entire evolution process.
-     *
-     * @param targetCandidateCount The amount of candidates that is sampled.
-     */
-    public void setTargetCandidateCount(int targetCandidateCount) {
-        this.targetCandidateCount = targetCandidateCount;
-    }
-
-    /**
-     * Getter for the amount of candidates that is sampled during the entire evolution process.
-     *
-     * @return the amount of candidates that is sampled.
-     */
-    public int getTargetCandidateCount() {
-        return targetCandidateCount;
     }
 
     /**

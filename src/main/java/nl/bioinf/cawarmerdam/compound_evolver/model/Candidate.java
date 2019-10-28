@@ -131,11 +131,9 @@ public class Candidate implements Comparable<Candidate> {
      * @param species       The species to use for this candidate.
      * @return true if this candidate was viable and valid, false if not.
      */
-    @SuppressWarnings("deprecation")
     private boolean finish(List<List<Molecule>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
-        Molecule[] products;
         try {
             // Not sure of the exact cause, but this is needed to prevent random, otherwise unexplainable errors
             Reactor reaction = SerializationUtils.clone(species.getReaction());
@@ -157,6 +155,7 @@ public class Candidate implements Comparable<Candidate> {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     private List<Molecule> react(Reactor reaction, Molecule[] reactants) throws ReactionException {
         reaction.setReactants(reactants);
         Callable<List<Molecule>> task = () -> {
@@ -225,10 +224,18 @@ public class Candidate implements Comparable<Candidate> {
         this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
     }
 
+    /**
+     * Getter for the minimum QED (quantitive estimate of druglikeness)
+     * @return the minimum QED
+     */
     public double getMinQED() {
         return minQED;
     }
 
+    /**
+     * Setter for the minimum QED (quantitive estimate of druglikeness)
+     * @param minQED the minimum QED
+     */
     public void setMinQED(double minQED) {
         this.minQED = minQED;
     }
@@ -587,7 +594,7 @@ public class Candidate implements Comparable<Candidate> {
      * @return the number of heavy atoms in the phenotype
      * @throws PluginException if the number of heavy atoms could not be determined
      */
-    public int getHeavyAtomCount() throws PluginException {
+    private int getHeavyAtomCount() throws PluginException {
         ElementalAnalyserPlugin plugin = new ElementalAnalyserPlugin();
         plugin.setMolecule(this.phenotype);
 

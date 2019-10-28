@@ -4,12 +4,12 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
-import chemaxon.formats.MolExporter;
 import chemaxon.formats.MolImporter;
 import chemaxon.marvin.alignment.Alignment;
 import chemaxon.marvin.alignment.AlignmentException;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ConformerHelper;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -74,36 +74,8 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
 
         // Align and export the conformers
         List<Molecule> alignedMolecules = alignConformersFromPath(conformersFilePath);
-        exportAlignedConformers(candidate.getFixedConformersFile(), alignedMolecules);
+        ConformerHelper.exportConformers(candidate.getFixedConformersFile(), alignedMolecules);
         return candidate;
-    }
-
-    /**
-     * Method exporting a list of molecules to the given file path.
-     *
-     * @param fixedConformersPath The file path that the list of molecules should be written to.
-     * @param alignedMolecules The list of molecule to write.
-     * @throws PipelineException if the molecules could not be exported.
-     */
-    private void exportAlignedConformers(Path fixedConformersPath, List<Molecule> alignedMolecules)
-            throws PipelineException {
-
-        // Create exporter
-        MolExporter exporter;
-        try {
-            // Initialize exporter
-            exporter = new MolExporter(fixedConformersPath.toString(), "sdf");
-
-            // Loop through the conformers by using conformer count
-            for (Molecule molecule : alignedMolecules) {
-                // Do plus 1 to only pick conformers and not the reference
-                exporter.write(molecule);
-            }
-            // Close the exporter
-            exporter.close();
-        } catch (IOException e) {
-            throw new PipelineException("Could not export aligned conformers", e);
-        }
     }
 
     /**
@@ -113,6 +85,7 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
      * @return the list of aligned conformers.
      * @throws PipelineException if the conformers could not be read or aligned.
      */
+    @SuppressWarnings("deprecation")
     private List<Molecule> alignConformersFromPath(Path conformersPath) throws PipelineException {
         List<Molecule> alignedMolecules = new ArrayList<>();
 
