@@ -684,7 +684,7 @@ public class CompoundEvolver {
                             prepareReceptorExecutable));
                 }
             case SCORPION:
-                String scorpionExecutable = getEnvironmentVariable("SCORPION_EXE");
+                String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
                 return step.pipe(new ScorpionScoringStep(receptorFile, scorpionExecutable));
             default:
                 throw new RuntimeException(String.format("Scoring step '%s' is not implemented", this.scoringOption.toString()));
