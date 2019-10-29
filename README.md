@@ -12,11 +12,16 @@ of reactants (building blocks), which make up a compound.
 
 ```
 Java 8 (https://www.java.com/en/download/)
-moloc (http://www.moloc.ch/)
 Apache Tomcat 8.5 (https://tomcat.apache.org/download-80.cgi)
 smina (https://sourceforge.net/projects/smina/files/)
 Python 2.7.16 (https://www.python.org/downloads/release/python-2716/)
+
+At least one of the following:
 AutoDockTools 1.5.6 (http://mgltools.scripps.edu/downloads)
+moloc (http://www.moloc.ch/)
+
+Optional:
+Viper 3.5 (http://www.desertsci.com/products/viper/)
 ```
 
 ## Development
@@ -24,7 +29,7 @@ AutoDockTools 1.5.6 (http://mgltools.scripps.edu/downloads)
 This is a gradle project that should be imported via the build.gradle
 file. In addition, the project requires a `gradle.properties` file that
 is used for the ChemAxon repository. [The ChemAxon website](https://docs.chemaxon.com/display/docs/Public+Repository)
-provides a description on how to obtain such an API-key.
+provides a description on how to obtain such an API key.
 
 The following setup of the `gradle.properties` file has proven to work well.
 
@@ -76,3 +81,5 @@ It also needs some environment variables to be set, being the following:
 `MGL_PYTHON`: Specifies the python executable
 
 `PRPR_REC_EXE`: Specifies the location of the prepare_receptor4.py script, which is included with AutoDockTools
+
+`FINDPATHS3_EXE`: Specifies the location of the viewpaths3.py script, which is included with Scorpion/Viper
