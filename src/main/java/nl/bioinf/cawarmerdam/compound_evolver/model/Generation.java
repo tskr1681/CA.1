@@ -16,7 +16,7 @@ import java.util.List;
  * @version 0.0.1
  */
 public class Generation {
-    private final List<List<Candidate>> candidateList;
+    private final List<Candidate> candidateList;
     private final int number;
 
     /**
@@ -25,7 +25,7 @@ public class Generation {
      * @param candidateList The list of candidates that comprise this generation.
      * @param number The generation number of this generation.
      */
-    Generation(List<List<Candidate>> candidateList, int number) {
+    Generation(List<Candidate> candidateList, int number) {
         this.number = number;
         this.candidateList = new ArrayList<>(candidateList);
     }
@@ -35,7 +35,7 @@ public class Generation {
      *
      * @return a list of candidates.
      */
-    public List<List<Candidate>> getCandidateList() {
+    public List<Candidate> getCandidateList() {
         return candidateList;
     }
 
@@ -44,9 +44,8 @@ public class Generation {
      *
      * @return the fittest candidate in this generation
      */
-    // TODO properly implement this with fitness combination
     public Candidate getFittestCandidate() {
-        return Collections.max(candidateList.get(0));
+        return Collections.max(candidateList);
     }
 
     /**

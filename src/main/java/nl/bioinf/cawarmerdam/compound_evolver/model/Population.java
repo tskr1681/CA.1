@@ -211,9 +211,14 @@ public class Population implements Iterable<Candidate> {
         }
         for (int i = 0; i < this.receptorAmount; i++) {
             candidateList.add(new ArrayList<>());
-            candidateList.get(i).addAll(tempList);
+            for(Candidate c:tempList) {
+                this.candidateList.get(i).add(copyCandidate(c));
+            }
         }
         fitnessCandidateList = new ArrayList<>();
+        for(Candidate c:tempList) {
+            fitnessCandidateList.add(copyCandidate(c));
+        }
         fitnessCandidateList.addAll(tempList);
     }
 
@@ -223,7 +228,7 @@ public class Population implements Iterable<Candidate> {
      * @return the current generation
      */
     public Generation getCurrentGeneration() {
-        return new Generation(candidateList, generationNumber);
+        return new Generation(fitnessCandidateList, generationNumber);
     }
 
     /**
@@ -400,8 +405,16 @@ public class Population implements Iterable<Candidate> {
         this.candidateList = new ArrayList<>();
         for (int i = 0; i < this.receptorAmount; i++) {
             this.candidateList.add(new ArrayList<>());
-            this.candidateList.get(i).addAll(candidateList);
+            for(Candidate c:candidateList) {
+                this.candidateList.get(i).add(copyCandidate(c));
+            }
         }
+    }
+
+    private Candidate copyCandidate(Candidate c) {
+        Candidate out = new Candidate(c.getGenotype(),c.getSpecies());
+        out.finish(this.reactantLists, this.species);
+        return out;
     }
 
     /**
@@ -840,11 +853,11 @@ public class Population implements Iterable<Candidate> {
 
     private ImmutablePair<Candidate,Candidate> getParents(int i) {
         // Get the index of two parents to perform crossover between the two
-        int firstParentIndex = i % this.candidateList.size();
-        int otherParentIndex = (i + 1) % this.candidateList.size();
+        int firstParentIndex = i % fitnessCandidateList.size();
+        int otherParentIndex = (i + 1) % fitnessCandidateList.size();
         // Get the two parents
-        Candidate firstParent = this.candidateList.get(0).get(firstParentIndex);
-        Candidate otherParent = this.candidateList.get(0).get(otherParentIndex);
+        Candidate firstParent = fitnessCandidateList.get(firstParentIndex);
+        Candidate otherParent = fitnessCandidateList.get(otherParentIndex);
         return new ImmutablePair<>(firstParent, otherParent);
     }
 
@@ -852,13 +865,35 @@ public class Population implements Iterable<Candidate> {
      * Filters the parents that could not be scored due to invalid docking poses.
      */
     public void filterUnscoredCandidates() {
+        List<Boolean> booleans = new ArrayList<>();
+        List<Boolean> templist;
         // When the candidate is scored, keep it.
-        for (int i = 0; i < candidateList.size(); i++) {
-            candidateList.set(i, candidateList.get(i).stream()
-                    .filter(Candidate::isScored)
-                    .collect(Collectors.toList()));
+        for (List<Candidate> candidates : candidateList) {
+            templist = candidates.stream()
+                    .map(Candidate::isScored)
+                    .collect(Collectors.toList());
+            if (booleans.size() == 0) {
+                booleans = templist;
+            } else {
+                for (int j = 0; j < templist.size(); j++) {
+                    booleans.set(j, templist.get(j) && booleans.get(j));
+                }
+            }
         }
+        System.out.println("booleans = " + booleans);
+        for (int i = 0; i < candidateList.size(); i++) {
+            candidateList.set(i, filterList(candidateList.get(i),booleans));
+        }
+    }
 
+    private List<Candidate> filterList(List<Candidate> list, List<Boolean> booleans) {
+        List<Candidate> out = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (booleans.get(i)) {
+                out.add(list.get(i));
+            }
+        }
+        return out;
     }
 
     /**
@@ -883,7 +918,7 @@ public class Population implements Iterable<Candidate> {
      * @return the selected individuals.
      */
     private List<Candidate> truncatedSelection(int selectionSize) {
-        Collections.reverse(this.candidateList);
+        Collections.reverse(this.fitnessCandidateList);
         return fitnessCandidateList.subList(0, selectionSize);
     }
 
@@ -960,12 +995,12 @@ public class Population implements Iterable<Candidate> {
     @Override
     public String toString() {
         List<Double> scores = fitnessCandidateList.stream()
-                .map(Candidate::getRawScore)
+                .map(Candidate::getNormFitness)
                 .collect(Collectors.toList());
         OptionalDouble average = scores.stream().mapToDouble(v -> v).average();
         return String.format(
                 "Generation %d, individual count = %d %n" +
-                        " agv | min | max %n %3.0f | %3.0f | %3.0f ",
+                        " agv | min | max %n %3.2f | %3.2f | %3.2f ",
                 generationNumber, fitnessCandidateList.size(),
                 average.isPresent() ? average.getAsDouble() : Double.NaN,
                 Collections.min(scores), Collections.max(scores));
@@ -1072,8 +1107,9 @@ public class Population implements Iterable<Candidate> {
 
     @NotNull
     @Override
+    //TODO this is not polypharmacology-compatible yet
     public Iterator<Candidate> iterator() {
-        return this.fitnessCandidateList.iterator();
+        return this.candidateList.get(0).iterator();
     }
 
     /**

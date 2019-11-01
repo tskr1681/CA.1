@@ -48,7 +48,8 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
     public Candidate execute(Candidate candidate) throws PipelineException {
         List<Molecule> validConformers = new ArrayList<>();
         Path outputFilePath = candidate.getMinimizationOutputFilePath() == null ? candidate.getFixedConformersFile() : candidate.getMinimizationOutputFilePath();
-
+        List<Double> scores = candidate.getConformerScores();
+        List<Double> new_scores = new ArrayList<>();
         int conformer_count = 15;
         try {
            conformer_count  = ConformerHelper.getConformerCount(outputFilePath);
@@ -65,13 +66,19 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
 
             if (!isInShape && !isTooDistant) {
                 validConformers.add(conformer);
+                if (scores != null) {
+                    new_scores.add(scores.get(i));
+                }
             } else {
                 countInvalidities(candidate, isTooDistant, isInShape);
             }
         }
         if (validConformers.size() > 0) {
             ConformerHelper.exportConformers(outputFilePath, validConformers);
-            System.out.println("candidate = " + candidate);
+            if (scores != null) {
+                candidate.setScoredConformersFile(outputFilePath);
+                candidate.setConformerScores(new_scores);
+            }
             return candidate;
         } else {
             try {

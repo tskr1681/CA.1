@@ -69,7 +69,7 @@ public class DownloadCsvServlet extends HttpServlet {
         // Collect scores
         for (Generation generation : generations) {
             List<Double> fitnesses = generation.getCandidateList().stream()
-                    .map(Candidate::getFitness)
+                    .map(Candidate::getNormFitness)
                     .collect(Collectors.toList());
             // Add scores for the archive
             scores.add(fitnesses);

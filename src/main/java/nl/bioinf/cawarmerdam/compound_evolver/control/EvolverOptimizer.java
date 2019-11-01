@@ -4,8 +4,6 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GAParameters;
@@ -21,7 +19,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -251,7 +248,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getPopulationSize());
+                parameters.getPopulationSize(), 1);
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

@@ -54,6 +54,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         // Get the file names from the input
         // If we've already minimized, used the minimized versions as input, otherwise use the fixed conformers
         Path inputFile = candidate.getMinimizationOutputFilePath() != null ? candidate.getMinimizationOutputFilePath() : candidate.getFixedConformersFile();
+        System.out.println("Running moloc.");
         String ligandName = FilenameUtils.removeExtension(String.valueOf(inputFile.getFileName()));
         String receptorName = FilenameUtils.removeExtension(String.valueOf(receptorFilePath.getFileName()));
 

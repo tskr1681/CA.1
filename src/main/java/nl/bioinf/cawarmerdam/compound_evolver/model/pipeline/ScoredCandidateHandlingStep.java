@@ -30,8 +30,11 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      */
     @Override
     public Void execute(Candidate candidate) throws PipelineException {
+        if (candidate == null) {
+            throw new PipelineException("Scored candidate handling step got null, validification failed?");
+        }
         List<Double> conformerScores = candidate.getConformerScores();
-        Path outputFilePath = candidate.getMinimizationOutputFilePath();
+        Path outputFilePath = candidate.getScoredConformersFile();
         // Declare default score
         if (conformerScores.size() > 0) {
             // Filter conformers that clash according to the exclusion shape.
@@ -40,13 +43,17 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
                 Molecule conformer = ConformerHelper.getConformer(outputFilePath, i);
                 conformers.add(conformer);
             }
-                // Get best conformer.
-                double score = Collections.min(conformerScores);
-                Molecule bestConformer = conformers.get(conformerScores.indexOf(score));
-                List<Molecule> conformerAsList = new ArrayList<>();
-                conformerAsList.add(bestConformer);
-                ConformerHelper.exportConformers(outputFilePath.resolveSibling("best-conformer.sdf"), conformerAsList);
-                candidate.setRawScore(score);
+            // Get best conformer.
+            double score = Collections.min(conformerScores);
+            Molecule bestConformer = conformers.get(conformerScores.indexOf(score));
+            if(bestConformer == null) {
+                throw new PipelineException("Scored candidate handling could not get best conformer!");
+            }
+            List<Molecule> conformerAsList = new ArrayList<>();
+            conformerAsList.add(bestConformer);
+            ConformerHelper.exportConformers(outputFilePath.resolveSibling("best-conformer.sdf"), conformerAsList);
+            System.out.println("Setting score for candidate: " + candidate);
+            candidate.setRawScore(score);
         }
         return null;
     }

@@ -89,7 +89,7 @@ public class CompoundEvolver {
         ArrayList<Reactor> reactions = new ArrayList<>();
         reactions.add(reactor);
         List<Species> species = Species.constructSpecies(reactions, reactantLists.size());
-        Population population = new Population(reactantLists, species, maxSamples);
+        Population population = new Population(reactantLists, species, maxSamples, 1);
 //        population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
@@ -325,7 +325,7 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates, MisMatchedReactantCount {
+    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
@@ -337,7 +337,7 @@ public class CompoundEvolver {
         System.out.println("candidates = " + candidates);
         System.out.println("validCandidates.size() = " + validCandidates.size());
         while (validCandidates.size() < population.getPopulationSize()) {
-            population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize());
+            population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize(), 1);
             candidates = getInitialCandidates();
             validCandidates.addAll(candidates);
             System.out.println("candidates = " + candidates);
@@ -438,8 +438,10 @@ public class CompoundEvolver {
 //                    evolutionProgressConnector.putException(e);
                     // Log exception
                     System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
+            System.out.println("candidatesScored = " + candidatesScored);
             // Log completed scoring round
             System.out.println("Finished all threads");
         } else {
@@ -508,15 +510,16 @@ public class CompoundEvolver {
             candidate.setFitnessMeasure(this.fitnessMeasure);
         }
         // Collect scores
-        List<Double> fitnesses = this.population.stream()
-                .map(Candidate::getFitness)
-                .collect(Collectors.toList());
+        List<List<Double>> fitnesses = new ArrayList<>();
+        for (List<Candidate> c: population.getCandidateList()) {
+            fitnesses.add(c.stream().map(Candidate::getFitness).collect(Collectors.toList()));
+        }
         // Add scores for the archive
-        scores.add(fitnesses);
+        scores.add(fitnesses.get(0));
 
         // Get min and max
-        Double maxFitness = Collections.max(fitnesses);
-        Double minFitness = Collections.min(fitnesses);
+        Double maxFitness = Collections.max(fitnesses.stream().mapToDouble(Collections::max).boxed().collect(Collectors.toList()));
+        Double minFitness = Collections.min(fitnesses.stream().mapToDouble(Collections::min).boxed().collect(Collectors.toList()));
         // We would like to calculate the fitness with the heavy atom
         for (Candidate candidate : this.population) {
             // Ligand efficiency

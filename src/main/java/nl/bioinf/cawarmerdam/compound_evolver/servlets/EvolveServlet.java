@@ -68,6 +68,7 @@ public class EvolveServlet extends HttpServlet {
             compoundEvolver.evolve();
             mapper.writeValue(response.getOutputStream(), GenerateCsv.generateCsvFile(compoundEvolver.getFitness(), "\n"));
         } catch (Exception e) {
+            e.printStackTrace();
             response.setStatus(400);
             mapper.writeValue(response.getOutputStream(), e);
         }
@@ -115,7 +116,7 @@ public class EvolveServlet extends HttpServlet {
                 fromString(request.getParameter("speciesDeterminationMethod"));
 
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize);
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, 1);
         MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
         for (Candidate candidate :
                 initialPopulation) {

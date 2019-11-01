@@ -321,6 +321,16 @@ public class Candidate implements Comparable<Candidate> {
     }
 
     /**
+     * Getter for the normFitness of this candidate.
+     * Higher is better.
+     *
+     * @return the normFitness of this candidate.
+     */
+    public void setNormFitness(double normFitness) {
+        this.normFitness = normFitness;
+    }
+
+    /**
      * Getter for the ligand efficiency.
      * Returns the rawScore divided by the number of heavy atoms.
      *

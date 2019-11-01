@@ -24,7 +24,7 @@ public class GenerationDataFileManager {
 
     public void writeGeneration(Population population) throws IOException {
         this.writer.write("Generation: " + population.getGenerationNumber() + "\n");
-        List<Candidate> sortedList = population.getCandidateList();
+        List<Candidate> sortedList = MultiReceptorHelper.getCandidatesWithFitness(population.getCandidateList());
         sortedList.sort(Candidate::compareTo);
         for (int i = 0; i < sortedList.size(); i++) {
             this.writer.write(i + ": " + getCandidateId(sortedList.get(i)) + "; Fitness: " + sortedList.get(i).getFitness() + "\n");

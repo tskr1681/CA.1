@@ -7,11 +7,9 @@ import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.MolAtom;
 import chemaxon.struc.Molecule;
 
-import java.io.IOException;
-
 public class ConformerRMSDCalculator {
 
-    public static double getConformerRMSD(Molecule conformer) throws PluginException, AlignmentException, IOException {
+    public static double getConformerRMSD(Molecule conformer) throws PluginException, AlignmentException {
         Molecule best_conformer = conformer;
         Molecule free_conformer = conformer;
         ConformerPlugin cp = new ConformerPlugin();
