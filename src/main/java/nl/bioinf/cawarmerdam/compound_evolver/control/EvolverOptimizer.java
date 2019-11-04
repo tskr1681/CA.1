@@ -267,7 +267,7 @@ public class EvolverOptimizer {
         compoundEvolver.setFitnessMeasure(parameters.getFitnessMeasure());
         compoundEvolver.setTerminationCondition(parameters.getTerminationCondition());
         compoundEvolver.setMaxNumberOfGenerations(parameters.getMaxGenerations());
-        compoundEvolver.setupPipeline(uploadPath, receptorPath, anchorPath);
+        //compoundEvolver.setupPipeline(uploadPath, receptorPath, anchorPath);
         compoundEvolver.setTargetCandidateCount(parameters.getTargetCandidateCount());
 
         // Evolve compounds

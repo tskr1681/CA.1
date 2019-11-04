@@ -768,6 +768,7 @@ public class Candidate implements Comparable<Candidate> {
         return "Candidate{" +
                 "genotype=" + genotype +
                 ", normFitness=" + normFitness +
+                ", id=" + identifier +
                 '}';
     }
 }

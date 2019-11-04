@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -21,9 +22,9 @@ import java.util.concurrent.Callable;
  * @version 0.0.1
  */
 public class CallableFullPipelineContainer implements Callable<Void> {
-    private final PipelineStep<Candidate, Void> pipeline;
+    private final List<PipelineStep<Candidate, Void>> pipeline;
     private final Path pipelineOutputFilePath;
-    private final Candidate candidate;
+    private final List<Candidate> candidates;
     private final boolean cleanupFiles;
 
     /**
@@ -31,13 +32,13 @@ public class CallableFullPipelineContainer implements Callable<Void> {
      *
      * @param pipeline The pipeline that has to be executed.
      * @param pipelineOutputFilePath The output where the pipeline writes to.
-     * @param candidate The candidate that this container will score.
+     * @param candidates The candidates that this container will score.
      * @param cleanupFiles If this should remove temporary files.
      */
-    public CallableFullPipelineContainer(PipelineStep<Candidate, Void> pipeline, Path pipelineOutputFilePath, Candidate candidate, boolean cleanupFiles) {
+    public CallableFullPipelineContainer(List<PipelineStep<Candidate, Void>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates, boolean cleanupFiles) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
-        this.candidate = candidate;
+        this.candidates = candidates;
         this.cleanupFiles = cleanupFiles;
     }
 
@@ -51,20 +52,22 @@ public class CallableFullPipelineContainer implements Callable<Void> {
     @Override
     public Void call() throws PipelineException, PluginException {
         // Declare logging details
-        Path candidateDirectory = null;
-        try {
-            // Create new directory
-            candidateDirectory = createCandidateDirectory();
-            // Setting Level to ALL
-            // Execute pipeline
-            this.pipeline.execute(candidate);
-        } finally {
-            // Remove the pipeline files.
-            if (candidateDirectory != null && cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
-        }
-        if (candidate.isScored()) {
-            candidate.calculateLigandEfficiency();
-            candidate.calculateLigandLipophilicityEfficiency();
+        for (int i = 0; i < candidates.size(); i++) {
+            Path candidateDirectory = null;
+            try {
+                // Create new directory
+                candidateDirectory = createCandidateDirectory(candidates.get(i));
+                // Setting Level to ALL
+                // Execute pipeline
+                this.pipeline.get(i).execute(candidates.get(i));
+            } finally {
+                // Remove the pipeline files.
+                if (candidateDirectory != null && cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
+            }
+            if (candidates.get(i).isScored()) {
+                candidates.get(i).calculateLigandEfficiency();
+                candidates.get(i).calculateLigandLipophilicityEfficiency();
+            }
         }
         return null;
     }
@@ -75,7 +78,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
      * @return the directory path.
      * @throws PipelineException If the directory could not be created.
      */
-    private Path createCandidateDirectory() throws PipelineException {
+    private Path createCandidateDirectory(Candidate candidate) throws PipelineException {
         Path directory = pipelineOutputFilePath.resolve(String.valueOf(candidate.getIdentifier()));
         // Make directory if it does not exist
         if (! directory.toFile().exists()){

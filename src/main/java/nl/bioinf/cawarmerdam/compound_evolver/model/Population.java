@@ -184,6 +184,14 @@ public class Population implements Iterable<Candidate> {
         this.adaptive = adaptive;
     }
 
+    public int getReceptorAmount() {
+        return receptorAmount;
+    }
+
+    public void setReceptorAmount(int receptorAmount) {
+        this.receptorAmount = receptorAmount;
+    }
+
     /**
      * Initializes a population from the reactant lists and the reactions.
      */
@@ -658,7 +666,7 @@ public class Population implements Iterable<Candidate> {
                     } else {
                         // Count this failure
                         failureCounter++;
-                        if (failureCounter >= this.candidateList.size() * 24) {
+                        if (failureCounter >= this.candidateList.get(0).size() * 24) {
                             throw new OffspringFailureOverflow(
                                     String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
                                     this.offspringRejectionMessages);
@@ -1107,9 +1115,23 @@ public class Population implements Iterable<Candidate> {
 
     @NotNull
     @Override
-    //TODO this is not polypharmacology-compatible yet
     public Iterator<Candidate> iterator() {
-        return this.candidateList.get(0).iterator();
+        return this.fitnessCandidateList.iterator();
+    }
+
+    public List<List<Candidate>> matchingCandidateList() {
+        System.out.println("candidateList = " + candidateList);
+        List<List<Candidate>> out = new ArrayList<>();
+        List<Candidate> temp = new ArrayList<>();
+        // Iterate over candidates, then over lists, so you can make a list of populationsize sets of candidates
+        for (int i = 0; i < this.candidateList.get(0).size(); i++) {
+            for (List<Candidate> candidates : this.candidateList) {
+                temp.add(candidates.get(i));
+            }
+            out.add(temp);
+            temp = new ArrayList<>();
+        }
+        return out;
     }
 
     /**

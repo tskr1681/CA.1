@@ -9,6 +9,8 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -18,22 +20,22 @@ import java.util.concurrent.Callable;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class CallableValidificationPipelineContainer implements Callable<Candidate> {
-    private final PipelineStep<Candidate, Candidate> pipeline;
+public class CallableValidificationPipelineContainer implements Callable<List<Candidate>> {
+    private final List<PipelineStep<Candidate, Candidate>> pipeline;
     private final Path pipelineOutputFilePath;
-    private final Candidate candidate;
+    private final List<Candidate> candidates;
 
     /**
      * Constructor of a callable pipeline container.
      *
      * @param pipeline The pipeline that has to be executed.
      * @param pipelineOutputFilePath The output where the pipeline writes to.
-     * @param candidate The candidate that this container will score.
+     * @param candidates The candidates that this container will score.
      */
-    public CallableValidificationPipelineContainer(PipelineStep<Candidate, Candidate> pipeline, Path pipelineOutputFilePath, Candidate candidate) {
+    public CallableValidificationPipelineContainer(List<PipelineStep<Candidate, Candidate>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
-        this.candidate = candidate;
+        this.candidates = candidates;
     }
 
     /**
@@ -43,14 +45,17 @@ public class CallableValidificationPipelineContainer implements Callable<Candida
      * @throws PipelineException if an exception occurred during the pipeline execution.
      */
     @Override
-    public Candidate call() throws PipelineException {
-        Candidate c;
-        // Create new directory
-        createCandidateDirectory();
-        // Setting Level to ALL
-        // Execute pipeline
-        c = this.pipeline.execute(candidate);
-        return c;
+    public List<Candidate> call() throws PipelineException {
+        List<Candidate> out = new ArrayList<>();
+        System.out.println("candidates = " + candidates);
+        for(int i = 0; i < candidates.size(); i++) {
+            // Create new directory
+            createCandidateDirectory(candidates.get(i));
+            // Setting Level to ALL
+            // Execute pipeline
+            out.add(this.pipeline.get(i).execute(candidates.get(i)));
+        }
+        return out;
     }
 
     /**
@@ -58,7 +63,7 @@ public class CallableValidificationPipelineContainer implements Callable<Candida
      *
      * @throws PipelineException If the directory could not be created.
      */
-    private void createCandidateDirectory() throws PipelineException {
+    private void createCandidateDirectory(Candidate candidate) throws PipelineException {
         Path directory = pipelineOutputFilePath.resolve(String.valueOf(candidate.getIdentifier()));
         // Make directory if it does not exist
         if (! directory.toFile().exists()){

@@ -226,13 +226,16 @@
                                            name="receptorFile"
                                            id="receptor-file"
                                            required="required"
+                                           multiple="multiple"
                                            file-bind="formModel.receptorFile"
                                            ng-class="{
                     'is-invalid':receptorFile.wrongExtension || (!receptorFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
                     'is-valid':!receptorFile.wrongExtension && (!receptorFile.pristine || compoundEvolverForm.$submitted)}">
                                     <label class="custom-file-label overflow-hidden"
-                                           for="receptor-file"
-                                           ng-bind="formModel.receptorFile[0].files[0].name || 'Choose receptor file'"></label>
+                                           for="receptor-file">
+                                        <span ng-repeat="file in receptorFile.files">{{file.name}} </span>
+                                        <span ng-hide="receptorFile.files.length">Choose receptor files</span>
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-sm-9 offset-sm-3">
@@ -256,13 +259,16 @@
                                            name="anchorFragmentFile"
                                            id="anchor-fragment-file"
                                            required="required"
+                                           multiple="multiple"
                                            file-bind="formModel.anchorFragmentFile"
                                            ng-class="{
                     'is-invalid':anchorFragmentFile.wrongExtension || (!anchorFragmentFile.hasFile && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)),
                     'is-valid':!anchorFragmentFile.wrongExtension && (!anchorFragmentFile.pristine || compoundEvolverForm.$submitted)}">
                                     <label class="custom-file-label overflow-hidden"
-                                           for="anchor-fragment-file"
-                                           ng-bind="formModel.anchorFragmentFile[0].files[0].name || 'Choose anchor file'"></label>
+                                           for="anchor-fragment-file">
+                                        <span ng-repeat="file in anchorFragmentFile.files">{{file.name}} </span>
+                                        <span ng-hide="anchorFragmentFile.files.length">Choose anchor files</span>
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-sm-9 offset-sm-3">

@@ -47,8 +47,20 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         files: [],
         permittedExtensions: ["mrv"]
     };
-    $scope.receptorFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["pdb"]};
-    $scope.anchorFragmentFile = {wrongExtension: false, pristine: true, hasFile: false, permittedExtensions: ["sdf"]};
+    $scope.receptorFile = {
+        wrongExtension: false,
+        pristine: true,
+        hasFile: false,
+        files: [],
+        permittedExtensions: ["pdb"]
+    };
+    $scope.anchorFragmentFile = {
+        wrongExtension: false,
+        pristine: true,
+        hasFile: false,
+        files: [],
+        permittedExtensions: ["sdf"]
+    };
     $scope.reactantFiles = {
         wrongExtension: false,
         pristine: true,

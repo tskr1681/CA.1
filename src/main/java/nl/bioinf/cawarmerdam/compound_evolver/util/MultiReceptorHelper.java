@@ -32,6 +32,7 @@ public class MultiReceptorHelper {
         for(int i = 0; i < candidates.get(0).size(); i++) {
             candidates.get(0).get(i).setNormFitness(fitnesslist[i]);
             output.add(candidates.get(0).get(i));
+            System.out.println("candidates = " + candidates.get(0).get(i));
         }
         return output;
     }

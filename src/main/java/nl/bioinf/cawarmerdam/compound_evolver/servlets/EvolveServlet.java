@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -115,8 +116,9 @@ public class EvolveServlet extends HttpServlet {
         Population.SpeciesDeterminationMethod speciesDeterminationMethod = Population.SpeciesDeterminationMethod.
                 fromString(request.getParameter("speciesDeterminationMethod"));
 
+        List<Part> receptorParts = getFilesFromRequest(request, "receptorFile");
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, 1);
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size());
         MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
         for (Candidate candidate :
                 initialPopulation) {
@@ -252,11 +254,19 @@ public class EvolveServlet extends HttpServlet {
         // Get conformer count
         int conformerCount = getIntegerParameterFromRequest(request, "conformerCount");
 
-        // Copy files from request to the pipeline target directory
-        Path receptorLocation = outputFileLocation.resolve("rec.pdb");
-        copyFilePart(getFileFromRequest(request, "receptorFile"), receptorLocation);
-        Path anchorLocation = outputFileLocation.resolve("anchor.sdf");
-        copyFilePart(getFileFromRequest(request, "anchorFragmentFile"), anchorLocation);
+        List<Path> receptorLocations = new ArrayList<>();
+        List<Part> receptorParts = getFilesFromRequest(request, "receptorFile");
+        for (int i = 0; i < receptorParts.size(); i++) {
+            receptorLocations.add(outputFileLocation.resolve(receptorParts.get(i).getName()));
+            copyFilePart(receptorParts.get(i), receptorLocations.get(i));
+        }
+
+        List<Path> anchorLocations = new ArrayList<>();
+        List<Part> anchorParts = getFilesFromRequest(request, "anchorFragmentFile");
+        for (int i = 0; i < anchorParts.size(); i++) {
+            anchorLocations.add(outputFileLocation.resolve(anchorParts.get(i).getName()));
+            copyFilePart(anchorParts.get(i), anchorLocations.get(i));
+        }
 
         // Get the exclusion shape tolerance
         double exclusionShapeTolerance = getDoubleParameterFromRequest(request, "exclusionShapeTolerance");
@@ -265,13 +275,15 @@ public class EvolveServlet extends HttpServlet {
         double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
 
         // Setup the pipeline using the gathered locations paths
-        evolver.setupPipeline(
-                outputFileLocation,
-                receptorLocation,
-                anchorLocation,
-                conformerCount,
-                exclusionShapeTolerance,
-                maxAnchorMinimizedRmsd);
+        for (int i = 0; i < anchorLocations.size(); i++) {
+            evolver.setupPipeline(
+                    outputFileLocation,
+                    receptorLocations.get(i),
+                    anchorLocations.get(i),
+                    conformerCount,
+                    exclusionShapeTolerance,
+                    maxAnchorMinimizedRmsd, i);
+        }
 
         System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());
     }

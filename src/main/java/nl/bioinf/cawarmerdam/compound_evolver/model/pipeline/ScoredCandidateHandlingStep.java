@@ -52,7 +52,6 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
             List<Molecule> conformerAsList = new ArrayList<>();
             conformerAsList.add(bestConformer);
             ConformerHelper.exportConformers(outputFilePath.resolveSibling("best-conformer.sdf"), conformerAsList);
-            System.out.println("Setting score for candidate: " + candidate);
             candidate.setRawScore(score);
         }
         return null;
