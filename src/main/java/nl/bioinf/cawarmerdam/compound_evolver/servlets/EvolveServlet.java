@@ -257,14 +257,14 @@ public class EvolveServlet extends HttpServlet {
         List<Path> receptorLocations = new ArrayList<>();
         List<Part> receptorParts = getFilesFromRequest(request, "receptorFile");
         for (int i = 0; i < receptorParts.size(); i++) {
-            receptorLocations.add(outputFileLocation.resolve(receptorParts.get(i).getName()));
+            receptorLocations.add(outputFileLocation.resolve(receptorParts.get(i).getSubmittedFileName()));
             copyFilePart(receptorParts.get(i), receptorLocations.get(i));
         }
 
         List<Path> anchorLocations = new ArrayList<>();
         List<Part> anchorParts = getFilesFromRequest(request, "anchorFragmentFile");
         for (int i = 0; i < anchorParts.size(); i++) {
-            anchorLocations.add(outputFileLocation.resolve(anchorParts.get(i).getName()));
+            anchorLocations.add(outputFileLocation.resolve(anchorParts.get(i).getSubmittedFileName()));
             copyFilePart(anchorParts.get(i), anchorLocations.get(i));
         }
 

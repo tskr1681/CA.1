@@ -47,7 +47,6 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
     @Override
     public List<Candidate> call() throws PipelineException {
         List<Candidate> out = new ArrayList<>();
-        System.out.println("candidates = " + candidates);
         for(int i = 0; i < candidates.size(); i++) {
             // Create new directory
             createCandidateDirectory(candidates.get(i));

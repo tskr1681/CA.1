@@ -14,6 +14,7 @@ import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.EnumColor;
 import nl.bioinf.cawarmerdam.compound_evolver.util.QuantitativeDrugEstimateCalculator;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -59,6 +60,7 @@ public class Candidate implements Comparable<Candidate> {
     private List<Double> conformerScores;
     private Path minimizationOutputFilePath;
     private double minQED;
+    private EnumColor color;
 
     /**
      * Constructor for candidate instance.
@@ -238,6 +240,15 @@ public class Candidate implements Comparable<Candidate> {
      */
     public void setMinQED(double minQED) {
         this.minQED = minQED;
+    }
+
+
+    public EnumColor getColor() {
+        return color;
+    }
+
+    public void setColor(EnumColor color) {
+        this.color = color;
     }
 
     /**

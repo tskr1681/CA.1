@@ -12,6 +12,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerationDataFileManager;
+import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 
 import java.io.IOException;
@@ -326,6 +327,7 @@ public class CompoundEvolver {
         List<Candidate> out = new ArrayList<>();
         boolean invalid = false;
         for (List<Candidate> candidates:c) {
+            System.out.println("to_filter = " + candidates);
             for (Candidate candidate:candidates) {
                 if (candidate == null) {
                     invalid = true;
@@ -335,6 +337,7 @@ public class CompoundEvolver {
             if (!invalid) {
                 out.add(candidates.get(0));
             }
+            invalid = false;
         }
         return out;
     }
@@ -532,8 +535,6 @@ public class CompoundEvolver {
         for (List<Candidate> c: population.getCandidateList()) {
             fitnesses.add(c.stream().map(Candidate::getFitness).collect(Collectors.toList()));
         }
-        // Add scores for the archive
-        scores.add(fitnesses.get(0));
 
         // Get min and max
         Double maxFitness = Collections.max(fitnesses.stream().mapToDouble(Collections::max).boxed().collect(Collectors.toList()));
@@ -545,6 +546,8 @@ public class CompoundEvolver {
                 candidate.calcNormFitness(minFitness, maxFitness);
             }
         }
+        // Add scores for the archive
+        scores.add(Arrays.stream(MultiReceptorHelper.getFitnessList(population.getCandidateList())).boxed().collect(Collectors.toList()));
     }
 
     /**
