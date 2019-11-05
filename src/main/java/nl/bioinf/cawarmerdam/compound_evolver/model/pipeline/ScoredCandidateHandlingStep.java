@@ -37,7 +37,6 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
         Path outputFilePath = candidate.getScoredConformersFile();
         // Declare default score
         if (conformerScores.size() > 0) {
-            // Filter conformers that clash according to the exclusion shape.
             List<Molecule> conformers = new ArrayList<>();
             for (int i = 0; i < conformerScores.size(); i++) {
                 Molecule conformer = ConformerHelper.getConformer(outputFilePath, i);
@@ -52,6 +51,17 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
             List<Molecule> conformerAsList = new ArrayList<>();
             conformerAsList.add(bestConformer);
             ConformerHelper.exportConformers(outputFilePath.resolveSibling("best-conformer.sdf"), conformerAsList);
+            if (candidate.getColor() != null) {
+                switch (candidate.getColor()) {
+                    case RED:
+                        throw new PipelineException("Candidate color was red, not using candidate.");
+                    case YELLOw:
+                        score /= 0.35;
+                        break;
+                    case GREEN:
+                        score /= 0.75;
+                }
+            }
             candidate.setRawScore(score);
         }
         return null;
