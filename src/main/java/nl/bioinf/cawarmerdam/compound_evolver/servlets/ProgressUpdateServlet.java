@@ -46,6 +46,7 @@ public class ProgressUpdateServlet extends HttpServlet {
             // Write new generations
             mapper.writeValue(response.getOutputStream(), progressConnector);
         } catch (Exception e) {
+            e.printStackTrace();
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
             mapper.writeValue(response.getOutputStream(), e.getMessage());
@@ -103,11 +104,10 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         } catch (IOException e) {
             smilesString = "";
         }
-
         // Write all fields that are necessary to the client.
         jgen.writeStringField("smiles", smilesString);
         jgen.writeStringField("iupacName", phenotypeName);
-        jgen.writeNumberField("rawScore", candidate.getRawScore());
+        jgen.writeNumberField("rawScore", candidate.getNormFitness());
         jgen.writeNumberField("ligandEfficiency", candidate.getLigandEfficiency());
         jgen.writeNumberField("ligandLipophilicityEfficiency", candidate.getLigandLipophilicityEfficiency());
         jgen.writeStringField("species", candidate.getSpecies().toString());
