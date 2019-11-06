@@ -15,12 +15,12 @@ public class MultiReceptorHelper {
             return candidates.get(0).stream().mapToDouble(Candidate::getNormFitness).toArray();
         } else {
             List<Double> fitnesses = new ArrayList<>();
-            double fitness = 0;
+            double fitness = 1;
             for (int i = 0; i < candidates.get(0).size(); i++) {
                 for (List<Candidate> candidate : candidates) {
                     fitness *= candidate.get(i).getNormFitness();
                 }
-                fitnesses.add(Math.exp(fitness));
+                fitnesses.add(Math.exp(fitness-1));
             }
             return fitnesses.stream().mapToDouble(Double::doubleValue).toArray();
         }
