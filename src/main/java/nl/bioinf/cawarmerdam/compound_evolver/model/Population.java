@@ -417,6 +417,7 @@ public class Population implements Iterable<Candidate> {
                 this.candidateList.get(i).add(copyCandidate(c));
             }
         }
+        this.fitnessCandidateList = candidateList;
     }
 
     private Candidate copyCandidate(Candidate c) {
@@ -521,6 +522,9 @@ public class Population implements Iterable<Candidate> {
 //        // Take the mutation rate into account with the following calculation
 //        alleleSimilarities[reactantsListIndex][alleleIndex][alleleIndex] = weightsSum / mutationRate - weightsSum;
 //  }
+    public void setFitnessCandidateList() {
+        fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList);
+    }
 
     private double[] computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex) {
         // Get reactants which it is about
@@ -625,7 +629,7 @@ public class Population implements Iterable<Candidate> {
         List<Future<Candidate>> futures = new ArrayList<>();
         // Loop to fill offspring list to offspring size
         int i = 0;
-        double[] fitnesslist = MultiReceptorHelper.getFitnessList(candidateList);
+        double[] fitnesslist = fitnessCandidateList.stream().mapToDouble(Candidate::getNormFitness).toArray();
         while (offspring.size() < offspringSize) {
 
             List<Candidate> newOffspring = new ArrayList<>();
@@ -636,7 +640,7 @@ public class Population implements Iterable<Candidate> {
                     ImmutablePair<Candidate, Candidate> parents = getParents(i);
 
                     double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
-                    double f_avg = Arrays.stream(fitnesslist).sum() /candidateList.get(0).size();
+                    double f_avg = Arrays.stream(fitnesslist).sum() /fitnessCandidateList.size();
                     this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
                     double f = fitnesslist[i % fitnesslist.length];
                     this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));

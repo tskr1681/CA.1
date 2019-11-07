@@ -346,6 +346,7 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
+//        dummyFitness = true;
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
@@ -464,16 +465,18 @@ public class CompoundEvolver {
             // Log completed scoring round
             System.out.println("Finished all threads");
         } else {
-            for (Candidate candidate : this.population) {
-                // Set dummy fitness
-                double score = candidate.getPhenotype().getExactMass();
-                candidate.setRawScore(score);
-                try {
-                    candidate.calculateLigandEfficiency();
-                } catch (PluginException e) {
-                    e.printStackTrace();
+            for (List<Candidate> candidates : this.population.matchingCandidateList()) {
+                for (Candidate candidate: candidates) {
+                    // Set dummy fitness
+                    double score = candidate.getPhenotype().getExactMass();
+                    candidate.setRawScore(score);
+                    try {
+                        candidate.calculateLigandEfficiency();
+                    } catch (PluginException e) {
+                        e.printStackTrace();
+                    }
+                    candidate.calculateLigandLipophilicityEfficiency();
                 }
-                candidate.calculateLigandLipophilicityEfficiency();
             }
         }
         population.filterUnscoredCandidates();
@@ -516,6 +519,8 @@ public class CompoundEvolver {
                     // System.err.println("Encountered exception while generating initial candidates: " + e.getMessage());
                 }
             }
+        } else {
+            candidates = this.population.getCandidateList();
         }
         return candidates;
     }
@@ -546,6 +551,7 @@ public class CompoundEvolver {
                 candidate.calcNormFitness(minFitness, maxFitness);
             }
         }
+        population.setFitnessCandidateList();
         // Add scores for the archive
         scores.add(Arrays.stream(MultiReceptorHelper.getFitnessList(population.getCandidateList())).boxed().collect(Collectors.toList()));
     }
