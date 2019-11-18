@@ -13,11 +13,11 @@ of reactants (building blocks), which make up a compound.
 ```
 Java 8 (https://www.java.com/en/download/)
 Apache Tomcat 8.5 (https://tomcat.apache.org/download-80.cgi)
-smina (https://sourceforge.net/projects/smina/files/)
-Python 2.7.16 (https://www.python.org/downloads/release/python-2716/)
 
 At least one of the following:
-AutoDockTools 1.5.6 (http://mgltools.scripps.edu/downloads)
+smina (https://sourceforge.net/projects/smina/files/), 
+    AutoDockTools 1.5.6 (http://mgltools.scripps.edu/downloads) 
+    and Python 2.7.16 (https://www.python.org/downloads/release/python-2716/)
 moloc (http://www.moloc.ch/)
 
 Optional:
