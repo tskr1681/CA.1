@@ -238,7 +238,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
             addData(scoreDistributionChart, generation.number, [
                 generation.candidateList.map(candidate => candidate.rawScore),
-                generation.candidateList.map(candidate => candidate.ligandEfficiency),
+                generation.candidateList.map(candidate => candidate.ligandEfficiency * 10),
                 generation.candidateList.map(candidate => candidate.ligandLipophilicityEfficiency)
             ]);
 
