@@ -45,6 +45,9 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
         if (candidate == null) {
             throw new PipelineException("Scorpion got null as a candidate, validification failed?");
         }
+        //No need to rerun scorpion if we've already scored this compound
+        if (candidate.getRawScore() != null)
+            return candidate;
         Path fixedconformers = candidate.getMinimizationOutputFilePath();
         scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
