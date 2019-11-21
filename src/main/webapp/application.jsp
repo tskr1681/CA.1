@@ -202,6 +202,24 @@
                                 </small>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="smarts-filtering" class="col-sm-3 col-form-label">Smarts codes to filter reactants on</label>
+                            <div class="col-sm-9">
+                                <textarea
+                                       class="form-control"
+                                       ng-model="formModel.smartsFiltering"
+                                       id="smarts-filtering"
+                                       name="smartsFiltering"
+                                       required="required"
+                                       ng-class="{'is-valid':True}">
+                                </textarea>
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The smarts code filter removes any reactants that match the specified smarts
+                                </small>
+                            </div>
+                        </div>
                         <div class="form-group row" ng-repeat="reactionFile in reactionFiles.files track by $index">
                             <label class="col-sm-3 col-form-label">Reactants for {{reactionFile.name}}</label>
                             <div class="col-sm-9">

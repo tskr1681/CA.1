@@ -106,9 +106,10 @@ public class EvolveServlet extends HttpServlet {
         List<Reactor> reactionList = ReactionFileHandler.loadReactions(getFilesFromRequest(request, "reactionFiles"));
 
         double maxWeight = getDoubleParameterFromRequest(request, "maxReactantWeight");
-        System.out.println("maxWeight = " + maxWeight);
+        String[] smartsFiltering = request.getParameter("smartsFiltering").split("\\R");
+        System.out.println("smartsFiltering = " + Arrays.toString(smartsFiltering));
         // Get reactants
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight);
+        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
 

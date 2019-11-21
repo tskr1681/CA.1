@@ -62,17 +62,22 @@ public final class ReactantFileHandler {
      * @throws ReactantFileHandlingException if an IO exception is encountered.
      * @throws ReactantFileFormatException   if a SMILES molecule could not be read.
      */
-    public static List<List<Molecule>> loadMolecules(List<Part> fileParts, double weight) throws ReactantFileHandlingException, ReactantFileFormatException {
+    public static List<List<Molecule>> loadMolecules(List<Part> fileParts, double weight, String[] smarts_filters) throws ReactantFileHandlingException, ReactantFileFormatException {
         List<List<Molecule>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             try {
                 if (weight == 0) {
-                    reactantLists.add(readSmileFile(
+                    List<Molecule> filtered = ReactantFilter.filterBySmarts(readSmileFile(
                             filePart.getInputStream(),
-                            fileName));
+                            fileName), smarts_filters);
+                    if (filtered.size() < 3) {
+                        throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
+                    }
+                    reactantLists.add(filtered);
                 } else {
                     List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(filePart.getInputStream(), fileName), weight);
+                    filtered = ReactantFilter.filterBySmarts(filtered, smarts_filters);
                     if (filtered.size() < 3) {
                         throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
                     }

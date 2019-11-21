@@ -36,7 +36,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5,
         setAdaptive: true,
-        minQED: 0
+        minQED: 0,
+        smartsFiltering: ""
     };
 
     // Define the properties of reaction files.
