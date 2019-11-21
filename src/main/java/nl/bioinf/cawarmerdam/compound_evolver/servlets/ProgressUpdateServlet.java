@@ -107,7 +107,7 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         // Write all fields that are necessary to the client.
         jgen.writeStringField("smiles", smilesString);
         jgen.writeStringField("iupacName", phenotypeName);
-        jgen.writeNumberField("rawScore", candidate.getNormFitness());
+        jgen.writeNumberField("rawScore", candidate.getRawScore());
         jgen.writeNumberField("ligandEfficiency", candidate.getLigandEfficiency());
         jgen.writeNumberField("ligandLipophilicityEfficiency", candidate.getLigandLipophilicityEfficiency());
         jgen.writeStringField("species", candidate.getSpecies().toString());
