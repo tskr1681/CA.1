@@ -137,9 +137,9 @@
                                 </small>
                             </div>
                         </div>
-                        <iframe id="sketch" data-reaction="BASIC" data-toolbars="reaction" src="marvin/editor.html"
-                                style="overflow: hidden; min-width: 55vw; min-height: 40vh; border: 1px solid darkgray;"></iframe>
-                        <button ng-click="doMarvin()">Click Me!</button>
+<%--                        <iframe id="sketch" data-reaction="BASIC" data-toolbars="reaction" src="marvin/editor.html"--%>
+<%--                                style="overflow: hidden; min-width: 55vw; min-height: 40vh; border: 1px solid darkgray;"></iframe>--%>
+<%--                        <button ng-click="doMarvin()">Click Me!</button>--%>
                         <div class="form-group row">
                             <label for="reactant-files" class="col-sm-3 col-form-label">Reactants files
                                 (.smiles,
