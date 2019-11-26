@@ -37,8 +37,8 @@
     <script src="<c:url value = "js/modules/filereadbinding.js"/>"></script>
     <script src="https://unpkg.com/ngl@0.10.4/dist/ngl.js"></script>
     <script src="https://unpkg.com/smiles-drawer@1.0.2/dist/smiles-drawer.min.js"></script>
-    <script src="marvin/gui/lib/promise-1.0.0.min.js"></script>
-    <script src="marvin/js/marvinjslauncher.js"></script>
+<%--    <script src="marvin/gui/lib/promise-1.0.0.min.js"></script>--%>
+<%--    <script src="marvin/js/marvinjslauncher.js"></script>--%>
 </head>
 <body>
 <div class="container" ng-controller="FormInputCtrl">
@@ -1015,7 +1015,7 @@
                                 </button>
                                 <button class="btn btn-primary"
                                         ng-click="setFrequentUpdateInterval()">
-                                    Submit
+                                    Reset auto-update (use when page does not seem to update)
                                 </button>
                             </div>
                         </div>

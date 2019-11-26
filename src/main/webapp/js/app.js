@@ -126,11 +126,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 // Post success message
             }
         });
-        MarvinJSUtil.getEditor("#sketch").then(function (sketcherInstance) {
-            marvinSketcherInstance = sketcherInstance
-        }, function (error) {
-            alert("Loading of the sketcher failed" + error)
-        });
+        // MarvinJSUtil.getEditor("#sketch").then(function (sketcherInstance) {
+        //     marvinSketcherInstance = sketcherInstance
+        // }, function (error) {
+        //     alert("Loading of the sketcher failed" + error)
+        // });
     });
 
     /**
