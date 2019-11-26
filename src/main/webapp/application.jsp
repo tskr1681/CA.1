@@ -1013,6 +1013,10 @@
                                         ng-click="terminateEvolution()">
                                     Terminate
                                 </button>
+                                <button class="btn btn-primary"
+                                        ng-click="setFrequentUpdateInterval()">
+                                    Submit
+                                </button>
                             </div>
                         </div>
                     </div>
