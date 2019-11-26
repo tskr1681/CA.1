@@ -37,6 +37,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxPartitionCoefficient: 5,
         setAdaptive: true,
         minQED: 0,
+        minBBB: 2,
         smartsFiltering: ""
     };
 

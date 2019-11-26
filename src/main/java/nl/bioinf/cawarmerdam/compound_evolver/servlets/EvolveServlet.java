@@ -167,6 +167,9 @@ public class EvolveServlet extends HttpServlet {
         double minQED = getDoubleParameterFromRequest(request, "minQED");
         initialPopulation.setMinQED(minQED);
 
+        double minBBB = getDoubleParameterFromRequest(request, "minBBB");
+        initialPopulation.setMinBBB(minBBB);
+
         // Get mutation method
         Population.MutationMethod mutationMethod = Population.MutationMethod.fromString(
                 request.getParameter("mutationMethod"));

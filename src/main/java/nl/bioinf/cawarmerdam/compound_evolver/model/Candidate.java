@@ -15,6 +15,7 @@ import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.EnumColor;
+import nl.bioinf.cawarmerdam.compound_evolver.util.BBBScoreCalculator;
 import nl.bioinf.cawarmerdam.compound_evolver.util.QuantitativeDrugEstimateCalculator;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -61,6 +62,7 @@ public class Candidate implements Comparable<Candidate> {
     private Path minimizationOutputFilePath;
     private double minQED;
     private EnumColor color;
+    private double minBBB;
 
     /**
      * Constructor for candidate instance.
@@ -242,6 +244,21 @@ public class Candidate implements Comparable<Candidate> {
         this.minQED = minQED;
     }
 
+    /**
+     * Getter for the minimum BBB score (Blood-Brain Barrier score)
+     * @return the minimum BBB score
+     */
+    public double getMinBBB() {
+        return minBBB;
+    }
+
+    /**
+     * Setter for the minimum BBB score (Blood-Brain Barrier score)
+     * @param minBBB the minimum BBB score
+     */
+    public void setMinBBB(double minBBB) {
+        this.minBBB = minBBB;
+    }
 
     public EnumColor getColor() {
         return color;
@@ -507,7 +524,10 @@ public class Candidate implements Comparable<Candidate> {
             if (!isPartitionCoefficientValid()) return false;
         }
         if (minQED != 0) {
-            return !(QuantitativeDrugEstimateCalculator.getQED(this.phenotype) < minQED);
+            if ((QuantitativeDrugEstimateCalculator.getQED(this.phenotype) < minQED)) return false;
+        }
+        if (minBBB != 0) {
+            if (BBBScoreCalculator.getBBB(this.phenotype) < minBBB) return false;
         }
         return true;
     }

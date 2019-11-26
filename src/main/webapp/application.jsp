@@ -994,6 +994,37 @@
                                 </small>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="min-bbb" class="col-sm-3 col-form-label">
+                                Minimum BBB score (Blood-Brain Barrier score, see also the relevant <a href="https://doi.org/10.1021/acs.jmedchem.9b01220">paper</a>)
+                            </label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.minBBB"
+                                       id="min-bbb"
+                                       name="minBBB"
+                                       required="required"
+                                       min="0"
+                                       max="6"
+                                       ng-class="{
+                    'is-invalid':!compoundEvolverForm.minBBB.$valid && (!compoundEvolverForm.minBBB.$pristine || compoundEvolverForm.$submitted),
+                    'is-valid':compoundEvolverForm.minBBB.$valid && (!compoundEvolverForm.minBBB.$pristine || compoundEvolverForm.$submitted)}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text text-danger"
+                                       ng-show="compoundEvolverForm.minBBB.$error.required && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    This field is required
+                                </small>
+                                <small class="form-text text-danger"
+                                       ng-show="(compoundEvolverForm.minBBB.$error.number || compoundEvolverForm.minBBB.$error.min || compoundEvolverForm.minBBB.$error.max) && (!compoundEvolverForm.$pristine || compoundEvolverForm.$submitted)">
+                                    A value below 0 or above 6 is forbidden
+                                </small>
+                                <small class="form-text">
+                                    The Blood-Brain Barrier (BBB) score is a way to judge how high the chances are of a compound being able to pass the BBB. Anything under 2 is very likely not to be able to pass the BBB.
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="submit">

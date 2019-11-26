@@ -52,6 +52,7 @@ public class Population implements Iterable<Candidate> {
     private Double maxPartitionCoefficient = null;
     private boolean duplicatesAllowed;
     private double minQED;
+    private double minBBB;
     private boolean adaptive;
     private int receptorAmount;
     private List<Candidate> fitnessCandidateList;
@@ -713,6 +714,10 @@ public class Population implements Iterable<Candidate> {
         this.minQED = minQED;
     }
 
+    public void setMinBBB(double minBBB) {
+        this.minBBB = minBBB;
+    }
+
     private class OffSpringProducer implements Callable<Candidate> {
 
         ReproductionMethod m;
@@ -799,6 +804,7 @@ public class Population implements Iterable<Candidate> {
         newCandidate.setMaxMolecularMass(this.maxMolecularMass);
         newCandidate.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
         newCandidate.setMinQED(this.minQED);
+        newCandidate.setMinBBB(this.minBBB);
 
         if (speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED &&
                 newCandidate.finish(this.reactantLists)) {
