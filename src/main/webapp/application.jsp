@@ -210,7 +210,6 @@
                                        ng-model="formModel.smartsFiltering"
                                        id="smarts-filtering"
                                        name="smartsFiltering"
-                                       required="required"
                                        ng-class="{'is-valid':True}">
                                 </textarea>
                             </div>
