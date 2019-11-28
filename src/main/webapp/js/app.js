@@ -421,11 +421,13 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     }
 
     function setFrequentUpdateInterval() {
+        document.getElementById("loader").hidden = false;
         let i = setInterval(function () {
             // do your thing
             $scope.getProgressUpdate();
             //console.log(evolveStatus);
             if (["FAILED", "SUCCESS"].includes(evolveStatus)) {
+                document.getElementById("loader").hidden = true;
                 clearInterval(i);
             }
         }, 5000);
