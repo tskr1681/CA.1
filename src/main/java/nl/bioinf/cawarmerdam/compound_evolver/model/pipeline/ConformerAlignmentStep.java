@@ -5,14 +5,14 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolImporter;
-import chemaxon.marvin.alignment.Alignment;
-import chemaxon.marvin.alignment.AlignmentException;
+import chemaxon.marvin.alignment.*;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ConformerHelper;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -27,15 +27,17 @@ import java.util.concurrent.*;
 public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate> {
 
     private Molecule referenceMolecule;
-
+    private boolean fast;
+    private static final MMPAlignmentProperties mmpAlignmentProperties = new MMPAlignmentProperties(AlignmentProperties.FlexibilityMode.KEEP_FIRST_RIGID_SECOND_FLEXIBLE_EXTRA, AlignmentAccuracyMode.FAST, 0.3d);
     /**
      * Constructor for the conformer alignment step.
      *
      * @param anchor The path to the file that holds the anchor molecule.
      * @throws PipelineException If the anchor file could not be imported.
      */
-    public ConformerAlignmentStep(Path anchor) throws PipelineException {
+    public ConformerAlignmentStep(Path anchor, boolean fast) throws PipelineException {
         this.referenceMolecule = importReferenceMolecule(anchor);
+        this.fast = fast;
     }
 
     /**
@@ -97,58 +99,77 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             // read the first molecule from the file
             Molecule m = importer.read();
             while (m != null) {
+                if (!fast) {
+                    MMPAlignmentResult result;
+                    Molecule referenceP = MMPAlignment.preprocess(referenceMolecule, false);
+                    Molecule toAlignP = MMPAlignment.preprocess(m, false);
+                    MMPAlignment alignment = new MMPAlignment(referenceP, toAlignP, mmpAlignmentProperties);
 
-                Alignment alignment = constructAlignment();
+                    Callable<MMPAlignmentResult> task = alignment::calculate;
 
-                // Align molecules
-                alignment.addMolecule(m, false, true);
+                    FutureTask<MMPAlignmentResult> future = new FutureTask<>(task);
+                    Thread t = new Thread(future);
+                    t.start();
+                    try {
+                        result = future.get(50, TimeUnit.SECONDS);
+                    } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                        future.cancel(true);
+                        t.stop();
+                        throw new PipelineException("Alignment took too long, ", ex);
+                    } finally {
+                        future.cancel(true);
+                        t.stop();
+                    }
+                    if (result != null) {
+                        alignedMolecules.add(result.getMolecule2Aligned());
+                    }
+                } else {
+                    Alignment alignment = new Alignment();
 
-                Callable<Void> task = () -> {
-                    alignment.align();
-                    return null;
-                };
+                    try {
+                        alignment.addMolecule(referenceMolecule, false, false);
+                        alignment.addMolecule(m, true, true);
 
-                FutureTask<Void> future = new FutureTask<>(task);
-                Thread t = new Thread(future);
-                t.start();
-                try {
-                    future.get(10, TimeUnit.SECONDS);
-                } catch (TimeoutException | ExecutionException | InterruptedException ex) {
-                    future.cancel(true);
-                    t.stop();
-                    throw new PipelineException("Alignment took too long, ", ex);
-                } finally {
-                    future.cancel(true);
-                    t.stop();
+
+                    Callable<Void> task = new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            alignment.align();
+                            return null;
+                        }
+                    };
+
+                    FutureTask<Void> future = new FutureTask<>(task);
+                    Thread t = new Thread(future);
+                    t.start();
+                    try {
+                        future.get(50, TimeUnit.SECONDS);
+                    } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                        future.cancel(true);
+                        t.stop();
+                        throw new PipelineException("Alignment took too long, ", ex);
+                    } finally {
+                        future.cancel(true);
+                        t.stop();
+                    }
+                    alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
+                    } catch (AlignmentException e) {
+                        e.printStackTrace();
+                    }
                 }
-                alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
-
                 // read the next molecule from the input file
                 m = importer.read();
             }
             importer.close();
         } catch (IOException e) {
             throw new PipelineException("Could not read conformers for alignment", e);
-        } catch (AlignmentException e) {
-            throw new PipelineException("Could add conformers for alignment", e);
         }
         return alignedMolecules;
     }
 
-    /**
-     * Method making new alignment instance with the reference molecule.
-     *
-     * @return the alignment with a reference molecule added.
-     * @throws PipelineException if the reference fragment could not be added.
-     */
-    private Alignment constructAlignment() throws PipelineException {
-        Alignment alignment = new Alignment();
-
-        try {
-            alignment.addMolecule(referenceMolecule, false, false);
-        } catch (AlignmentException e) {
-            throw new PipelineException("The reference fragment could not be set");
-        }
-        return alignment;
+    public static void main(String[] args) throws PipelineException {
+        ConformerAlignmentStep step = new ConformerAlignmentStep(Paths.get("C:\\Users\\F100961\\Desktop\\GenAlgo\\Anchor_new.sdf"), false);
+        List<Molecule> out = step.alignConformersFromPath(Paths.get("C:\\Users\\F100961\\Documents\\master\\build\\libs\\conformers_new.sdf"));
+        ConformerHelper.exportConformers(Paths.get("C:\\Users\\F100961\\Documents\\master\\build\\libs\\fixed.sdf"), out);
     }
 }

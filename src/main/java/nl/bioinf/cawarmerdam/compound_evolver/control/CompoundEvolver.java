@@ -96,7 +96,7 @@ public class CompoundEvolver {
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
         // Create new CompoundEvolver
         CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
-        compoundEvolver.setupPipeline(pipelineLocation, receptor, anchor, 0);
+        compoundEvolver.setupPipeline(pipelineLocation, receptor, anchor);
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();
@@ -604,12 +604,12 @@ public class CompoundEvolver {
         return nonImprovingGenerationNumber < generationNumber;
     }
 
-    void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation, int i) throws PipelineException {
+    void setupPipeline(Path outputFileLocation, Path receptorLocation, Path anchorLocation) throws PipelineException {
         int conformerCount = 15;
         double exclusionShapeTolerance = 0;
         double maximumAnchorDistance = 2;
         setupPipeline(outputFileLocation, receptorLocation, anchorLocation, conformerCount, exclusionShapeTolerance,
-                maximumAnchorDistance, i);
+                maximumAnchorDistance, true);
     }
 
     /**
@@ -620,7 +620,8 @@ public class CompoundEvolver {
                               Path anchor,
                               int conformerCount,
                               double exclusionShapeTolerance,
-                              double maximumAnchorDistance, int i) throws PipelineException {
+                              double maximumAnchorDistance,
+                              boolean fast_align) throws PipelineException {
         // Set the pipeline output location
         this.setPipelineOutputFilePath(outputFileLocation);
         if (this.pipe == null)
@@ -633,7 +634,7 @@ public class CompoundEvolver {
                 this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
-        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor);
+        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor, fast_align);
         // Get step that handles scored candidates
         ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
         );

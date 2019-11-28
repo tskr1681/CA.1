@@ -38,7 +38,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         setAdaptive: true,
         minQED: 0,
         minBBB: 2,
-        smartsFiltering: ""
+        smartsFiltering: "",
+        alignFast: true
     };
 
     // Define the properties of reaction files.

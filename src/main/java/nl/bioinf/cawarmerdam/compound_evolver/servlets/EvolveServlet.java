@@ -244,8 +244,7 @@ public class EvolveServlet extends HttpServlet {
 
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
-            boolean mkdir = outputFileLocation.toFile().mkdir();
-            System.out.println("mkdir = " + mkdir);
+            outputFileLocation.toFile().mkdir();
         }
 
         // Get and set force field that should be used
@@ -278,6 +277,8 @@ public class EvolveServlet extends HttpServlet {
         // Get the maximum allowed rmsd from the anchor
         double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
 
+        boolean fastAlign = getBooleanParameterFromRequest(request, "fastAlign");
+
         // Setup the pipeline using the gathered locations paths
         for (int i = 0; i < anchorLocations.size(); i++) {
             evolver.setupPipeline(
@@ -286,7 +287,7 @@ public class EvolveServlet extends HttpServlet {
                     anchorLocations.get(i),
                     conformerCount,
                     exclusionShapeTolerance,
-                    maxAnchorMinimizedRmsd, i);
+                    maxAnchorMinimizedRmsd, fastAlign);
         }
 
         System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());

@@ -750,6 +750,29 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="align-fast" class="col-sm-3 col-form-label">Use fast alignment
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.alignFast"
+                                           id="align-fast"
+                                           name="alignFast"
+                                           value="fast">
+                                    <label class="form-check-label" for="align-fast">
+                                        Use fast aligment
+                                    </label>
+                                </div>
+                                <div class="col-sm-9 offset-sm-3">
+                                    <small class="form-text">
+                                        Fast alignment is faster, but less accurate then normal/precise alignment. Use fast alignment for simple anchors with no rotatable bonds.
+                                        Do not use fast alignment for complex anchors, like anchors that have many rotatable bonds.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="force-field" class="col-sm-3 col-form-label">Force field</label>
                             <div class="col-sm-9">
                                 <select class="form-control"
