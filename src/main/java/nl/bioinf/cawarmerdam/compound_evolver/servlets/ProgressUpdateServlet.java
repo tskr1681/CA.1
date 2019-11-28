@@ -46,7 +46,6 @@ public class ProgressUpdateServlet extends HttpServlet {
             // Write new generations
             mapper.writeValue(response.getOutputStream(), progressConnector);
         } catch (Exception e) {
-            e.printStackTrace();
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
             mapper.writeValue(response.getOutputStream(), e.getMessage());
