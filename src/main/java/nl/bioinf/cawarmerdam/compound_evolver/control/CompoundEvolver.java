@@ -687,7 +687,7 @@ public class CompoundEvolver {
                         receptorFile,
                         sminaExecutable,
                         pythonExecutable,
-                        prepareReceptorExecutable);
+                        prepareReceptorExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
                 break;
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
