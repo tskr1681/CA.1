@@ -24,12 +24,14 @@ public class ReactantFilter {
         MolSearch s = new MolSearch();
         s.setTarget(m);
         for (String smart : smarts) {
-            s.setQuery(smart);
-            try {
-                if (s.getMatchCount() > 0) {
-                    return false;
+            if (!smart.equals("")) {
+                s.setQuery(smart);
+                try {
+                    if (s.getMatchCount() > 0) {
+                        return false;
+                    }
+                } catch (SearchException ignored) {
                 }
-            } catch (SearchException ignored) {
             }
         }
         return true;
