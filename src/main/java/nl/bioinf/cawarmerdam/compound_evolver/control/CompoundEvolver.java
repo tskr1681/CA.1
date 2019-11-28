@@ -642,7 +642,7 @@ public class CompoundEvolver {
         // Combine the steps and set the pipe.
         PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
 
-        PipelineStep<Candidate, Candidate> validifyStep = new ValidifyConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
+        PipelineStep<Candidate, Candidate> validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
         String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
         String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
         this.pipe2.add(converterStep.pipe(validifyStep).pipe(new MolocEnergyMinimizationStep(
@@ -675,7 +675,7 @@ public class CompoundEvolver {
                 step = new MolocEnergyMinimizationStep(
                         receptorFile,
                         mol3dExecutable,
-                        esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
+                        esprntoExecutable).pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
                 break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
@@ -687,7 +687,7 @@ public class CompoundEvolver {
                         receptorFile,
                         sminaExecutable,
                         pythonExecutable,
-                        prepareReceptorExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
+                        prepareReceptorExecutable).pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter));
                 break;
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
@@ -702,7 +702,7 @@ public class CompoundEvolver {
                     return step.pipe(new MolocEnergyMinimizationStep(
                             receptorFile,
                             mol3dExecutable,
-                            esprntoExecutable).pipe(new ValidifyConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter)));
+                            esprntoExecutable).pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter)));
                 }
             case SMINA:
                 if (this.forceField == ForceField.SMINA) {

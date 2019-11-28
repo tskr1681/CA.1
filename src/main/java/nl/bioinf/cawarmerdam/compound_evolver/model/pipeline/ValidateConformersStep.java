@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate> {
+public class ValidateConformersStep implements PipelineStep<Candidate, Candidate> {
 
     private final Path anchorFilePath;
     private final Map<Long, Integer> clashingConformerCounter;
@@ -25,12 +25,12 @@ public class ValidifyConformersStep implements PipelineStep<Candidate, Candidate
     private ExclusionShape exclusionShape;
     private double maximumDistanceFromAnchor;
 
-    public ValidifyConformersStep(Path anchorFilePath,
-                                       Path receptorFilePath,
-                                       double exclusionShapeTolerance,
-                                       double maximumDistanceFromAnchor,
-                                       Map<Long, Integer> clashingConformerCounter,
-                                       Map<Long, Integer> tooDistantConformerCounter) throws PipelineException {
+    public ValidateConformersStep(Path anchorFilePath,
+                                  Path receptorFilePath,
+                                  double exclusionShapeTolerance,
+                                  double maximumDistanceFromAnchor,
+                                  Map<Long, Integer> clashingConformerCounter,
+                                  Map<Long, Integer> tooDistantConformerCounter) throws PipelineException {
         this.anchorFilePath = anchorFilePath;
         this.clashingConformerCounter = clashingConformerCounter;
         this.tooDistantConformerCounter = tooDistantConformerCounter;

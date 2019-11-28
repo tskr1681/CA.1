@@ -4,9 +4,7 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.descriptors.CFParameters;
-import chemaxon.descriptors.ChemicalFingerprint;
-import chemaxon.descriptors.MDGeneratorException;
+import chemaxon.descriptors.*;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
@@ -584,8 +582,8 @@ public class Population implements Iterable<Candidate> {
         // Current fingerprints are simple, could also use extended connectivity fingerprints (ECFPs):
         // "Compared to path-based fingerprints, ECFPs typically provide more adequate results for similarity searching,
         // which approximate the expectations of a medicinal chemist better."
-        ChemicalFingerprint firstFingerprint = new ChemicalFingerprint(new CFParameters());
-        ChemicalFingerprint secondFingerprint = new ChemicalFingerprint(new CFParameters());
+        PharmacophoreFingerprint firstFingerprint = new PharmacophoreFingerprint(new PFParameters());
+        PharmacophoreFingerprint secondFingerprint = new PharmacophoreFingerprint(new PFParameters());
         // Try to get the tanimoto dissimilarity score
         try {
             firstFingerprint.generate(firstMolecule);
