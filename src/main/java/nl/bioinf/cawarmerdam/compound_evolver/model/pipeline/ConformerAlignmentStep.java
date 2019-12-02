@@ -12,7 +12,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.util.ConformerHelper;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -165,11 +164,5 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             throw new PipelineException("Could not read conformers for alignment", e);
         }
         return alignedMolecules;
-    }
-
-    public static void main(String[] args) throws PipelineException {
-        ConformerAlignmentStep step = new ConformerAlignmentStep(Paths.get("C:\\Users\\F100961\\Desktop\\GenAlgo\\Anchor_new.sdf"), false);
-        List<Molecule> out = step.alignConformersFromPath(Paths.get("C:\\Users\\F100961\\Documents\\master\\build\\libs\\conformers_new.sdf"));
-        ConformerHelper.exportConformers(Paths.get("C:\\Users\\F100961\\Documents\\master\\build\\libs\\fixed.sdf"), out);
     }
 }
