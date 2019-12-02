@@ -4,10 +4,10 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.descriptors.*;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
+import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jetbrains.annotations.NotNull;
 
@@ -456,7 +456,7 @@ public class Population implements Iterable<Candidate> {
                 // We stop here because the similarity values at the diagonal (location i,i) should always be 1
                 for (int j = 0; j < i; j++) {
                     // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-                    double tanimoto = (double) 1 - getTanimoto(reactants.get(i), reactants.get(j));
+                    double tanimoto = SimilarityHelper.similarity(reactants.get(i), reactants.get(j));
                     alleleSimilarities[i1][i][j] = tanimoto;
                     alleleSimilarities[i1][j][i] = tanimoto;
                 }
@@ -525,7 +525,7 @@ public class Population implements Iterable<Candidate> {
         fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList);
     }
 
-    private double[] computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex) {
+    private double[] computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex, double mutation_similarity) {
         // Get reactants which it is about
         List<Molecule> reactants = reactantLists.get(reactantsListIndex);
         // Loop through reactants in the reactant list for all reactants
@@ -534,21 +534,17 @@ public class Population implements Iterable<Candidate> {
         // should always be 1
         // When computing the alleles in random fashion it is uncertain which values are already filled
         if (allelemap.get(reactantsListIndex) != null) {
-            if(allelemap.get(reactantsListIndex).get(alleleIndex) != null) {
-                return allelemap.get(reactantsListIndex).get(alleleIndex).stream().mapToDouble(i -> i).toArray();
-            } else {
+            if(allelemap.get(reactantsListIndex).get(alleleIndex) == null) {
                 double[] temp = similarityHelper(alleleIndex, reactants);
                 allelemap.get(reactantsListIndex).put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
-                return temp;
             }
         } else {
             double[] temp = similarityHelper(alleleIndex, reactants);
             HashMap<Integer, List<Double>> tempmap = new HashMap<>();
             tempmap.put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
             allelemap.put(reactantsListIndex, tempmap);
-            return temp;
         }
-
+        return allelemap.get(reactantsListIndex).get(alleleIndex).stream().mapToDouble(i -> i > mutation_similarity ? i : 0.0d).toArray();
     }
 
 
@@ -559,7 +555,7 @@ public class Population implements Iterable<Candidate> {
         for (int j = 0; j < reactants.size(); j++) {
             if (j != alleleIndex) {
                 // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-                double tanimoto = (double) 1 - getTanimoto(reactants.get(alleleIndex), reactants.get(j));
+                double tanimoto = SimilarityHelper.similarity(reactants.get(alleleIndex), reactants.get(j));
                 temp[j] = tanimoto;
             }
         }
@@ -569,30 +565,6 @@ public class Population implements Iterable<Candidate> {
         // Take the mutation rate into account with the following calculation
         temp[alleleIndex] = weightsSum / mutationRate - weightsSum;
         return temp;
-    }
-    /**
-     * Get the tanimoto dissimilarity score between the first molecule and the second molecule.
-     *
-     * @param firstMolecule  the first molecule to compare.
-     * @param secondMolecule the second molecule to compare.
-     * @return the tanimoto dissimilarity score as a float.
-     */
-    private float getTanimoto(Molecule firstMolecule, Molecule secondMolecule) {
-        // Get chemical fingerprints
-        // Current fingerprints are simple, could also use extended connectivity fingerprints (ECFPs):
-        // "Compared to path-based fingerprints, ECFPs typically provide more adequate results for similarity searching,
-        // which approximate the expectations of a medicinal chemist better."
-        PharmacophoreFingerprint firstFingerprint = new PharmacophoreFingerprint(new PFParameters());
-        PharmacophoreFingerprint secondFingerprint = new PharmacophoreFingerprint(new PFParameters());
-        // Try to get the tanimoto dissimilarity score
-        try {
-            firstFingerprint.generate(firstMolecule);
-            secondFingerprint.generate(secondMolecule);
-            return firstFingerprint.getTanimoto(secondFingerprint);
-        } catch (MDGeneratorException e) {
-            // Return a dissimilarity of 1 if the fingerprints could not be generated
-            return 1;
-        }
     }
 
     /**
@@ -634,6 +606,7 @@ public class Population implements Iterable<Candidate> {
             List<Candidate> newOffspring = new ArrayList<>();
             // Try to produce offspring
             for (int j = i; j < i + pool_size; j++) {
+                double mutation_similarity = 0;
                 // Get some genomes by crossing over according to crossover probability
                 if (this.adaptive) {
                     ImmutablePair<Candidate, Candidate> parents = getParents(i);
@@ -643,9 +616,10 @@ public class Population implements Iterable<Candidate> {
                     this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
                     double f = fitnesslist[i % fitnesslist.length];
                     this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));
+                    mutation_similarity = f;
                 }
                 offspringChoice = makeWeightedReproductionChoice();
-                Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j);
+                Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j, mutation_similarity);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(candidateCallable));
             }
@@ -720,14 +694,16 @@ public class Population implements Iterable<Candidate> {
 
         ReproductionMethod m;
         int i;
-        OffSpringProducer(ReproductionMethod m, int i) {
+        double mutation_similarity;
+        OffSpringProducer(ReproductionMethod m, int i, double mutation_similarity) {
             this.m = m;
             this.i = i;
+            this.mutation_similarity = mutation_similarity;
         }
 
         @Override
         public Candidate call() {
-            return ProduceOffspringIndividual(this.m, this.i);
+            return ProduceOffspringIndividual(this.m, this.i, this.mutation_similarity);
         }
     }
     /**
@@ -760,7 +736,7 @@ public class Population implements Iterable<Candidate> {
      * @param i                an index of the current list of candidates at which to pick parents for new offspring.
      * @return the produced candidate.
      */
-    private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i) {
+    private Candidate ProduceOffspringIndividual(ReproductionMethod offspringChoice, int i, double mutation_similarity) {
 //        System.out.println("offspringChoice = " + offspringChoice);
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
@@ -768,14 +744,14 @@ public class Population implements Iterable<Candidate> {
             if (newGenome == null) return null;
             // Mutate the recombined genome
             List<Integer> reactantGenome = newGenome.right;
-            mutate(reactantGenome);
+            mutate(reactantGenome, mutation_similarity);
             return finalizeOffspring(reactantGenome, newGenome.left);
         } else if (offspringChoice == ReproductionMethod.ELITISM) {
             // Get the recombined genome by crossing over
             Candidate elitist = this.fitnessCandidateList.get(i % this.fitnessCandidateList.size());
             List<Integer> newGenome = elitist.getGenotype();
             // Mutate the recombined genome
-            mutate(newGenome);
+            mutate(newGenome, mutation_similarity);
             return finalizeOffspring(newGenome, elitist.getSpecies());
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
             // Introduce a random immigrant
@@ -1027,13 +1003,13 @@ public class Population implements Iterable<Candidate> {
      *
      * @param genome to introduce mutations in.
      */
-    private void mutate(List<Integer> genome) {
+    private void mutate(List<Integer> genome, double mutation_similarity) {
         // Loop through each gene and get a mutation substitute
         // This can be either the current one (i) or a new one
         // The change that i is chosen is equal to 1 - mutation rate
         for (int i = 0; i < genome.size(); i++) {
             int allele = genome.get(i);
-            int reactantIndex = getMutationSubstitute(i, allele);
+            int reactantIndex = getMutationSubstitute(i, allele, mutation_similarity);
             genome.set(i, reactantIndex);
         }
     }
@@ -1068,13 +1044,13 @@ public class Population implements Iterable<Candidate> {
 //    }
 
 
-    private int getMutationSubstitute(int reactantsListIndex, int allele) {
+    private int getMutationSubstitute(int reactantsListIndex, int allele, double mutation_similarity) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
 //            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
 
             // If the similarities for this allele with other alleles has not yet been calculated, calculate these now
-            double[] weighted_list = computeSpecificAlleleSimilarities(reactantsListIndex, allele);
+            double[] weighted_list = computeSpecificAlleleSimilarities(reactantsListIndex, allele, mutation_similarity);
             // Return allele substitute index
             return makeWeightedChoice(weighted_list);
         } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
