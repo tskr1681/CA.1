@@ -630,13 +630,14 @@ public class CompoundEvolver {
             this.pipe2 = new ArrayList<>();
 
         // Get the step for converting 'flat' molecules into multiple 3d conformers
-        ThreeDimensionalConverterStep threeDimensionalConverterStep = new ThreeDimensionalConverterStep(
-                this.pipelineOutputFilePath, conformerCount);
+//        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new MolocConformerStep(
+//                this.pipelineOutputFilePath, conformerCount, "C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe", "C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
+        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
-        ConformerAlignmentStep conformerAlignmentStep = new ConformerAlignmentStep(anchor, fast_align);
+        PipelineStep<Candidate, Candidate> conformerAlignmentStep = new ConformerAlignmentStep(anchor, fast_align);
         // Get step that handles scored candidates
-        ScoredCandidateHandlingStep scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
+        PipelineStep<Candidate, Void> scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
         );
         // Get the step for energy minimization
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
