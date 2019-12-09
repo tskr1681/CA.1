@@ -69,10 +69,15 @@
             <param-name>dummy.fitness</param-name>
             <param-value>0</param-value>
         </init-param>
+        <multipart-config>
+            <!-- 100MB max -->
+            <max-file-size>104857600</max-file-size>
+            <max-request-size>104857600</max-request-size>
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
     </servlet>
     <servlet-mapping>
         <servlet-name>EvolveServlet</servlet-name>
         <url-pattern>/evolve.do</url-pattern>
     </servlet-mapping>
-
 </web-app>
