@@ -2,8 +2,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import chemaxon.calculations.Ring;
 import chemaxon.calculations.TopologyAnalyser;
-import chemaxon.formats.MolFormatException;
-import chemaxon.formats.MolImporter;
 import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.TPSAPlugin;
 import chemaxon.marvin.calculations.logPPlugin;
@@ -146,6 +144,7 @@ public class QuantitativeDrugEstimateCalculator {
 
     /**
      * Gets the amount of possibly bad structural components in a molecule, as described in <href>https://doi.org/10.1002/cmdc.200700139</href>
+     *
      * @param m the molecule to get the alerts/bad structural components from
      * @return the amount of alerts
      * @throws SearchException when searching for a structural component fails
@@ -163,6 +162,7 @@ public class QuantitativeDrugEstimateCalculator {
 
     /**
      * A copy of the asymmetric sigmoidal function as described in <href>https://www.nature.com/articles/nchem.1243#Sec7</href>
+     *
      * @param params the parameters for the function
      * @return the value of the ads for the given parameters
      */
@@ -182,6 +182,7 @@ public class QuantitativeDrugEstimateCalculator {
      * Calculates the Quantitive Estimate of Druglikeness (QED) for a given molecule, based on this paper: <href>https://www.nature.com/articles/nchem.1243#Sec7</href>
      * It should be noted that the values this function outputs are slightly different than those described in the paper,
      * because of a different implementation of the logP algorithm.
+     *
      * @param m The molecule to get the QED for
      * @return the QED value for the molecule, or 0 if an error is thrown while trying to calculate the QED
      */
@@ -193,54 +194,39 @@ public class QuantitativeDrugEstimateCalculator {
         try {
             lpPlugin.setMolecule(m);
 
-        lpPlugin.run();
+            lpPlugin.run();
 
-        hbdaPlugin.setMolecule(m);
-        hbdaPlugin.setExcludeSulfur(true);
-        hbdaPlugin.setExcludeHalogens(true);
-        hbdaPlugin.run();
+            hbdaPlugin.setMolecule(m);
+            hbdaPlugin.setExcludeSulfur(true);
+            hbdaPlugin.setExcludeHalogens(true);
+            hbdaPlugin.run();
 
-        tpsaPlugin.setMolecule(m);
-        tpsaPlugin.run();
+            tpsaPlugin.setMolecule(m);
+            tpsaPlugin.run();
 
-        topologyAnalyser.setMolecule(m);
+            topologyAnalyser.setMolecule(m);
 
-        // All variables
-        double mr = m.getMass();
-        double alogp = lpPlugin.getlogPTrue();
-        double hbd = hbdaPlugin.getDonorAtomCount();
-        double hba = hbdaPlugin.getAcceptorAtomCount();
-        double psa = tpsaPlugin.getSurfaceArea();
-        double rotb = topologyAnalyser.rotatableBondCount();
-        double arom = r.aromaticRingCount();
-        double alerts = getAlerts(m);
-        System.out.println("arom = " + arom);
-        System.out.println("mr = " + mr);
-        System.out.println("alogp = " + alogp);
-        System.out.println("hbd = " + hbd);
-        System.out.println("hba = " + hba);
-        System.out.println("psa = " + psa);
-        System.out.println("rotb = " + rotb);
-        System.out.println("alerts = " + alerts);
+            // All variables
+            double mr = m.getMass();
+            double alogp = lpPlugin.getlogPTrue();
+            double hbd = hbdaPlugin.getDonorAtomCount();
+            double hba = hbdaPlugin.getAcceptorAtomCount();
+            double psa = tpsaPlugin.getSurfaceArea();
+            double rotb = topologyAnalyser.rotatableBondCount();
+            double arom = r.aromaticRingCount();
+            double alerts = getAlerts(m);
 
-        double qed = Math.exp((weights[0] * Math.log(ads(mr, MW_PARAMS)) +
-                weights[1] * Math.log(ads(alogp, ALOGP_PARAMS)) +
-                weights[2] * Math.log(ads(hbd, HBD_PARAMS)) +
-                weights[3] * Math.log(ads(hba, HBA_PARAMS)) +
-                weights[4] * Math.log(ads(psa, PSA_PARAMS)) +
-                weights[5] * Math.log(ads(rotb, ROTB_PARAMS)) +
-                weights[6] * Math.log(ads(arom, AROM_PARAMS)) +
-                weights[7] * Math.log(ads(alerts, ALERTS_PARAMS)))/DoubleStream.of(weights).sum());
-
-        System.out.println("qed = " + qed);
-        return qed;
+            return Math.exp((weights[0] * Math.log(ads(mr, MW_PARAMS)) +
+                    weights[1] * Math.log(ads(alogp, ALOGP_PARAMS)) +
+                    weights[2] * Math.log(ads(hbd, HBD_PARAMS)) +
+                    weights[3] * Math.log(ads(hba, HBA_PARAMS)) +
+                    weights[4] * Math.log(ads(psa, PSA_PARAMS)) +
+                    weights[5] * Math.log(ads(rotb, ROTB_PARAMS)) +
+                    weights[6] * Math.log(ads(arom, AROM_PARAMS)) +
+                    weights[7] * Math.log(ads(alerts, ALERTS_PARAMS))) / DoubleStream.of(weights).sum());
         } catch (PluginException | SearchException e) {
             e.printStackTrace();
             return 0.0d;
         }
-    }
-
-    public static void main(String[] args) throws MolFormatException {
-        getQED(MolImporter.importMol("n3c1c(ncn1[C@H]2/C=C\\[C@@H](CO)C2)c(nc3N)NC4CC4"));
     }
 }
