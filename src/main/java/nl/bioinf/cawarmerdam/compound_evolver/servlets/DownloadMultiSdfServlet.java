@@ -6,6 +6,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Generation;
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ZipHelper;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -13,11 +14,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,30 +37,17 @@ public class DownloadMultiSdfServlet extends HttpServlet {
 
             List<Candidate> requestedCandidates = getRequestedCandidates(request, progressConnector.getGenerations());
 
-            response.setContentType("chemical/x-mdl-sdfile");
-            response.setHeader("Content-Disposition", "attachment; filename=\"conformers.sdf\"");
-            ArrayList<InputStream> list = new ArrayList<>();
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=\"conformers.zip\"");
+            ArrayList<Path> list = new ArrayList<>();
 
             for (Candidate candidate : requestedCandidates) {
-                try {
-                    Path resolve = uploadDirectory.resolve(String.valueOf(candidate.getIdentifier()))
-                            .resolve("best-conformer.sdf");
-                    System.out.println("resolve = " + resolve);
-                    FileInputStream fileInputStream = new FileInputStream(
-                            resolve.toFile());
-                    list.add(fileInputStream);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+                    Path resolve = uploadDirectory.resolve(String.valueOf(candidate.getIdentifier()));
+                    list.add(resolve);
             }
 
-            try (SequenceInputStream sequenceInputStream = new SequenceInputStream(Collections.enumeration(list));
-                 ServletOutputStream outputStream = response.getOutputStream()) {
-                byte[] buffer = new byte[4096];
-                int noOfBytesRead;
-                while ((noOfBytesRead = sequenceInputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, noOfBytesRead);
-                }
+            try (ServletOutputStream outputStream = response.getOutputStream()) {
+                outputStream.write(ZipHelper.zipDirs(list));
             }
 
         } catch (UnknownProgressException e) {

@@ -7,22 +7,17 @@ package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
 import nl.bioinf.cawarmerdam.compound_evolver.util.UnknownProgressException;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ZipHelper;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getSessionId;
 
@@ -84,7 +79,7 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
             if (files != null && files.length > 0) {
 
                 // Call the zipFiles method for creating a zip stream.
-                byte[] zip = zipFiles(directory);
+                byte[] zip = ZipHelper.zipDir(directory);
 
                 // Sends the response back to the user / browser. The
                 // content for zip file type is "application/zip". We
@@ -101,66 +96,6 @@ public class DownloadZippedCompoundServlet extends HttpServlet {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Zips the contents of a directory
-     * @param directory the directory to zip
-     * @return a bytearray representing the zipped directory
-     * @throws IOException opening the directory failed
-     */
-    private byte[] zipFiles(Path directory) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ZipOutputStream zos = new ZipOutputStream(outputStream);
-        addDirToZipArchive(zos, directory.toFile(), null);
-        zos.flush();
-        outputStream.flush();
-        zos.close();
-        outputStream.close();
-
-        return outputStream.toByteArray();
-    }
-
-    /**
-     * Adds a directory to a zipped archive
-     *
-     * @param zipOutputStream A zip output stream that holds the archive.
-     * @param fileToZip The file object which should be added to the archive.
-     * @param parentDirectoryName The parent path of the file which should be added.
-     */
-    private static void addDirToZipArchive(ZipOutputStream zipOutputStream, File fileToZip, String parentDirectoryName) {
-        if (fileToZip == null || !fileToZip.exists()) {
-            return;
-        }
-
-        String zipEntryName = fileToZip.getName();
-        if (parentDirectoryName != null && !parentDirectoryName.isEmpty()) {
-            zipEntryName = parentDirectoryName + "/" + fileToZip.getName();
-        }
-
-        if (fileToZip.isDirectory()) {
-            for (File file : Objects.requireNonNull(fileToZip.listFiles())) {
-                addDirToZipArchive(zipOutputStream, file, zipEntryName);
-            }
-
-        } else {
-            try {
-                byte[] buffer = new byte[1024];
-                FileInputStream fileInputStream;
-                fileInputStream = new FileInputStream(fileToZip);
-
-                zipOutputStream.putNextEntry(new ZipEntry(zipEntryName));
-                int length;
-                while ((length = fileInputStream.read(buffer)) > 0) {
-                    zipOutputStream.write(buffer, 0, length);
-                }
-                zipOutputStream.closeEntry();
-                fileInputStream.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
