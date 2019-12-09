@@ -551,7 +551,6 @@ public class Population implements Iterable<Candidate> {
     private double[] similarityHelper(int alleleIndex, List<Molecule> reactants) {
         double[] temp = new double[reactants.size()];
         temp[alleleIndex] = 0;
-        System.out.println("reactants.size() = " + reactants.size());
         for (int j = 0; j < reactants.size(); j++) {
             if (j != alleleIndex) {
                 // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
