@@ -277,7 +277,7 @@ public class EvolveServlet extends HttpServlet {
         // Get the maximum allowed rmsd from the anchor
         double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
 
-        boolean fastAlign = getBooleanParameterFromRequest(request, "fastAlign");
+        boolean fastAlign = getBooleanParameterFromRequest(request, "alignFast");
 
         // Setup the pipeline using the gathered locations paths
         for (int i = 0; i < anchorLocations.size(); i++) {
