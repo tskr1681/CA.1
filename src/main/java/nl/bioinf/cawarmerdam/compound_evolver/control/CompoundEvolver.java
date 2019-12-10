@@ -34,6 +34,7 @@ public class CompoundEvolver {
     private Map<Long, Integer> tooDistantConformerCounter = new HashMap<>();
     private List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
+    private ConformerOption conformerOption;
     private ForceField forceField;
     private ScoringOption scoringOption;
     private TerminationCondition terminationCondition;
@@ -67,6 +68,7 @@ public class CompoundEvolver {
         this.forceField = ForceField.MAB;
         this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
+        this.conformerOption = ConformerOption.CHEMAXON;
     }
 
     /**
@@ -630,9 +632,8 @@ public class CompoundEvolver {
             this.pipe2 = new ArrayList<>();
 
         // Get the step for converting 'flat' molecules into multiple 3d conformers
-//        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new MolocConformerStep(
-//                this.pipelineOutputFilePath, conformerCount, "C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe", "C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
-        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
+        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount);
+//        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         PipelineStep<Candidate, Candidate> conformerAlignmentStep = new ConformerAlignmentStep(anchor, fast_align);
@@ -730,6 +731,18 @@ public class CompoundEvolver {
         }
     }
 
+    private PipelineStep<Candidate, Candidate> getConformerStep(int conformerCount) {
+        switch (this.conformerOption) {
+            case CHEMAXON:
+                return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
+            case MOLOC:
+                return new MolocConformerStep(
+                        this.pipelineOutputFilePath, conformerCount, "C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe", "C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
+            default:
+                return null;
+        }
+    }
+
     /**
      * Method responsible for obtaining an executable path from the environment variables
      *
@@ -755,6 +768,29 @@ public class CompoundEvolver {
      */
     void setCleanupFiles(boolean cleanupFiles) {
         this.cleanupFiles = cleanupFiles;
+    }
+
+    /**
+     * The way to generate conformers
+     */
+    public enum ConformerOption {
+        CHEMAXON("ChemAxon"),
+        MOLOC("Moloc");
+
+        private final String text;
+
+        ConformerOption(String text) {
+            this.text = text;
+        }
+
+        public static ConformerOption fromString(String text) {
+            for (ConformerOption condition : ConformerOption.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
     }
 
     /**
