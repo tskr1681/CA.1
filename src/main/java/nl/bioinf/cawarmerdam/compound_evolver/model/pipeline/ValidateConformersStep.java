@@ -23,7 +23,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private final Map<Long, Integer> clashingConformerCounter;
     private Map<Long, Integer> tooDistantConformerCounter;
     private ExclusionShape exclusionShape;
-    private double maximumDistanceFromAnchor;
+    private final double maximumDistanceFromAnchor;
 
     public ValidateConformersStep(Path anchorFilePath,
                                   Path receptorFilePath,

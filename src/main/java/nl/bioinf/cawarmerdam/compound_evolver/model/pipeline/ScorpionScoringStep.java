@@ -20,8 +20,8 @@ import java.util.List;
  * @version 0.0.1
  */
 public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
-    private Path receptorFilePath;
-    private String scorpionExecutable;
+    private final Path receptorFilePath;
+    private final String scorpionExecutable;
 
     /**
      * Constructor for the scorpion energy minimization step.

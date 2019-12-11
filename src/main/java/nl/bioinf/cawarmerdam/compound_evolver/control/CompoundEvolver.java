@@ -455,9 +455,9 @@ public class CompoundEvolver {
             List<Future<Void>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
             List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
-            for (int i = 0; i < matchingCandidateList.size(); i++) {
+            for (List<Candidate> candidates : matchingCandidateList) {
                 // Setup callable
-                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, matchingCandidateList.get(i), cleanupFiles);
+                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -510,9 +510,9 @@ public class CompoundEvolver {
             List<Future<List<Candidate>>> futures = new ArrayList<>();
             // Loop through candidates to produce and submit new tasks
             List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
-            for (int i = 0; i < matchingCandidateList.size(); i++) {
+            for (List<Candidate> candidateList : matchingCandidateList) {
                 // Setup callable
-                Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, matchingCandidateList.get(i));
+                Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidateList);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -748,7 +748,7 @@ public class CompoundEvolver {
                 return new MolocConformerStep(
                         this.pipelineOutputFilePath, conformerCount, "C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe", "C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
             default:
-                return null;
+                return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }
     }
 

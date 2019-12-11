@@ -14,11 +14,11 @@ import java.util.OptionalDouble;
 
 public class BBBScoreCalculator {
 
-    private static logPPlugin lpPlugin = new logPPlugin();
-    private static HBDAPlugin hbdaPlugin = new HBDAPlugin();
-    private static TPSAPlugin tpsaPlugin = new TPSAPlugin();
-    private static TopologyAnalyser topologyAnalyser = new TopologyAnalyser();
-    private static pKaPlugin pkaCalc = new pKaPlugin();
+    private static final logPPlugin lpPlugin = new logPPlugin();
+    private static final HBDAPlugin hbdaPlugin = new HBDAPlugin();
+    private static final TPSAPlugin tpsaPlugin = new TPSAPlugin();
+    private static final TopologyAnalyser topologyAnalyser = new TopologyAnalyser();
+    private static final pKaPlugin pkaCalc = new pKaPlugin();
 
 
     //Don't allow instantiation of the class

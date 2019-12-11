@@ -130,12 +130,9 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
                         alignment.addMolecule(m, true, true);
 
 
-                    Callable<Void> task = new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            alignment.align();
-                            return null;
-                        }
+                    Callable<Void> task = () -> {
+                        alignment.align();
+                        return null;
                     };
 
                     FutureTask<Void> future = new FutureTask<>(task);

@@ -18,8 +18,7 @@ public class SimilarityHelper {
             return 1-firstFingerprint.getTanimoto(secondFingerprint);
         } catch (MDGeneratorException e) {
             // Return a dissimilarity of 1 if the fingerprints could not be generated
-            return 1;
+            return 0;
         }
     }
-
 }

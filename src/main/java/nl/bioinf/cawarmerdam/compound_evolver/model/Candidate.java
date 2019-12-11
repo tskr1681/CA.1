@@ -48,8 +48,8 @@ public class Candidate implements Comparable<Candidate> {
     private Double maxHydrogenBondAcceptors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    private HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
-    private logPPlugin logPPlugin = new logPPlugin();
+    private final HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
+    private final logPPlugin logPPlugin = new logPPlugin();
     private List<Integer> genotype;
     private Molecule phenotype;
     private String rejectionMessage;
@@ -57,7 +57,7 @@ public class Candidate implements Comparable<Candidate> {
     private double normFitness;
     private double ligandEfficiency;
     private Species species;
-    private Random random = new Random();
+    private final Random random = new Random();
     private List<Double> conformerScores;
     private Path minimizationOutputFilePath;
     private double minQED;
@@ -349,10 +349,8 @@ public class Candidate implements Comparable<Candidate> {
     }
 
     /**
-     * Getter for the normFitness of this candidate.
+     * Setter for the normFitness of this candidate.
      * Higher is better.
-     *
-     * @return the normFitness of this candidate.
      */
     public void setNormFitness(double normFitness) {
         this.normFitness = normFitness;

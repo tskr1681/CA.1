@@ -243,6 +243,7 @@ public class EvolveServlet extends HttpServlet {
 
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
+            //noinspection ResultOfMethodCallIgnored
             outputFileLocation.toFile().mkdir();
         }
 

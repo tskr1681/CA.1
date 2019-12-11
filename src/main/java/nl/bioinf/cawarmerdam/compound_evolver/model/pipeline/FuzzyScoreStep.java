@@ -6,14 +6,14 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class FuzzyScoreStep implements PipelineStep<Candidate, Candidate> {
-    private Random rand;
+    private final Random rand;
 
     public FuzzyScoreStep() {
         rand = new Random();
     }
 
     @Override
-    public Candidate execute(Candidate candidate) throws PipelineException {
+    public Candidate execute(Candidate candidate) {
         double fuzzyfactor = rand.nextDouble();
         candidate.setConformerScores(candidate.getConformerScores().stream().map(d -> d*fuzzyfactor).collect(Collectors.toList()));
         EnumColor color = EnumColor.RED;

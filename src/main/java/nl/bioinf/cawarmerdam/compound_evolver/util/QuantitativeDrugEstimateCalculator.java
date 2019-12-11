@@ -22,10 +22,10 @@ public class QuantitativeDrugEstimateCalculator {
     private static final double[] AROM_PARAMS = {3.218d, 957.737d, 2.275d, 1.0E-12d, 1.318d, 0.376d, 312.337d};
     private static final double[] ALERTS_PARAMS = {0.010d, 1199.094d, -0.090d, 1.0E-12d, 0.186d, 0.875d, 417.725d};
 
-    private static logPPlugin lpPlugin = new logPPlugin();
-    private static HBDAPlugin hbdaPlugin = new HBDAPlugin();
-    private static TPSAPlugin tpsaPlugin = new TPSAPlugin();
-    private static TopologyAnalyser topologyAnalyser = new TopologyAnalyser();
+    private static final logPPlugin lpPlugin = new logPPlugin();
+    private static final HBDAPlugin hbdaPlugin = new HBDAPlugin();
+    private static final TPSAPlugin tpsaPlugin = new TPSAPlugin();
+    private static final TopologyAnalyser topologyAnalyser = new TopologyAnalyser();
 
     private static final double[] weights = {0.66d, 0.46d, 0.05d, 0.61d, 0.06d, 0.65d, 0.48d, 0.95d};
 

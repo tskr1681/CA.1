@@ -16,6 +16,7 @@ public class ConformerRMSDCalculator {
         cp.setMolecule(free_conformer);
         cp.setLowestEnergyConformerCalculation(true);
         cp.run();
+        cp.getEnergy();
         free_conformer = cp.getConformers()[0];
         Alignment ap = new Alignment();
         ap.addMolecule(best_conformer, false, true);
