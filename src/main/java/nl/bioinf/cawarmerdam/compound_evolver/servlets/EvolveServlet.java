@@ -107,7 +107,6 @@ public class EvolveServlet extends HttpServlet {
 
         double maxWeight = getDoubleParameterFromRequest(request, "maxReactantWeight");
         String[] smartsFiltering = request.getParameter("smartsFiltering").split("\\R");
-        System.out.println("smartsFiltering = " + Arrays.toString(smartsFiltering));
         // Get reactants
         List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
@@ -246,6 +245,10 @@ public class EvolveServlet extends HttpServlet {
         if (!outputFileLocation.toFile().exists()) {
             outputFileLocation.toFile().mkdir();
         }
+
+        // Get and set force field that should be used
+        evolver.setConformerOption(CompoundEvolver.ConformerOption.fromString(
+                request.getParameter("conformerOption")));
 
         // Get and set force field that should be used
         evolver.setForceField(CompoundEvolver.ForceField.fromString(

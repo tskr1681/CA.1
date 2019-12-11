@@ -773,6 +773,19 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="conformer-option" class="col-sm-3 col-form-label">Conformer Generation Option</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="conformer-option"
+                                        ng-model="formModel.conformerOption"
+                                        name="conformerOption"
+                                        required="required">
+                                    <option value="ChemAxon">ChemAxon</option>
+                                    <option value="Moloc">Moloc</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="force-field" class="col-sm-3 col-form-label">Force field</label>
                             <div class="col-sm-9">
                                 <select class="form-control"

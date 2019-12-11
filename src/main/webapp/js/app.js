@@ -25,6 +25,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         nonImprovingGenerationQuantity: 0.3,
         conformerCount: 15,
         fitnessMeasure: 'ligandEfficiency',
+        conformerOption: "ChemAxon",
         forceField: 'smina',
         scoringOption: 'smina',
         maxAnchorMinimizedRmsd: 2,
