@@ -54,6 +54,7 @@ public class Population implements Iterable<Candidate> {
     private boolean adaptive;
     private int receptorAmount;
     private List<Candidate> fitnessCandidateList;
+    private boolean selective;
 
     /**
      * Constructor for population.
@@ -85,6 +86,7 @@ public class Population implements Iterable<Candidate> {
         this.mutationMethod = MutationMethod.DISTANCE_INDEPENDENT;
         this.species = species;
         this.adaptive = true;
+        this.selective = false;
         initializePopulation();
     }
 
@@ -404,6 +406,22 @@ public class Population implements Iterable<Candidate> {
         this.reproductionMethodWeighting.put(ReproductionMethod.CROSSOVER, this.crossoverRate);
     }
 
+    /**
+     * For multireceptor handling, should selectivity be checked?
+     * @return if the selectivity check is active
+     */
+    public boolean isSelective() {
+        return selective;
+    }
+
+    /**
+     * For multireceptor handling, sets if selectivity should be checked?
+     * @param selective should selectivity be checked?
+     */
+    public void setSelective(boolean selective) {
+        this.selective = selective;
+    }
+
     public List<List<Candidate>> getCandidateList() {
         return candidateList;
     }
@@ -522,7 +540,7 @@ public class Population implements Iterable<Candidate> {
 //        alleleSimilarities[reactantsListIndex][alleleIndex][alleleIndex] = weightsSum / mutationRate - weightsSum;
 //  }
     public void setFitnessCandidateList() {
-        fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList);
+        fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList, this.selective);
     }
 
     private double[] computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex, double mutation_similarity) {
@@ -722,7 +740,7 @@ public class Population implements Iterable<Candidate> {
      * @return a list of candidates to keep in the population.
      */
     private List<Candidate> elitism() {
-        fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList);
+        fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList, this.selective);
         Collections.sort(fitnessCandidateList);
         int elitistCount = (int) ((elitismRate * (1 / (elitismRate + crossoverRate + randomImmigrantRate))) * populationSize);
         return new ArrayList<>(fitnessCandidateList.subList(Math.max(0, fitnessCandidateList.size()-elitistCount), fitnessCandidateList.size()));

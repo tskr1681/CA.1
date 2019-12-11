@@ -272,6 +272,15 @@ public class CompoundEvolver {
     }
 
     /**
+     * Setter for the conformer generation method.
+     *
+     * @param conformerOption The conformer generation option.
+     */
+    public void setConformerOption(ConformerOption conformerOption) {
+        this.conformerOption = conformerOption;
+    }
+
+    /**
      * Getter for the fitness measure that is used.
      *
      * @return the fitness measure.
