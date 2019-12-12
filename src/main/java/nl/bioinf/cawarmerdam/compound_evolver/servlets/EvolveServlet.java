@@ -117,6 +117,11 @@ public class EvolveServlet extends HttpServlet {
                 fromString(request.getParameter("speciesDeterminationMethod"));
 
         List<Part> receptorParts = getFilesFromRequest(request, "receptorFile");
+        List<Integer> recOrder = getOrderParameterFromRequest(request, "recOrder");
+        List<Part> copy = getFilesFromRequest(request, "receptorFile");
+        for(int i = 0; i < receptorParts.size(); i++) {
+            receptorParts.set(i, copy.get(recOrder.get(i)));
+        }
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size());
         MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
@@ -223,6 +228,8 @@ public class EvolveServlet extends HttpServlet {
         evolver.setFitnessMeasure(CompoundEvolver.FitnessMeasure.fromString(
                 request.getParameter("fitnessMeasure")));
 
+        evolver.setSelective(getBooleanParameterFromRequest(request, "selective"));
+
         System.out.printf("Evolution setup complete with session-id %s", sessionID);
         return evolver;
     }
@@ -240,7 +247,6 @@ public class EvolveServlet extends HttpServlet {
      */
     private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, Path outputFileLocation)
             throws IOException, ServletException, PipelineException, ServletUtils.FormFieldHandlingException {
-
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -270,6 +276,11 @@ public class EvolveServlet extends HttpServlet {
 
         List<Path> anchorLocations = new ArrayList<>();
         List<Part> anchorParts = getFilesFromRequest(request, "anchorFragmentFile");
+        List<Integer> anchorOrder = getOrderParameterFromRequest(request, "anchorOrder");
+        List<Part> copy = getFilesFromRequest(request, "anchorFragmentFile");
+        for(int i = 0; i < anchorParts.size(); i++) {
+            anchorParts.set(i, copy.get(anchorOrder.get(i)));
+        }
         for (int i = 0; i < anchorParts.size(); i++) {
             anchorLocations.add(outputFileLocation.resolve(anchorParts.get(i).getSubmittedFileName()));
             copyFilePart(anchorParts.get(i), anchorLocations.get(i));
@@ -331,6 +342,23 @@ public class EvolveServlet extends HttpServlet {
         return Arrays.stream(integers)
                 .map(Arrays::asList)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets an ordering parameter from a request.
+     *
+     * @param request The request instance to get the parameters from.
+     * @param name the name of the orderign parameter
+     * @return the file order.
+     * @throws IOException if the file order could not be read.
+     */
+    private List<Integer> getOrderParameterFromRequest(HttpServletRequest request, String name) throws IOException {
+        // Get parameter as string
+        String recOrder = request.getParameter(name);
+        // this parses the json
+        ObjectMapper mapper = new ObjectMapper();
+        Integer[] integers = mapper.readValue(recOrder, Integer[].class);
+        return Arrays.stream(integers).collect(Collectors.toList());
     }
 
     /**

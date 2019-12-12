@@ -322,8 +322,54 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Receptor ordering for selectivity</label>
+                        <div class="col-sm-9">
+                            <div class="float-sm-left">
+                                <div ng-dropdown-multiselect=""
+                                     options="receptorFile.files"
+                                     selected-model="formModel.recOrder"
+                                     extra-settings="reactantsMappingMultiSelectSettings">
+                                </div>
+                            </div>
+                            <div class="alert alert-primary float-sm-right" role="alert">
+                                {{getReceptorNames()}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Anchor ordering for selectivity</label>
+                        <div class="col-sm-9">
+                            <div class="float-sm-left">
+                                <div ng-dropdown-multiselect=""
+                                     options="anchorFragmentFile.files"
+                                     selected-model="formModel.anchorOrder"
+                                     extra-settings="reactantsMappingMultiSelectSettings">
+                                </div>
+                            </div>
+                            <div class="alert alert-primary float-sm-right" role="alert">
+                                {{getAnchorNames()}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="set-selective" class="col-sm-3 col-form-label">Selectivity toggle
+                        </label>
+                        <div class="col-sm-9">
+                            <div class="form-check">
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       ng-model="formModel.setSelective"
+                                       id="set-selective"
+                                       name="setSelective"
+                                       value="selective">
+                                <label class="form-check-label" for="set-selective">
+                                    Optimize for first receptor? (and not for others?)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <div class="card">
                     <h5 class="card-header"><b>Multiple reactions</b></h5>
                     <div id="multi-reaction-settings" class="card-body">

@@ -53,6 +53,7 @@ public class CompoundEvolver {
     private int targetCandidateCount;
     private int candidatesScored;
     private GenerationDataFileManager manager;
+    private boolean selective;
 
     /**
      * The constructor for a compound evolver.
@@ -317,6 +318,15 @@ public class CompoundEvolver {
     }
 
     /**
+     * Setter for selectivity checks
+     * @param selective
+     */
+    public void setSelective(boolean selective) {
+        this.selective = selective;
+    }
+
+
+    /**
      * Getter for the maximum number of generations in the evolution process.
      *
      * @return the maximum number of generations in the evolution process.
@@ -370,6 +380,7 @@ public class CompoundEvolver {
         System.out.println("validCandidates.size() = " + validCandidates.size());
         while (validCandidates.size() < population.getPopulationSize()) {
             population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize(), population.getReceptorAmount());
+            population.setSelective(this.selective);
             candidates = getInitialCandidates();
             validCandidates.addAll(filterCandidates(candidates));
             System.out.println("candidates = " + candidates);

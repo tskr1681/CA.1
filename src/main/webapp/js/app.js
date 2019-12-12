@@ -1,4 +1,4 @@
-var app = angular.module('compoundEvolver', ['fileReadBinding', 'angularjs-dropdown-multiselect']);
+const app = angular.module('compoundEvolver', ['fileReadBinding', 'angularjs-dropdown-multiselect']);
 
 app.run(function ($rootScope) {
     $rootScope.generations = [];
@@ -37,10 +37,13 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5,
         setAdaptive: true,
+        setSelective: false,
         minQED: 0,
         minBBB: 2,
         smartsFiltering: "",
-        alignFast: true
+        alignFast: true,
+        recOrder: [],
+        anchorOrder: []
     };
 
     // Define the properties of reaction files.
@@ -80,7 +83,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     let scoreDistributionChart = null;
     let speciesDistributionChart = null;
     let evolveStatus = null;
-    let orderCount = 0;
     let species = [];
     let stage_best = new NGL.Stage("viewport_best");
     let stage_avg = new NGL.Stage("viewport_avg");
@@ -175,7 +177,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      */
     function extractFormData() {
         let fileOrder = [];
-
+        let recOrder = [];
+        let anchorOrder = [];
         $scope.reactionFiles.files.forEach(function (file, i) {
             let reactantFiles = [];
             if (file.reactants.length !== 0) {
@@ -186,6 +189,14 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             fileOrder.push(reactantFiles);
         });
 
+        $scope.formModel.recOrder.forEach(function(value) {
+            recOrder.push(value.id)
+        });
+
+        $scope.formModel.anchorOrder.forEach(function(value) {
+            anchorOrder.push(value.id)
+        });
+
         // Get form
         let form = $('form')[0];
 
@@ -193,6 +204,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         let formData = new FormData(form);
         // Append the file order as form data to the existing data
         formData.append("fileOrder", JSON.stringify(fileOrder));
+        formData.append("recOrder", JSON.stringify(recOrder));
+        formData.append("anchorOrder", JSON.stringify(anchorOrder));
         return formData;
     }
 
@@ -237,6 +250,21 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         return names.join(", ");
     };
 
+    $scope.getReceptorNames = function() {
+        let names = [];
+        $scope.formModel.recOrder.forEach(function (rec) {
+            names.push(rec.name);
+        });
+        return names.join(", ");
+    };
+
+    $scope.getAnchorNames = function() {
+        let names = [];
+        $scope.formModel.anchorOrder.forEach(function (anchor) {
+            names.push(anchor.name);
+        });
+        return names.join(", ");
+    };
     function handleGenerationCollection(generations) {
         generations.forEach(function (generation) {
 
@@ -410,14 +438,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         let elementIndex = 0;
 
-        let chartData = array[elementIndex]['_chart'].config.data;
-        let idx = array[elementIndex]['_index'];
-
-        let label = chartData.labels[idx];
-        let value = chartData.datasets[elementIndex].data[idx];
-        let series = chartData.datasets[elementIndex].label;
-
-        $rootScope.selectedGenerationNumber = idx;
+        $rootScope.selectedGenerationNumber = array[elementIndex]['_index'];
         $rootScope.$apply();
         $scope.runVisualization();
     }
