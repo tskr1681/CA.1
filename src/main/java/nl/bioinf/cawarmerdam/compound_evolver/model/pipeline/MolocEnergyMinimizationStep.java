@@ -13,6 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An energy minimization step implemented with the Moloc program.
@@ -124,8 +125,8 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
             // Start the process
             final Process p = builder.start();
-
-            p.waitFor();
+            p.waitFor(60, TimeUnit.SECONDS);
+            p.destroyForcibly();
 
         } catch (InterruptedException | IOException e) {
 
