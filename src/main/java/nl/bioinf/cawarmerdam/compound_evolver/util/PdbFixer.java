@@ -11,7 +11,7 @@ import java.util.List;
 
 public class PdbFixer {
 
-    public static void runFixer(String lepro_exe, Path input, Path output) throws PipelineException {
+    public static void runFixer(String lepro_exe, Path input) throws PipelineException {
         String line;
         List<String> fixer_output = new ArrayList<>();
         try {

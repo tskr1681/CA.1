@@ -14,6 +14,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerationDataFileManager;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
+import nl.bioinf.cawarmerdam.compound_evolver.util.PdbFixer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,6 +55,7 @@ public class CompoundEvolver {
     private int candidatesScored;
     private GenerationDataFileManager manager;
     private boolean selective;
+    private boolean prepareReceptor;
 
     /**
      * The constructor for a compound evolver.
@@ -319,12 +321,28 @@ public class CompoundEvolver {
 
     /**
      * Setter for selectivity checks
-     * @param selective
+     * @param selective do selectivity checks?
      */
     public void setSelective(boolean selective) {
         this.selective = selective;
     }
 
+
+    /**
+     * Checks if receptor preparation is enabled
+     * @return if receptor preparation is enabled
+     */
+    public boolean isPrepareReceptor() {
+        return prepareReceptor;
+    }
+
+    /**
+     * Sets if receptor preparation is enabled
+     * @param prepareReceptor set if receptor preparation is enabled
+     */
+    public void setPrepareReceptor(boolean prepareReceptor) {
+        this.prepareReceptor = prepareReceptor;
+    }
 
     /**
      * Getter for the maximum number of generations in the evolution process.
@@ -575,7 +593,11 @@ public class CompoundEvolver {
         }
         population.setFitnessCandidateList();
         // Add scores for the archive
-        scores.add(Arrays.stream(MultiReceptorHelper.getFitnessList(population.getCandidateList())).boxed().collect(Collectors.toList()));
+        if(this.selective) {
+            scores.add(Arrays.stream(MultiReceptorHelper.getFitnessList(population.getCandidateList())).boxed().collect(Collectors.toList()));
+        } else {
+            scores.add(Arrays.stream(MultiReceptorHelper.getFitnessListSelectivity(population.getCandidateList())).boxed().collect(Collectors.toList()));
+        }
     }
 
     /**
@@ -650,7 +672,10 @@ public class CompoundEvolver {
             this.pipe = new ArrayList<>();
         if (this.pipe2 == null)
             this.pipe2 = new ArrayList<>();
-
+        if (this.prepareReceptor) {
+            PdbFixer.runFixer(System.getenv("LEPRO_EXE"), receptorFilePath);
+            receptorFilePath = receptorFilePath.resolveSibling("pro.pdb");
+        }
         // Get the step for converting 'flat' molecules into multiple 3d conformers
         PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount);
 //        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);

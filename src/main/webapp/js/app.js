@@ -43,7 +43,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         smartsFiltering: "",
         alignFast: true,
         recOrder: [],
-        anchorOrder: []
+        anchorOrder: [],
+        prepareReceptor: false
     };
 
     // Define the properties of reaction files.

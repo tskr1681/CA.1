@@ -289,6 +289,23 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="set-prepare-receptor" class="col-sm-3 col-form-label">Prepare Receptor
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.setPrepareReceptor"
+                                           id="set-prepare-receptor"
+                                           name="setPrepareReceptor"
+                                           value="prepareReceptor">
+                                    <label class="form-check-label" for="set-prepare-receptor">
+                                        Prepare receptor using lepro
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="anchor-fragment-file" class="col-sm-3 col-form-label">Anchor fragment file
                                 (.sdf)</label>
                             <div class="col-sm-9">

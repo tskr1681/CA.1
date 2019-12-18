@@ -193,6 +193,8 @@ public class EvolveServlet extends HttpServlet {
         CompoundEvolver evolver = new CompoundEvolver(
                 initialPopulation, progressConnector);
 
+        evolver.setPrepareReceptor(getBooleanParameterFromRequest(request, "setPrepareReceptor"));
+        System.out.println("getBooleanParameterFromRequest(request, \"setPrepareReceptor\") = " + getBooleanParameterFromRequest(request, "setPrepareReceptor"));
         // Get the environment variable containing the pipeline target directory.
         Path pipelineTargetDirectory = Paths.get(System.getenv("PL_TARGET_DIR"));
 
