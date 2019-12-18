@@ -782,7 +782,7 @@ public class CompoundEvolver {
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
             case MOLOC:
                 return new MolocConformerStep(
-                        this.pipelineOutputFilePath, conformerCount, "C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe", "C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
+                        this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"));
             default:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }

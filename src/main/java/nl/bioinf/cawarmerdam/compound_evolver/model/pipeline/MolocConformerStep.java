@@ -1,9 +1,11 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolExporter;
+import chemaxon.marvin.calculations.ConformerPlugin;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ConformerHelper;
+import nl.bioinf.cawarmerdam.compound_evolver.util.FixArom;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -16,6 +18,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
     private final int conformerCount;
     private static String mcnfExecutable;
     private static String msmabExecutable;
+    private static final ConformerPlugin plugin = new ConformerPlugin();
 
     /**
      * Constructor for three dimensional converter step.
@@ -79,14 +82,14 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
      */
     private Molecule[] createConformers(Candidate candidate) throws PipelineException {
         try {
-            return runMoloc(getConformerFileName(candidate), makeSmiles(candidate).toString(), this.conformerCount);
+            return runMoloc(getConformerFileName(candidate), makeSmiles(candidate), this.conformerCount);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
         return null;
     }
 
-    private static Molecule[] runMoloc(Path filename, String smiles, int conformerCount) throws PipelineException {
+    private static Molecule[] runMoloc(Path filename, Path smiles, int conformerCount) throws PipelineException {
         try {
             String tempDir = filename.getParent().resolve("temp.sd").toString();
             // Build process
@@ -95,7 +98,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
                     "-s",
                     "-o",
                     tempDir,
-                    smiles
+                    smiles.toString()
             );
 
             // Start the process
@@ -144,7 +147,9 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
     private Path makeSmiles(Candidate candidate) throws IOException {
         Path smilesPath = getConformerFileName(candidate).getParent().resolve("temp.smiles");
         BufferedWriter writer = new BufferedWriter(new FileWriter(smilesPath.toFile()));
-        writer.write(candidate.getPhenotypeSmiles());
+        Molecule m = candidate.getPhenotype();
+        FixArom.fixArom(m);
+        writer.write(MolExporter.exportToFormat(m, "smiles"));
         writer.flush();
         writer.close();
         return smilesPath;
@@ -182,11 +187,5 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
         {
             ex.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws PipelineException {
-        setMcnfExecutable("C:\\Program Files (x86)\\moloc\\bin\\Mcnf.exe");
-        setMsmabExecutable("C:\\Program Files (x86)\\moloc\\bin\\Msmab.exe");
-        runMoloc(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\CoDB9QR99LvdU5G5WoCFVL2jFC8aL80nnIjkt4Aj-N0\\21\\conformers.sd"), "C:\\Users\\F100961\\Documents\\pipeline\\CoDB9QR99LvdU5G5WoCFVL2jFC8aL80nnIjkt4Aj-N0\\21\\temp.smiles", 100);
     }
 }
