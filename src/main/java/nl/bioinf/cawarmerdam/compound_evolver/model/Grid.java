@@ -154,13 +154,9 @@ public class Grid {
      * @return true if the location is outside of the grid.
      */
     private boolean locationOutsideGrid(int x, int y, int z) {
-        if (x < 0 || x >= grid.length ||
+        return x < 0 || x >= grid.length ||
                 y < 0 || y >= grid[0].length ||
-                z < 0 || z >= grid[0][0].length) {
-            System.out.printf("%s, %s, %s%n", x, y, z);
-            return true;
-        }
-        return false;
+                z < 0 || z >= grid[0][0].length;
     }
 
     /**
