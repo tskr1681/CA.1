@@ -52,7 +52,11 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
         List<Double> new_scores = new ArrayList<>();
         int conformer_count = 15;
         try {
-           conformer_count  = ConformerHelper.getConformerCount(outputFilePath);
+            if (scores == null) {
+                conformer_count = ConformerHelper.getConformerCount(outputFilePath);
+            } else {
+                conformer_count = scores.size();
+            }
         } catch(IOException ignored) {
 
         }
