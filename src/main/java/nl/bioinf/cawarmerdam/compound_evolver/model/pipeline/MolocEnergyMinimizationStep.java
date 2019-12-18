@@ -67,18 +67,11 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
         // Get the output files.
         File minimizedConformersFile = inputFile.resolveSibling(String.format("%s_3d.sd", ligandName)).toFile();
-        Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
 
-        // Rename the output .sd file to .sdf
-        boolean renamed = minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
-
-        // Throw an exception if the file was not renamed.
-        if (!renamed) throw new PipelineException(String.format("Could not rename '%s' to '%s'",
-                minimizedConformersFile, newMinimizedConformersFilePath));
         // Set scores.
         candidate.setConformerScores(getConformerScores(inputFile.getParent(), ligandName, receptorName));
-        candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);
-        candidate.setScoredConformersFile(newMinimizedConformersFilePath);
+        candidate.setMinimizationOutputFilePath(minimizedConformersFile.toPath());
+        candidate.setScoredConformersFile(minimizedConformersFile.toPath());
         return candidate;
     }
 
