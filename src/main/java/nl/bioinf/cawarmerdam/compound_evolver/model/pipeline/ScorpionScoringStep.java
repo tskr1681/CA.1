@@ -3,9 +3,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,7 +130,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
 
             String output_str = inputFile.toString().replaceAll(".sdf", "") + "_scorp.sdf";
             Path rec_dir = inputFile.resolveSibling("rec.pdb");
-            Files.copy(receptorFilePath, rec_dir, (CopyOption) null);
+            IOUtils.copy(new FileInputStream(receptorFilePath.toFile()), new FileOutputStream(rec_dir.toFile()));
             //The command to run
             ProcessBuilder builder2 = new ProcessBuilder(
                     pythonExecutable,
