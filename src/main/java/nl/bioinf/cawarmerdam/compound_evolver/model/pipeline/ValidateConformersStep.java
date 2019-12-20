@@ -36,9 +36,10 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
         this.tooDistantConformerCounter = tooDistantConformerCounter;
         this.maximumDistanceFromAnchor = maximumDistanceFromAnchor;
         try {
-            Molecule receptor = new MolImporter(String.valueOf(receptorFilePath)).read();
+            Molecule receptor = new MolImporter(receptorFilePath.toFile(), "pdb").read();
             this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new PipelineException(
                     String.format("Could not import receptor molecule %s", receptorFilePath.getFileName()));
         }
