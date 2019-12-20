@@ -22,6 +22,7 @@ moloc (http://www.moloc.ch/)
 
 Optional:
 Viper 3.5 (http://www.desertsci.com/products/viper/)
+LePro (http://www.lephar.com/download.htm)
 ```
 
 ## Development
@@ -72,6 +73,10 @@ It also needs some environment variables to be set, being the following:
 
 `ESPRNTO_EXE`: Specifies the location of the esprnto executable, which comes with moloc
 
+`MCNF_EXE`: Specifies the location of the mcnf executable, which comes with moloc
+
+`MSMAB_EXE`: Specifies the location of the msmab executable, which comes with moloc
+
 `PL_TARGET_DIR`: Specifies the location of the pipeline output steps
 
 `POOL_SIZE`: Specifies the number of threads to use for the energy minimization step
@@ -83,3 +88,9 @@ It also needs some environment variables to be set, being the following:
 `PRPR_REC_EXE`: Specifies the location of the prepare_receptor4.py script, which is included with AutoDockTools
 
 `FINDPATHS3_EXE`: Specifies the location of the viewpaths3.py script, which is included with Scorpion/Viper
+
+`LEPRO_EXE`: Specifies the location of the lepro executable for receptor preparation
+
+`FIXER_EXE`: Specifies the location of the bundled get_scorp_for_conformers.py script
+
+`PYTHON_EXE`: Specifies the location or name of the python executable

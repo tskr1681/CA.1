@@ -6,8 +6,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,16 +21,21 @@ import java.util.List;
 public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
     private final Path receptorFilePath;
     private final String scorpionExecutable;
+    private final String fixerExecutable;
+    private final String pythonExecutable;
 
     /**
-     * Constructor for the scorpion energy minimization step.
-     *
+     * Constructor for the scorpion scoring step.
      * @param receptor     The force field that should be chosen in minimization.
      * @param scorpionExecutable The executable to run scorpion, or specifically, viewpaths3.py
+     * @param fixerExecutable the location of the scorpion output fixer executable
+     * @param pythonExecutable the location of the python executable to run this
      */
-    public ScorpionScoringStep(Path receptor, String scorpionExecutable) {
+    public ScorpionScoringStep(Path receptor, String scorpionExecutable, String fixerExecutable, String pythonExecutable) {
         this.receptorFilePath = receptor;
         this.scorpionExecutable = scorpionExecutable;
+        this.fixerExecutable = fixerExecutable;
+        this.pythonExecutable = pythonExecutable;
     }
 
     /**
@@ -125,6 +129,21 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
             // Build process with the command
             builder.directory(inputFile.getParent().toFile());
             Process p = builder.start();
+
+            String output_str = inputFile.toString().replaceAll(".sdf", "") + "_scorp.sdf";
+            Path rec_dir = inputFile.resolveSibling("rec.pdb");
+            Files.copy(receptorFilePath, rec_dir, (CopyOption) null);
+            //The command to run
+            ProcessBuilder builder2 = new ProcessBuilder(
+                    pythonExecutable,
+                    fixerExecutable,
+                    Paths.get(output_str).getFileName().toString(),
+                    receptorFilePath.toString(),
+                    rec_dir.getFileName().toString());
+
+            // Build process with the command
+            builder2.directory(inputFile.getParent().toFile());
+            Process p2 = builder2.start();
 
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
