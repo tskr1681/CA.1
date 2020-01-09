@@ -10,6 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -70,11 +71,21 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         Path newMinimizedConformersFilePath = inputFile.resolveSibling(String.format("%s_3d.sdf", ligandName));
 
         // Rename the output .sd file to .sdf
-        boolean renamed = minimizedConformersFile.renameTo(newMinimizedConformersFilePath.toFile());
+        try {
+            Files.copy(minimizedConformersFile.toPath(), newMinimizedConformersFilePath);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new PipelineException(String.format("Could not rename '%s' to '%s'",
+                    minimizedConformersFile, newMinimizedConformersFilePath));
+        }
+        try {
+            Files.delete(minimizedConformersFile.toPath());
+        } catch (IOException ignored) {
+
+        }
 
         // Throw an exception if the file was not renamed.
-        if (!renamed) throw new PipelineException(String.format("Could not rename '%s' to '%s'",
-                minimizedConformersFile, newMinimizedConformersFilePath));
         // Set scores.
         candidate.setConformerScores(getConformerScores(inputFile.getParent(), ligandName, receptorName));
         candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);

@@ -151,7 +151,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
 
             // read the output from the command
             String stdOutMessage = IOUtils.toString(stdInput);
-            System.out.println("Scorption wrote the following output: " + stdOutMessage);
+            System.out.println("Scorpion wrote the following output: " + stdOutMessage);
 
 
             // read any errors from the attempted command

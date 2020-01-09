@@ -5,12 +5,15 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.struc.Molecule;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallableValidificationPipelineContainer;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -55,6 +58,8 @@ public class Population implements Iterable<Candidate> {
     private int receptorAmount;
     private List<Candidate> fitnessCandidateList;
     private boolean selective;
+    private List<PipelineStep<Candidate,Candidate>> validatepipe;
+    private Path outputLocation;
 
     /**
      * Constructor for population.
@@ -104,6 +109,24 @@ public class Population implements Iterable<Candidate> {
         this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount);
     }
 
+
+    /**
+     * Setter for the output location for the pipeline
+     *
+     * @param outputLocation The output location for the pipeline
+     */
+    public void setOutputLocation(Path outputLocation) {
+        this.outputLocation = outputLocation;
+    }
+
+    /**
+     * Setter for the validation pipeline
+     *
+     * @param validatepipe The validation pipeline
+     */
+    public void setValidifypipe(List<PipelineStep<Candidate, Candidate>> validatepipe) {
+        this.validatepipe = validatepipe;
+    }
 
     /**
      * Getter for the interspecies crossover method.
@@ -653,10 +676,21 @@ public class Population implements Iterable<Candidate> {
             for (Candidate c : newOffspring) {
                 if (offspring.size() < offspringSize) {
                     if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
-                        // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
-                        offspring.add(c);
-                        this.offspringRejectionMessages.clear();
-                        failureCounter = 0;
+                        List<Candidate> candidateAsList = new ArrayList<Candidate>();
+                        candidateAsList.add(c);
+                        Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
+                        // Add future, which the executor will return to the list
+                        try {
+                            if (executor.submit(PipelineContainer).get().get(0) != null) {
+                                // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
+                                offspring.add(c);
+                                this.offspringRejectionMessages.clear();
+                                failureCounter = 0;
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+
                     } else {
                         // Count this failure
                         failureCounter++;

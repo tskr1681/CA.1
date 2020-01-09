@@ -5,7 +5,6 @@ import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
-import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GAParameters;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 import org.apache.commons.lang3.SerializationUtils;
@@ -80,7 +79,7 @@ public class EvolverOptimizer {
                 CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
                 List<List<Double>> scores = run.getFitness();
                 writeOutput(resultsTable, parameterVector, identifier, runPath, run, scores);
-            } catch (MisMatchedReactantCount | PipelineException | OffspringFailureOverflow | TooFewScoredCandidates | IOException e) {
+            } catch (MisMatchedReactantCount | OffspringFailureOverflow | TooFewScoredCandidates | IOException e) {
                 System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
                 e.printStackTrace();
             }
@@ -238,11 +237,10 @@ public class EvolverOptimizer {
      * @param parameters The parameters for the genetic algorithm
      * @return A new instance of the compoundevolver, with the evolve function having been run
      * @throws MisMatchedReactantCount when the amount of reactants does not match what the reactor expects
-     * @throws PipelineException when an error occurs when running the pipeline
      * @throws OffspringFailureOverflow when creation of new offspring has failed too many times
      * @throws TooFewScoredCandidates when too few candidates are scored to run the next step of the algorithm
      */
-    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, PipelineException, OffspringFailureOverflow, TooFewScoredCandidates {
+    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(
                 reactantLists,

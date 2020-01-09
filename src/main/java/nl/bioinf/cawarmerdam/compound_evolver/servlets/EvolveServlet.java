@@ -40,7 +40,7 @@ import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.*;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-@MultipartConfig(maxFileSize = 10000000)    // upload file's size up to 10MB
+@MultipartConfig(maxFileSize = 100000000)    // upload file's size up to 10MB
 @WebServlet(name = "EvolveServlet", urlPatterns = "/evolve.do")
 public class EvolveServlet extends HttpServlet {
 

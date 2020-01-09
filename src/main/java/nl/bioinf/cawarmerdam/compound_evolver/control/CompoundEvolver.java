@@ -405,8 +405,9 @@ public class CompoundEvolver {
             System.out.println("validCandidates.size() = " + validCandidates.size());
         }
         population.setCandidateList(validCandidates);
-
+        population.setOutputLocation(pipelineOutputFilePath);
         scoreCandidates();
+        population.setValidifypipe(pipe2);
         try {
             manager.writeGeneration(population);
         } catch (Exception e) {
