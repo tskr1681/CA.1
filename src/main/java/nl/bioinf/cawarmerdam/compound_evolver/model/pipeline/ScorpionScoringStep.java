@@ -130,6 +130,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
 
             String output_str = inputFile.toString().replaceAll(".sdf", "") + "_scorp.sdf";
             Path rec_dir = inputFile.resolveSibling("rec.pdb");
+            Path pml_script = inputFile.resolveSibling("main.pml");
             IOUtils.copy(new FileInputStream(receptorFilePath.toFile()), new FileOutputStream(rec_dir.toFile()));
             //The command to run
             ProcessBuilder builder2 = new ProcessBuilder(
@@ -137,7 +138,8 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     fixerExecutable,
                     Paths.get(output_str).getFileName().toString(),
                     receptorFilePath.toString(),
-                    rec_dir.getFileName().toString());
+                    pml_script.toString()
+                    );
 
             // Build process with the command
             builder2.directory(inputFile.getParent().toFile());
