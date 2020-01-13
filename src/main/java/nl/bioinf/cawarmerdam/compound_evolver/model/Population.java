@@ -688,7 +688,7 @@ public class Population implements Iterable<Candidate> {
                                 failureCounter = 0;
                             }
                         } catch (InterruptedException | ExecutionException e) {
-                            e.printStackTrace();
+                            failureCounter++;
                         }
 
                     } else {
