@@ -62,7 +62,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 candidateDirectory = createCandidateDirectory(candidates.get(i));
                 // Setting Level to ALL
                 // Execute pipeline
-                MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.toFile()), "smiles");
+                MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.resolve("reactants.smiles").toFile()), "smiles");
                 for (Molecule reactant:candidates.get(i).getReactants()) {
                     m.write(reactant);
                 }
