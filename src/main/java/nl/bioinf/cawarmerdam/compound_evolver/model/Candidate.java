@@ -63,6 +63,7 @@ public class Candidate implements Comparable<Candidate> {
     private double minQED;
     private EnumColor color;
     private double minBBB;
+    private Molecule[] reactants;
 
     /**
      * Constructor for candidate instance.
@@ -148,7 +149,12 @@ public class Candidate implements Comparable<Candidate> {
             phenotypes = react(reaction, reactants);
             if (phenotypes != null && phenotypes.size() != 0) {
                 this.phenotype = phenotypes.get((int) (Math.random() * phenotypes.size()));
-                return this.isValid();
+                if (this.isValid()) {
+                    this.reactants = reactants;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } catch (ReactionException | IllegalArgumentException | IndexOutOfBoundsException e) {
             this.rejectionMessage = "Reactor produced an error";
@@ -208,6 +214,14 @@ public class Candidate implements Comparable<Candidate> {
      */
     public long getIdentifier() {
         return identifier;
+    }
+
+    /**
+     * Gets the reactants used for this candidate
+     * @return the reactants
+     */
+    public Molecule[] getReactants() {
+        return reactants;
     }
 
     /**

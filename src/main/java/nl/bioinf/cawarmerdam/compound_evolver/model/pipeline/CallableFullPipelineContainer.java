@@ -4,10 +4,13 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
+import chemaxon.formats.MolExporter;
 import chemaxon.marvin.plugin.PluginException;
+import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +62,14 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 candidateDirectory = createCandidateDirectory(candidates.get(i));
                 // Setting Level to ALL
                 // Execute pipeline
+                MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.toFile()), "smiles");
+                for (Molecule reactant:candidates.get(i).getReactants()) {
+                    m.write(reactant);
+                }
+                m.close();
                 this.pipeline.get(i).execute(candidates.get(i));
+            } catch (IOException e) {
+                e.printStackTrace();
             } finally {
                 // Remove the pipeline files.
                 if (candidateDirectory != null && cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
