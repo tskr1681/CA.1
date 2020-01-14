@@ -53,7 +53,7 @@ public class MultiReceptorHelper {
                         fitness -= Math.exp(candidates.get(j).get(i).getNormFitness());
                     }
                 }
-                fitnesses.add(Math.exp(fitness-1));
+                fitnesses.add(fitness);
             }
             return fitnesses.stream().mapToDouble(Double::doubleValue).toArray();
         }
