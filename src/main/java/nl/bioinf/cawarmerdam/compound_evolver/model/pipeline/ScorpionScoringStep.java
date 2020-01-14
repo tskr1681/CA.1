@@ -138,7 +138,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     pythonExecutable,
                     fixerExecutable,
                     Paths.get(output_str).getFileName().toString(),
-                    receptorFilePath.getFileName().toString(),
+                    rec_dir.getFileName().toString(),
                     pml_script.toString()
                     );
 
