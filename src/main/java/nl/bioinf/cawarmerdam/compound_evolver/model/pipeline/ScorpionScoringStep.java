@@ -128,6 +128,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
             builder.directory(inputFile.getParent().toFile());
             Process p = builder.start();
 
+            p.waitFor();
             String output_str = inputFile.toString().replaceAll("\\.sdf", "") + "_scorp.sdf";
             Path rec_dir = inputFile.resolveSibling("rec.pdb");
             Path pml_script = inputFile.resolveSibling("main.pml");
@@ -137,13 +138,13 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     pythonExecutable,
                     fixerExecutable,
                     Paths.get(output_str).getFileName().toString(),
-                    receptorFilePath.toString(),
+                    receptorFilePath.getFileName().toString(),
                     pml_script.toString()
                     );
 
             // Build process with the command
             builder2.directory(inputFile.getParent().toFile());
-            Process p2 = builder2.inheritIO().start();
+            Process p2 = builder2.start();
 
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
@@ -162,7 +163,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                 System.out.println(String.format("Scorpion has written an error message:%n%s%n", stdErrorMessage));
             }
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
 
             // Throw pipeline exception
             throw new PipelineException("Energy minimization with Scorpion failed.", e);
