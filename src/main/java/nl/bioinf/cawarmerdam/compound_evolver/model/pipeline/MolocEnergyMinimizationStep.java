@@ -7,7 +7,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -171,6 +170,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
                     esprntoExecutable,
                     "-pM", receptorFile.toString());
 
+            builder.inheritIO();
             // Start the process
             final Process p = builder.start();
 
@@ -181,17 +181,6 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
-
-            // Read the output from the command
-            System.out.println(
-                    String.format("Conversion to mab file has written output:%n%s%n", IOUtils.toString(stdInput)));
-
-            // read any errors from the attempted command
-            String stdErrorMessage = IOUtils.toString(stdError);
-            if (!stdErrorMessage.isEmpty()) {
-                System.out.println(
-                        String.format("Conversion to mab file has written an error message:%n%s%n", stdErrorMessage));
-            }
 
         } catch (InterruptedException | IOException e) {
 
