@@ -60,6 +60,7 @@ public class Population implements Iterable<Candidate> {
     private boolean selective;
     private List<PipelineStep<Candidate,Candidate>> validatepipe;
     private Path outputLocation;
+    private int totalGenerations;
 
     /**
      * Constructor for population.
@@ -126,6 +127,14 @@ public class Population implements Iterable<Candidate> {
      */
     public void setValidifypipe(List<PipelineStep<Candidate, Candidate>> validatepipe) {
         this.validatepipe = validatepipe;
+    }
+
+    /**
+     * Setter for the total amount of generations this run will have
+     * @param totalGenerations the total amount of generations this run will have
+     */
+    public void setTotalGenerations(int totalGenerations) {
+        this.totalGenerations = totalGenerations;
     }
 
     /**
@@ -656,7 +665,7 @@ public class Population implements Iterable<Candidate> {
                     this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
                     double f = fitnesslist[i % fitnesslist.length];
                     this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));
-                    mutation_similarity = f;
+                    mutation_similarity = 0.9f*(float)generationNumber/totalGenerations;
                 }
                 offspringChoice = makeWeightedReproductionChoice();
                 Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j, mutation_similarity);
