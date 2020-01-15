@@ -673,6 +673,8 @@ public class Population implements Iterable<Candidate> {
                     e.printStackTrace();
                 }
             }
+            int invalidCounter = 0;
+            boolean skipcheck = false;
             for (Candidate c : newOffspring) {
                 if (offspring.size() < offspringSize) {
                     if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
@@ -681,14 +683,17 @@ public class Population implements Iterable<Candidate> {
                         Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
                         // Add future, which the executor will return to the list
                         try {
-                            if (executor.submit(PipelineContainer).get().get(0) != null) {
+                            if (skipcheck || executor.submit(PipelineContainer).get().get(0) != null) {
                                 // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
                                 offspring.add(c);
                                 this.offspringRejectionMessages.clear();
                                 failureCounter = 0;
                             }
                         } catch (InterruptedException | ExecutionException e) {
-                            failureCounter++;
+                            invalidCounter++;
+                            if (invalidCounter > this.candidateList.get(0).size() * 4) {
+                                skipcheck = true;
+                            }
                         }
 
                     } else {
