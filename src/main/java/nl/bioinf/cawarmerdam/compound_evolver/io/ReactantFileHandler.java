@@ -71,14 +71,14 @@ public final class ReactantFileHandler {
                     List<Molecule> filtered = ReactantFilter.filterBySmarts(readSmileFile(
                             filePart.getInputStream(),
                             fileName), smarts_filters);
-                    if (filtered.size() < 3) {
+                    if (filtered.size() < 2) {
                         throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
                     }
                     reactantLists.add(filtered);
                 } else {
                     List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(filePart.getInputStream(), fileName), weight);
                     filtered = ReactantFilter.filterBySmarts(filtered, smarts_filters);
-                    if (filtered.size() < 3) {
+                    if (filtered.size() < 2) {
                         throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
                     }
                     reactantLists.add(filtered);
