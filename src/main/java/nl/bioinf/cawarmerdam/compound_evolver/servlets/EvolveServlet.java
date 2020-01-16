@@ -139,6 +139,8 @@ public class EvolveServlet extends HttpServlet {
         // Get crossover rate and mutation rate, but only if not running an adaptive GA
         boolean adaptive = getBooleanParameterFromRequest(request,"setAdaptive");
         initialPopulation.setAdaptive(adaptive);
+        boolean adaptiveMutation = getBooleanParameterFromRequest(request,"setAdaptiveMutation");
+        initialPopulation.setAdaptiveMutation(adaptiveMutation);
         if (adaptive) {
             initialPopulation.setCrossoverRate(1);
             initialPopulation.setMutationRate(0.5);

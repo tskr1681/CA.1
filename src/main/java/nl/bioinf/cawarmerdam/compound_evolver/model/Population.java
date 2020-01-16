@@ -61,6 +61,7 @@ public class Population implements Iterable<Candidate> {
     private List<PipelineStep<Candidate,Candidate>> validatepipe;
     private Path outputLocation;
     private int totalGenerations;
+    private boolean adaptiveMutation;
 
     /**
      * Constructor for population.
@@ -215,6 +216,14 @@ public class Population implements Iterable<Candidate> {
 
     public void setAdaptive(boolean adaptive) {
         this.adaptive = adaptive;
+    }
+
+    public boolean isAdaptiveMutation() {
+        return adaptiveMutation;
+    }
+
+    public void setAdaptiveMutation(boolean adaptiveMutation) {
+        this.adaptiveMutation = adaptiveMutation;
     }
 
     public int getReceptorAmount() {
@@ -665,6 +674,8 @@ public class Population implements Iterable<Candidate> {
                     this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
                     double f = fitnesslist[i % fitnesslist.length];
                     this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));
+                }
+                if (this.adaptiveMutation) {
                     mutation_similarity = 0.9f*(float)generationNumber/totalGenerations;
                 }
                 offspringChoice = makeWeightedReproductionChoice();

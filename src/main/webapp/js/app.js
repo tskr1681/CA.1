@@ -37,6 +37,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         maxHydrogenBondAcceptors: 10,
         maxPartitionCoefficient: 5,
         setAdaptive: true,
+        setAdaptiveMutation: true,
         setSelective: false,
         minQED: 0,
         minBBB: 2,

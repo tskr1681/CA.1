@@ -4,6 +4,7 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
+import chemaxon.formats.MolExporter;
 import chemaxon.marvin.plugin.PluginException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Servlet used for acquiring updates from the evolution.
@@ -110,6 +113,14 @@ class CandidateSerializer extends StdSerializer<Candidate> {
         jgen.writeNumberField("ligandEfficiency", candidate.getLigandEfficiency());
         jgen.writeNumberField("ligandLipophilicityEfficiency", candidate.getLigandLipophilicityEfficiency());
         jgen.writeStringField("species", candidate.getSpecies().toString());
+        jgen.writeObjectField("reactants", Arrays.stream(candidate.getReactants()).map(molecule -> {
+            try {
+                return MolExporter.exportToFormat(molecule, "smiles");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).collect(Collectors.toList()));
         jgen.writeEndObject();
     }
 }

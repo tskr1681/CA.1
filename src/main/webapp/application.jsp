@@ -552,6 +552,23 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="set-adaptive-mutation" class="col-sm-3 col-form-label">Adaptive GA
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.setAdaptive"
+                                           id="set-adaptive-mutation"
+                                           name="setAdaptiveMutation"
+                                           value="adaptiveMutation">
+                                    <label class="form-check-label" for="set-adaptive-mutation">
+                                        Use adaptive mutation, which makes smaller changes at higher generation numbers
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="crossover-rate" class="col-sm-3 col-form-label">Crossover rate</label>
                             <div class="col-sm-9">
                                 <input type="number"
@@ -1219,6 +1236,10 @@
                     <td><a href ng-click="downloadCompound(candidate.id)">{{candidate.id}}</a></td>
                     <td>{{showSmiles(candidate.smiles, $index)}}
                         <canvas id="{{$index}}" width="300" height="200"></canvas>
+                    </td>
+                    <td ng-repeat="reactant in candidate.reactants">
+                        {{showSmiles(reactant, $index+reactant}}
+                        <canvas id ="{{$index+reactant}}" width="200" height="200"></canvas>
                     </td>
                     <td>{{candidate.rawScore | number:4}}</td>
                     <td>{{candidate.ligandEfficiency | number:4}}</td>

@@ -391,6 +391,7 @@ public class CompoundEvolver {
         this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
         evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.RUNNING);
 
+        this.population.setTotalGenerations(maxNumberOfGenerations);
         // Score the initial population
         List<List<Candidate>> candidates = getInitialCandidates();
         List<Candidate> validCandidates = new ArrayList<>(filterCandidates(candidates));
