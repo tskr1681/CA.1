@@ -168,7 +168,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 $scope.response.error = exception.message;
             }
         } else if (jqXHR.status === 0) {
-            $scope.response.error = "An error has occurred: the connection has failed (" + jqXHR.status + ")"
+            //ignore this, it breaks stuff
+            //$scope.response.error = "An error has occurred: the connection has failed (" + jqXHR.status + ")"
         } else {
             $scope.response.error = "An error has occurred: " + jqXHR.statusText + " (" + jqXHR.status + ")";
         }
