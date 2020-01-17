@@ -66,6 +66,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             if (conformer == null) {
                 throw new PipelineException("Got null as conformer!");
             }
+            removeMarker(conformer);
             boolean isTooDistant = calculateLeastAnchorRmsd(conformer) > maximumDistanceFromAnchor;
             boolean isInShape = exclusionShape.inShape(conformer);
 
@@ -128,6 +129,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
 
             // read the first molecule from the file
             Molecule anchorMolecule = importer.read();
+            removeMarker(anchorMolecule);
 
             // Find the most common sub structure of the two molecules.
             // This should be the substructure that was also used in aligning the molecule
@@ -195,4 +197,19 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
         }
         return Math.sqrt(deviations / atomCount);
     }
+
+
+    private void removeMarker(Molecule m) {
+        ArrayList<Integer> toRemove = new ArrayList<>();
+        MolAtom[] atomArray = m.getAtomArray();
+        for(int i = 0; i < atomArray.length; i++) {
+            if (atomArray[i].getAtno() == 118) {
+                toRemove.add(i);
+            }
+        }
+        for (int i:toRemove) {
+            m.removeAtom(i);
+        }
+    }
+
 }
