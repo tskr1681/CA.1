@@ -397,13 +397,17 @@ public class CompoundEvolver {
         List<Candidate> validCandidates = new ArrayList<>(filterCandidates(candidates));
         System.out.println("candidates = " + candidates);
         System.out.println("validCandidates.size() = " + validCandidates.size());
-        while (validCandidates.size() < population.getPopulationSize()) {
+        while (validCandidates.size() < population.getPopulationSize() && !evolutionProgressConnector.isTerminationRequired()) {
             population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize(), population.getReceptorAmount());
             population.setSelective(this.selective);
             candidates = getInitialCandidates();
             validCandidates.addAll(filterCandidates(candidates));
             System.out.println("candidates = " + candidates);
             System.out.println("validCandidates.size() = " + validCandidates.size());
+        }
+        if (evolutionProgressConnector.isTerminationRequired()) {
+            evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
+            return;
         }
         population.setCandidateList(validCandidates);
         population.setOutputLocation(pipelineOutputFilePath);
