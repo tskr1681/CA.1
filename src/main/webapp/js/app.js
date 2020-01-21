@@ -42,6 +42,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         minQED: 0,
         minBBB: 2,
         smartsFiltering: "",
+        name: "",
         alignFast: true,
         recOrder: [],
         anchorOrder: [],

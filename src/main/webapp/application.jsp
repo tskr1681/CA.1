@@ -129,6 +129,24 @@
                             and this should thus be located at the position where the conformers should be placed.
                         </p>
                         <div class="form-group row">
+                            <label for="name" class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <textarea
+                                        class="form-control"
+                                        ng-model="formModel.name"
+                                        id="name"
+                                        name="name"
+                                        required="required"
+                                        ng-class="{'is-valid':True}">
+                                </textarea>
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    Input your name here so it's clear who submitted the job
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="reaction-files" class="col-sm-3 col-form-label">Reaction files (.mrv)</label>
                             <div class="col-sm-9">
                                 <div class="custom-file">
@@ -552,13 +570,13 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="set-adaptive-mutation" class="col-sm-3 col-form-label">Adaptive GA
+                            <label for="set-adaptive-mutation" class="col-sm-3 col-form-label">Adaptive Mutation
                             </label>
                             <div class="col-sm-9">
                                 <div class="form-check">
                                     <input type="checkbox"
                                            class="form-check-input"
-                                           ng-model="formModel.setAdaptive"
+                                           ng-model="formModel.setAdaptiveMutation"
                                            id="set-adaptive-mutation"
                                            name="setAdaptiveMutation"
                                            value="adaptiveMutation">
