@@ -38,7 +38,7 @@ public class Population implements Iterable<Candidate> {
     private SpeciesDeterminationMethod speciesDeterminationMethod;
     private List<List<Candidate>> candidateList;
     private double[][][] alleleSimilarities;
-    private HashMap<Integer,HashMap<Integer,List<Double>>> allelemap = new HashMap<>();
+    private HashMap<Integer, HashMap<Integer, List<Double>>> allelemap = new HashMap<>();
     private double mutationRate;
     private double selectionFraction;
     private double crossoverRate;
@@ -58,18 +58,19 @@ public class Population implements Iterable<Candidate> {
     private int receptorAmount;
     private List<Candidate> fitnessCandidateList;
     private boolean selective;
-    private List<PipelineStep<Candidate,Candidate>> validatepipe;
+    private List<PipelineStep<Candidate, Candidate>> validatepipe;
     private Path outputLocation;
     private int totalGenerations;
     private boolean adaptiveMutation;
 
     /**
      * Constructor for population.
-     *  @param reactantLists Lists of reactants in a list.
-     * @param species List of possible species.
+     *
+     * @param reactantLists              Lists of reactants in a list.
+     * @param species                    List of possible species.
      * @param speciesDeterminationMethod The method that determines which species to use.
-     * @param initialGenerationSize The generation or population size.
-     * @param receptorAmount The amount of receptors, used for polypharmacology
+     * @param initialGenerationSize      The generation or population size.
+     * @param receptorAmount             The amount of receptors, used for polypharmacology
      */
     public Population(
             List<List<Molecule>> reactantLists,
@@ -99,10 +100,11 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Constructor for population with dynamic species determination as default.
-     *  @param reactantLists Lists of reactants in a list.
-     * @param species List of possible species.
+     *
+     * @param reactantLists         Lists of reactants in a list.
+     * @param species               List of possible species.
      * @param initialGenerationSize The generation or population size.
-     * @param receptorAmount The amount of receptors, used for polypharmacology
+     * @param receptorAmount        The amount of receptors, used for polypharmacology
      */
     public Population(
             List<List<Molecule>> reactantLists,
@@ -132,6 +134,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Setter for the total amount of generations this run will have
+     *
      * @param totalGenerations the total amount of generations this run will have
      */
     public void setTotalGenerations(int totalGenerations) {
@@ -261,12 +264,12 @@ public class Population implements Iterable<Candidate> {
         }
         for (int i = 0; i < this.receptorAmount; i++) {
             candidateList.add(new ArrayList<>());
-            for(Candidate c:tempList) {
+            for (Candidate c : tempList) {
                 this.candidateList.get(i).add(copyCandidate(c));
             }
         }
         fitnessCandidateList = new ArrayList<>();
-        for(Candidate c:tempList) {
+        for (Candidate c : tempList) {
             fitnessCandidateList.add(copyCandidate(c));
         }
         fitnessCandidateList.addAll(tempList);
@@ -449,6 +452,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * For multireceptor handling, should selectivity be checked?
+     *
      * @return if the selectivity check is active
      */
     public boolean isSelective() {
@@ -457,6 +461,7 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * For multireceptor handling, sets if selectivity should be checked?
+     *
      * @param selective should selectivity be checked?
      */
     public void setSelective(boolean selective) {
@@ -471,7 +476,7 @@ public class Population implements Iterable<Candidate> {
         this.candidateList = new ArrayList<>();
         for (int i = 0; i < this.receptorAmount; i++) {
             this.candidateList.add(new ArrayList<>());
-            for(Candidate c:candidateList) {
+            for (Candidate c : candidateList) {
                 this.candidateList.get(i).add(copyCandidate(c));
             }
         }
@@ -479,7 +484,7 @@ public class Population implements Iterable<Candidate> {
     }
 
     private Candidate copyCandidate(Candidate c) {
-        Candidate out = new Candidate(c.getGenotype(),c.getSpecies());
+        Candidate out = new Candidate(c.getGenotype(), c.getSpecies());
         out.finish(this.reactantLists, this.species);
         return out;
     }
@@ -593,7 +598,7 @@ public class Population implements Iterable<Candidate> {
         // should always be 1
         // When computing the alleles in random fashion it is uncertain which values are already filled
         if (allelemap.get(reactantsListIndex) != null) {
-            if(allelemap.get(reactantsListIndex).get(alleleIndex) == null) {
+            if (allelemap.get(reactantsListIndex).get(alleleIndex) == null) {
                 double[] temp = similarityHelper(alleleIndex, reactants);
                 allelemap.get(reactantsListIndex).put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
             }
@@ -670,13 +675,13 @@ public class Population implements Iterable<Candidate> {
                     ImmutablePair<Candidate, Candidate> parents = getParents(i);
 
                     double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
-                    double f_avg = Arrays.stream(fitnesslist).sum() /fitnessCandidateList.size();
-                    this.setCrossoverRate(Math.min((1 - f_high)/(1 - f_avg), 1));
+                    double f_avg = Arrays.stream(fitnesslist).sum() / fitnessCandidateList.size();
+                    this.setCrossoverRate(Math.min((1 - f_high) / (1 - f_avg), 1));
                     double f = fitnesslist[i % fitnesslist.length];
-                    this.setMutationRate(Math.min(0.5*(1 - f)/(1 - f_avg), 0.5));
+                    this.setMutationRate(Math.min(0.5 * (1 - f) / (1 - f_avg), 0.5));
                 }
                 if (this.adaptiveMutation) {
-                    mutation_similarity = 0.9f*(float)generationNumber/totalGenerations;
+                    mutation_similarity = 0.9f * (float) generationNumber / totalGenerations;
                 }
                 offspringChoice = makeWeightedReproductionChoice();
                 Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j, mutation_similarity);
@@ -695,34 +700,44 @@ public class Population implements Iterable<Candidate> {
             }
             int invalidCounter = 0;
             boolean skipcheck = false;
-            for (Candidate c : newOffspring) {
-                if (offspring.size() < offspringSize) {
-                    if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
-                        List<Candidate> candidateAsList = new ArrayList<Candidate>();
-                        candidateAsList.add(c);
-                        Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
-                        // Add future, which the executor will return to the list
-                        try {
-                            if (skipcheck || executor.submit(PipelineContainer).get().get(0) != null) {
-                                // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
-                                offspring.add(c);
-                                this.offspringRejectionMessages.clear();
-                                failureCounter = 0;
-                            }
-                        } catch (InterruptedException | ExecutionException e) {
-                            invalidCounter++;
-                            if (invalidCounter > this.candidateList.get(0).size() * 4) {
-                                skipcheck = true;
+            for (int j = 0; j < newOffspring.size(); j += pool_size) {
+                // If we are at the last part, only increment by the remainder
+                int increment = j + pool_size > newOffspring.size() ? newOffspring.size() -j : pool_size;
+                List<Future<List<Candidate>>> futures2 = new ArrayList<>();
+                for (int k = j; k < j + increment; k++) {
+                    Candidate c = newOffspring.get(j);
+                    if (offspring.size() < offspringSize) {
+                        if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
+                            List<Candidate> candidateAsList = new ArrayList<>();
+                            candidateAsList.add(c);
+                            Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
+                            futures2.add(executor.submit(PipelineContainer));
+                            // Add future, which the executor will return to the list
+
+                        } else {
+                            // Count this failure
+                            failureCounter++;
+                            if (failureCounter >= this.candidateList.get(0).size() * 24) {
+                                throw new OffspringFailureOverflow(
+                                        String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
+                                        this.offspringRejectionMessages);
                             }
                         }
-
-                    } else {
-                        // Count this failure
-                        failureCounter++;
-                        if (failureCounter >= this.candidateList.get(0).size() * 24) {
-                            throw new OffspringFailureOverflow(
-                                    String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
-                                    this.offspringRejectionMessages);
+                    }
+                }
+                for (Future<List<Candidate>> future : futures2) {
+                    try {
+                        Candidate c = future.get().get(0);
+                        if (skipcheck || c != null) {
+                            // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
+                            offspring.add(c);
+                            this.offspringRejectionMessages.clear();
+                            failureCounter = 0;
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        invalidCounter++;
+                        if (invalidCounter > this.candidateList.get(0).size() * 4) {
+                            skipcheck = true;
                         }
                     }
                 }
@@ -771,6 +786,7 @@ public class Population implements Iterable<Candidate> {
         ReproductionMethod m;
         int i;
         double mutation_similarity;
+
         OffSpringProducer(ReproductionMethod m, int i, double mutation_similarity) {
             this.m = m;
             this.i = i;
@@ -782,6 +798,7 @@ public class Population implements Iterable<Candidate> {
             return ProduceOffspringIndividual(this.m, this.i, this.mutation_similarity);
         }
     }
+
     /**
      * Chooses between the reproduction methods within the reproduction method weighting map.
      *
@@ -802,7 +819,7 @@ public class Population implements Iterable<Candidate> {
         fitnessCandidateList = MultiReceptorHelper.getCandidatesWithFitness(candidateList, this.selective);
         Collections.sort(fitnessCandidateList);
         int elitistCount = (int) ((elitismRate * (1 / (elitismRate + crossoverRate + randomImmigrantRate))) * populationSize);
-        return new ArrayList<>(fitnessCandidateList.subList(Math.max(0, fitnessCandidateList.size()-elitistCount), fitnessCandidateList.size()));
+        return new ArrayList<>(fitnessCandidateList.subList(Math.max(0, fitnessCandidateList.size() - elitistCount), fitnessCandidateList.size()));
     }
 
     /**
@@ -842,7 +859,7 @@ public class Population implements Iterable<Candidate> {
      * to a full candidate with Chemaxon's Reactor API.
      *
      * @param newGenome, a list of indices representing reactants
-     * @param species The species that the new offspring should belong to
+     * @param species    The species that the new offspring should belong to
      * @return the new, finalized candidate when this was created successfully. If either Reactor did not produce a
      * product or if the produced candidate was not valid null is returned. Why the offspring was rejected is added
      * to the offSpringRejectionMessages field.
@@ -899,7 +916,7 @@ public class Population implements Iterable<Candidate> {
      * </p>
      *
      * @throws TooFewScoredCandidates if the population was either empty or if the first candidate has a
-     *                                         fitness of 0.
+     *                                fitness of 0.
      */
     private void selectParents() throws TooFewScoredCandidates {
         // Get amount of parents to multiply the selection rate with for the amount of parents to select
@@ -919,7 +936,7 @@ public class Population implements Iterable<Candidate> {
         // Do nothing if the flag is cleared
     }
 
-    private ImmutablePair<Candidate,Candidate> getParents(int i) {
+    private ImmutablePair<Candidate, Candidate> getParents(int i) {
         // Get the index of two parents to perform crossover between the two
         int firstParentIndex = i % fitnessCandidateList.size();
         int otherParentIndex = (i + 1) % fitnessCandidateList.size();
@@ -950,7 +967,7 @@ public class Population implements Iterable<Candidate> {
         }
         System.out.println("booleans = " + booleans);
         for (int i = 0; i < candidateList.size(); i++) {
-            candidateList.set(i, filterList(candidateList.get(i),booleans));
+            candidateList.set(i, filterList(candidateList.get(i), booleans));
         }
     }
 
@@ -1118,8 +1135,6 @@ public class Population implements Iterable<Candidate> {
 //            throw new RuntimeException("Mutation method not set!");
 //        }
 //    }
-
-
     private int getMutationSubstitute(int reactantsListIndex, int allele, double mutation_similarity) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
@@ -1135,6 +1150,7 @@ public class Population implements Iterable<Candidate> {
             throw new RuntimeException("Mutation method not set!");
         }
     }
+
     /**
      * Method that chooses either the allele index that is given
      * or another index that can range from 0 to size - 1, excluding the given allele index.
