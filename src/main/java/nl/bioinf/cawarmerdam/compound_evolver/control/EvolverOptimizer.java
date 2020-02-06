@@ -79,7 +79,7 @@ public class EvolverOptimizer {
                 CompoundEvolver run = run(reactantLists, reactor, receptorPath, anchorPath, runPath, parameterVector);
                 List<List<Double>> scores = run.getFitness();
                 writeOutput(resultsTable, parameterVector, identifier, runPath, run, scores);
-            } catch (MisMatchedReactantCount | OffspringFailureOverflow | TooFewScoredCandidates | IOException e) {
+            } catch (MisMatchedReactantCount | OffspringFailureOverflow | TooFewScoredCandidates | IOException | ForcedTerminationException e) {
                 System.out.printf("Run %d, repetition %d, failed%n", i, repetition);
                 e.printStackTrace();
             }
@@ -240,7 +240,7 @@ public class EvolverOptimizer {
      * @throws OffspringFailureOverflow when creation of new offspring has failed too many times
      * @throws TooFewScoredCandidates when too few candidates are scored to run the next step of the algorithm
      */
-    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates {
+    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(
                 reactantLists,

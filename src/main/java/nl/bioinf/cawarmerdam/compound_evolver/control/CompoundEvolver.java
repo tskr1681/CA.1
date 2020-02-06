@@ -384,7 +384,7 @@ public class CompoundEvolver {
     /**
      * Evolve compounds
      */
-    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates {
+    public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
 //        dummyFitness = true;
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
@@ -398,6 +398,8 @@ public class CompoundEvolver {
         System.out.println("candidates = " + candidates);
         System.out.println("validCandidates.size() = " + validCandidates.size());
         while (validCandidates.size() < population.getPopulationSize() && !evolutionProgressConnector.isTerminationRequired()) {
+            if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
+                throw new ForcedTerminationException("The program was terminated forcefully.");
             population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize(), population.getReceptorAmount());
             population.setSelective(this.selective);
             candidates = getInitialCandidates();
@@ -482,7 +484,7 @@ public class CompoundEvolver {
     /**
      * Scores the candidates in the population.
      */
-    private void scoreCandidates() throws TooFewScoredCandidates {
+    private void scoreCandidates() throws TooFewScoredCandidates, ForcedTerminationException {
         if (!dummyFitness) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
@@ -499,6 +501,8 @@ public class CompoundEvolver {
             // Loop through futures to handle thrown exceptions
             for (Future<Void> future : futures) {
                 try {
+                    if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
+                        throw new ForcedTerminationException("The program was terminated forcefully.");
                     future.get();
                     candidatesScored += 1;
                 } catch (InterruptedException | ExecutionException e) {

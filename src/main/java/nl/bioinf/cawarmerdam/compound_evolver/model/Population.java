@@ -643,7 +643,7 @@ public class Population implements Iterable<Candidate> {
      * Overloaded produceOffspring method with default parameter value population size set to the instance field
      * population size.
      */
-    public void produceOffspring() throws OffspringFailureOverflow, TooFewScoredCandidates {
+    public void produceOffspring() throws OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
         produceOffspring(this.populationSize);
     }
 
@@ -652,7 +652,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param offspringSize the amount of candidates the offspring will consist off.
      */
-    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, TooFewScoredCandidates {
+    private void produceOffspring(int offspringSize) throws OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
         int pool_size = getIntegerEnvironmentVariable("POOL_SIZE");
         ExecutorService executor = Executors.newFixedThreadPool(pool_size);
         // Create list of offspring
@@ -701,6 +701,8 @@ public class Population implements Iterable<Candidate> {
             // Loop through futures to handle thrown exceptions
             for (Future<Candidate> future : futures) {
                 try {
+                    if (this.outputLocation.resolve("terminate").toFile().exists())
+                        throw new ForcedTerminationException("The program was terminated forcefully.");
                     newOffspring.add(future.get());
                 } catch (InterruptedException | ExecutionException e) {
                     // Log exception
@@ -718,6 +720,8 @@ public class Population implements Iterable<Candidate> {
                     Candidate c = newOffspring.get(j);
                     if (offspring.size() < offspringSize) {
                         if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
+                            if (this.outputLocation.resolve("terminate").toFile().exists())
+                                throw new ForcedTerminationException("The program was terminated forcefully.");
                             if (skipcheck) {
                                 offspring.add(c);
                             } else {
