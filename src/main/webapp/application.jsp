@@ -499,7 +499,7 @@
                                 <div class="form-check">
                                     <input type="checkbox"
                                            class="form-check-input"
-                                           ng-model="formModel.setAdaptiveMutation"
+                                           ng-model="formModel.setFillGen"
                                            id="set-fill-gen"
                                            name="setFillGen"
                                            value="fillGen">
