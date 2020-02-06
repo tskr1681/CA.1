@@ -493,6 +493,23 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="set-fill-gen" class="col-sm-3 col-form-label">Fill generations
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.setAdaptiveMutation"
+                                           id="set-fill-gen"
+                                           name="setFillGen"
+                                           value="fillGen">
+                                    <label class="form-check-label" for="set-fill-gen">
+                                        Fills generations completely. Improves results, but massively slows down the algorithm.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="number-of-generations" class="col-sm-3 col-form-label">Maximum number of
                                 generations</label>
                             <div class="col-sm-9">

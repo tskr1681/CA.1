@@ -180,6 +180,8 @@ public class EvolveServlet extends HttpServlet {
                 request.getParameter("selectionMethod"));
         initialPopulation.setSelectionMethod(selectionMethod);
 
+        initialPopulation.setSkipcheck(getBooleanParameterFromRequest(request,"setFillGen"));
+
         SessionEvolutionProgressConnector progressConnector = new SessionEvolutionProgressConnector();
 
         CompoundEvolver evolver = new CompoundEvolver(

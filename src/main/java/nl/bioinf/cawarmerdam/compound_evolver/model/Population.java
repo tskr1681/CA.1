@@ -62,6 +62,7 @@ public class Population implements Iterable<Candidate> {
     private Path outputLocation;
     private int totalGenerations;
     private boolean adaptiveMutation;
+    private boolean skipcheck;
 
     /**
      * Constructor for population.
@@ -235,6 +236,14 @@ public class Population implements Iterable<Candidate> {
 
     public void setReceptorAmount(int receptorAmount) {
         this.receptorAmount = receptorAmount;
+    }
+
+    public boolean isSkipcheck() {
+        return skipcheck;
+    }
+
+    public void setSkipcheck(boolean skipcheck) {
+        this.skipcheck = skipcheck;
     }
 
     /**
@@ -699,21 +708,25 @@ public class Population implements Iterable<Candidate> {
                 }
             }
             int invalidCounter = 0;
-            boolean skipcheck = false;
+            boolean skipcheck = this.skipcheck;
+            // Iterate in blocks of pool_size, so we can do the processing with multiple threads
             for (int j = 0; j < newOffspring.size(); j += pool_size) {
                 // If we are at the last part, only increment by the remainder
-                int increment = j + pool_size > newOffspring.size() ? newOffspring.size() -j : pool_size;
+                int increment = j + pool_size > newOffspring.size() ? newOffspring.size() - j : pool_size;
                 List<Future<List<Candidate>>> futures2 = new ArrayList<>();
                 for (int k = j; k < j + increment; k++) {
                     Candidate c = newOffspring.get(j);
                     if (offspring.size() < offspringSize) {
                         if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
-                            List<Candidate> candidateAsList = new ArrayList<>();
-                            candidateAsList.add(c);
-                            Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
-                            futures2.add(executor.submit(PipelineContainer));
-                            // Add future, which the executor will return to the list
-
+                            if (skipcheck) {
+                                offspring.add(c);
+                            } else {
+                                List<Candidate> candidateAsList = new ArrayList<>();
+                                candidateAsList.add(c);
+                                Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
+                                // Add future, so we can check the candidate for validity before using it as offspring
+                                futures2.add(executor.submit(PipelineContainer));
+                            }
                         } else {
                             // Count this failure
                             failureCounter++;
@@ -725,19 +738,22 @@ public class Population implements Iterable<Candidate> {
                         }
                     }
                 }
-                for (Future<List<Candidate>> future : futures2) {
-                    try {
-                        Candidate c = future.get().get(0);
-                        if (skipcheck || c != null) {
-                            // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
-                            offspring.add(c);
-                            this.offspringRejectionMessages.clear();
-                            failureCounter = 0;
-                        }
-                    } catch (InterruptedException | ExecutionException e) {
-                        invalidCounter++;
-                        if (invalidCounter > this.candidateList.get(0).size() * 4) {
-                            skipcheck = true;
+                if (!skipcheck) {
+                    for (Future<List<Candidate>> future : futures2) {
+                        try {
+                            Candidate c = future.get().get(0);
+                            if (c != null) {
+                                // Add this new offspring and reset accumulated messages, the failure counter and reproduction method.
+                                offspring.add(c);
+                                this.offspringRejectionMessages.clear();
+                                failureCounter = 0;
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            invalidCounter++;
+                            // Make sure we don't try to get candidates from this list forever. Shouldn't be called in most cases.
+                            if (invalidCounter > this.candidateList.get(0).size() * 4) {
+                                skipcheck = true;
+                            }
                         }
                     }
                 }
