@@ -540,7 +540,7 @@ public class CompoundEvolver {
     /**
      * Gets the candidates in the population.
      */
-    private List<List<Candidate>> getInitialCandidates() {
+    private List<List<Candidate>> getInitialCandidates() throws ForcedTerminationException {
         List<List<Candidate>> candidates = new ArrayList<>();
         if (!dummyFitness) {
             // Check if pipe is present
@@ -558,6 +558,8 @@ public class CompoundEvolver {
             // Loop through futures to handle thrown exceptions
             for (Future<List<Candidate>> future : futures) {
                 try {
+                    if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
+                        throw new ForcedTerminationException("The program was terminated forcefully.");
                     List<Candidate> c = future.get(180, TimeUnit.SECONDS);
                     if (c != null) {
                         candidates.add(c);
