@@ -724,6 +724,7 @@ public class Population implements Iterable<Candidate> {
                                 throw new ForcedTerminationException("The program was terminated forcefully.");
                             if (skipcheck) {
                                 offspring.add(c);
+                                failureCounter = 0;
                             } else {
                                 List<Candidate> candidateAsList = new ArrayList<>();
                                 candidateAsList.add(c);
