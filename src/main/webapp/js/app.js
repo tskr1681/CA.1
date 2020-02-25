@@ -88,9 +88,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     let speciesDistributionChart = null;
     let evolveStatus = null;
     let species = [];
-    let stage_best = new NGL.Stage("viewport_best");
-    let stage_avg = new NGL.Stage("viewport_avg");
-    let stage_worst = new NGL.Stage("viewport_worst");
     let smilesDrawer = new SmilesDrawer.Drawer({width: 300, height: 200});
     let marvinSketcherInstance;
 
@@ -600,55 +597,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         download(url);
     };
-
-    /**
-     * Runs the visualization of the best, average and worst proteins
-     */
-    $scope.runVisualization = function () {
-        let population = $scope.getPopulation();
-        if (population.length !== 0) {
-            population.sort((a, b) => a.ligandEfficiency - b.ligandEfficiency)
-        }
-        stage_best.removeAllComponents();
-        loadpdb(stage_best, population[0].id);
-        loadsdf(stage_best, population[0].id);
-
-        stage_avg.removeAllComponents();
-        loadpdb(stage_avg, population[Math.floor(population.length / 2)].id);
-        loadsdf(stage_avg, population[Math.floor(population.length / 2)].id);
-
-        stage_worst.removeAllComponents();
-        loadpdb(stage_worst, population[population.length - 1].id);
-        loadsdf(stage_worst, population[population.length - 1].id);
-    };
-
-    /**
-     * Loads a pdb file into a stage
-     * @param stage The stage to load the file into
-     * @param id The candidate id to grab the file from
-     */
-    function loadpdb(stage, id) {
-        stage.loadFile("get.files?filetype=pdb&compoundId=" + id, {ext: "pdb"}).then(function (o) {
-            // o.addRepresentation("cartoon");
-            // o.addRepresentation("ball+stick", {colorScheme: "uniform"});
-            o.addRepresentation("surface", {colorScheme: "element"});
-            o.autoView();
-            o.structure.name = "Protein";
-        });
-    }
-
-    /**
-     * Loads a sdf file into a stage
-     * @param stage The stage to load the file into
-     * @param id The candidate id to grab the file from
-     */
-    function loadsdf(stage, id) {
-        stage.loadFile("get.files?filetype=sdf&compoundId=" + id, {ext: "sdf"}).then(function (o) {
-            o.addRepresentation("ball+stick");
-            o.autoView();
-            o.structure.name = "Drug";
-        });
-    }
 
     $scope.showSmiles = function (smiles, canvas_name) {
         SmilesDrawer.parse(smiles, function (tree) {

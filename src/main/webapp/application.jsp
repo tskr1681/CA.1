@@ -101,7 +101,7 @@
                 with the same reaction scheme.
             </p>
             <p>
-                After the form is submitted, it might take a few seconds before the first populations are shown in the
+                After the form is submitted, it might take a few hours before the first populations are shown in the
                 graph(s) below. You can terminate the genetic algorithm by hand using the terminate button.
             </p>
             <form name="compoundEvolverForm"
@@ -142,7 +142,8 @@
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text">
-                                    Input your name here so it's clear who submitted the job
+                                    Input your name here so it's clear who submitted the job.
+                                    Important: There should not be any spaces in this name, use underscores instead.
                                 </small>
                             </div>
                         </div>
@@ -1282,11 +1283,6 @@
                 </tr>
                 </tbody>
             </table>
-            <div id="viewport_best" style="width:15vw; height:20vh; display:inline-block;">Best compound of selected generation</div>
-            <div id="viewport_avg" style="width:15vw; height:20vh; display:inline-block;">Average (Median) compound of selected generation</div>
-            <div id="viewport_worst" style="width:15vw; height:20vh; display:inline-block;">Worst compound of selected generation</div>
-
-
         </div>
     </div>
 </div>
