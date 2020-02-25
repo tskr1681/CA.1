@@ -13,7 +13,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         interspeciesCrossoverMethod: 'Complete',
         speciesDeterminationMethod: 'Dynamic',
         generationSize: 50,
-        numberOfGenerations: 30,
+        numberOfGenerations: 20,
         selectionSize: 0.5,
         mutationRate: 0.1,
         crossoverRate: 0.8,
@@ -23,12 +23,12 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         mutationMethod: 'Distance dependent',
         terminationCondition: 'fixed',
         nonImprovingGenerationQuantity: 0.3,
-        conformerCount: 15,
+        conformerCount: 50,
         fitnessMeasure: 'ligandEfficiency',
         conformerOption: "ChemAxon",
-        forceField: 'smina',
-        scoringOption: 'smina',
-        maxAnchorMinimizedRmsd: 2,
+        forceField: 'mab',
+        scoringOption: 'scorpion',
+        maxAnchorMinimizedRmsd: 1,
         exclusionShapeTolerance: 0,
         useLipinski: false,
         allowDuplicates: true,
@@ -40,14 +40,14 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         setAdaptiveMutation: true,
         setSelective: false,
         minQED: 0,
-        minBBB: 2,
+        minBBB: 0,
         smartsFiltering: "",
         name: "",
         alignFast: true,
         recOrder: [],
         anchorOrder: [],
-        prepareReceptor: false,
-        setFillGen: true
+        setPrepareReceptor: true,
+        setFillGen: false
     };
 
     // Define the properties of reaction files.
