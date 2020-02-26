@@ -19,6 +19,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
     private static String mcnfExecutable;
     private static String msmabExecutable;
     private static final ConformerPlugin plugin = new ConformerPlugin();
+    private final boolean macrocycle;
 
     /**
      * Constructor for three dimensional converter step.
@@ -26,11 +27,12 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
      * @param filePath The path that corresponds to the location of pipeline files for the entire run
      * @param conformerCount The amount of conformers that should be generated.
      */
-    public MolocConformerStep(Path filePath, int conformerCount, String mcnfExecutable, String msmabExecutable) {
+    public MolocConformerStep(Path filePath, int conformerCount, String mcnfExecutable, String msmabExecutable, boolean macrocycle) {
         this.filePath = filePath;
         this.conformerCount = conformerCount;
         setMcnfExecutable(mcnfExecutable);
         setMsmabExecutable(msmabExecutable);
+        this.macrocycle = macrocycle;
     }
 
     public static void setMcnfExecutable(String mcnfExecutable) {
@@ -82,14 +84,14 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
      */
     private Molecule[] createConformers(Candidate candidate) throws PipelineException {
         try {
-            return runMoloc(getConformerFileName(candidate), makeSmiles(candidate), this.conformerCount);
+            return runMoloc(getConformerFileName(candidate), makeSmiles(candidate), this.conformerCount, this.macrocycle);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
         return null;
     }
 
-    private static Molecule[] runMoloc(Path filename, Path smiles, int conformerCount) throws PipelineException {
+    private static Molecule[] runMoloc(Path filename, Path smiles, int conformerCount, boolean macrocycle) throws PipelineException {
         try {
             String tempDir = filename.getParent().resolve("temp.sd").toString();
             // Build process
@@ -105,15 +107,26 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
             Process p = builder.start();
 
             p.waitFor();
-            ProcessBuilder builder2 = new ProcessBuilder(
-                    mcnfExecutable,
-                    "-w0",
-                    "-c3",
-                    "-k" + conformerCount,
-                    "-o",
-                    filename.getFileName().toString(),
-                    "temp.sd"
-            );
+            ProcessBuilder builder2;
+            if (macrocycle) {
+                builder2 = new ProcessBuilder(
+                        mcnfExecutable,
+                        "-w0",
+                        "-c3",
+                        "-k" + conformerCount,
+                        "-o",
+                        filename.getFileName().toString(),
+                        "temp.sd"
+                );
+            } else {
+                builder2 = new ProcessBuilder(
+                        mcnfExecutable,
+                        "-k" + conformerCount,
+                        "-o",
+                        filename.getFileName().toString(),
+                        "temp.sd"
+                );
+            }
             builder2.directory(filename.getParent().toFile());
             // Start the process
             Process p2 = builder2.start();

@@ -796,7 +796,10 @@ public class CompoundEvolver {
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
             case MOLOC:
                 return new MolocConformerStep(
-                        this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"));
+                        this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"), false);
+            case MACROCYCLE:
+                return new MolocConformerStep(
+                        this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"), true);
             default:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }
@@ -834,7 +837,8 @@ public class CompoundEvolver {
      */
     public enum ConformerOption {
         CHEMAXON("ChemAxon"),
-        MOLOC("Moloc");
+        MOLOC("Moloc"),
+        MACROCYCLE("Macrocycle");
 
         private final String text;
 

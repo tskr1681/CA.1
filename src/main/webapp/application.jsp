@@ -897,7 +897,8 @@
                                         name="conformerOption"
                                         required="required">
                                     <option value="ChemAxon">ChemAxon</option>
-                                    <option value="Moloc">Moloc</option>
+                                    <option value="Moloc">Moloc (Normal)</option>
+                                    <option value="Macrocycle">Moloc (Macrocycle)</option>
                                 </select>
                             </div>
                         </div>
