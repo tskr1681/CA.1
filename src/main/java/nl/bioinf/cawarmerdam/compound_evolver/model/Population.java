@@ -736,6 +736,7 @@ public class Population implements Iterable<Candidate> {
                             // Count this failure
                             failureCounter++;
                             if (failureCounter >= this.candidateList.get(0).size() * 24) {
+                                System.err.println("Offspring rejection messages: " + this.offspringRejectionMessages);
                                 throw new OffspringFailureOverflow(
                                         String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
                                         this.offspringRejectionMessages);
@@ -855,7 +856,11 @@ public class Population implements Iterable<Candidate> {
         if (offspringChoice == ReproductionMethod.CROSSOVER) {
             // Get the recombined genome by crossing over
             ImmutablePair<Species, List<Integer>> newGenome = getRecombinedGenome(getParents(i));
-            if (newGenome == null) return null;
+            if (newGenome == null) {
+                System.err.println("Crossover failed, returning null.");
+                System.err.println("Attempt made with parents: " + getParents(i));
+                return null;
+            }
             // Mutate the recombined genome
             List<Integer> reactantGenome = newGenome.right;
             mutate(reactantGenome, mutation_similarity);
