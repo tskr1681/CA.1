@@ -368,15 +368,17 @@ public class CompoundEvolver {
     private List<Candidate> filterCandidates(List<List<Candidate>> c) {
         System.out.println("c = " + c);
         List<Candidate> out = new ArrayList<>();
-        for(int i = 0; i < c.get(0).size(); i++) {
-            boolean invalid = false;
-            for(int j = 0; j < c.size(); j++) {
-                if (c.get(j).get(i) == null) {
-                    invalid = true;
+        if (c.size() > 0) {
+            for (int i = 0; i < c.get(0).size(); i++) {
+                boolean invalid = false;
+                for (int j = 0; j < c.size(); j++) {
+                    if (c.get(j).get(i) == null) {
+                        invalid = true;
+                    }
                 }
-            }
-            if (!invalid) {
-                out.add(c.get(0).get(i));
+                if (!invalid) {
+                    out.add(c.get(0).get(i));
+                }
             }
         }
         return out;
