@@ -161,6 +161,9 @@ public class Candidate implements Comparable<Candidate> {
             e.printStackTrace();
             return false;
         }
+        System.out.println("Reaction with the following reactants failed: " +
+                Arrays.stream(reactants).map(molecule -> molecule.toFormat("smiles"))
+                        .collect(Collectors.joining("; ")));
         this.rejectionMessage = "Reactor could not produce a reactions product";
         return false;
     }
@@ -186,9 +189,10 @@ public class Candidate implements Comparable<Candidate> {
         t.start();
         // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
         try {
-            return future.get(5, TimeUnit.SECONDS);
+            return future.get(10, TimeUnit.SECONDS);
         } catch (TimeoutException | ExecutionException | InterruptedException ex) {
             this.rejectionMessage = ex.getMessage() != null ? ex.getMessage() : Arrays.toString(ex.getStackTrace());
+            System.out.println("Reactor produced the following error: " + this.rejectionMessage);
             future.cancel(true);
             t.stop();
             return null;
@@ -524,21 +528,27 @@ public class Candidate implements Comparable<Candidate> {
     private boolean isValid() {
         calculateLipinskiValues();
         if (maxHydrogenBondDonors != null) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a hydrogen bond donor count over the maximum.");
             if (!isHydrogenBondDonorCountValid()) return false;
         }
         if (maxHydrogenBondAcceptors != null) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a hydrogen bond acceptor count over the maximum.");
             if (!isHydrogenBondAcceptorCountValid()) return false;
         }
         if (maxMolecularMass != null) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a molecular weight over the maximum.");
             if (!isMolecularMassValid()) return false;
         }
         if (maxPartitionCoefficient != null) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a partition coefficient over the maximum.");
             if (!isPartitionCoefficientValid()) return false;
         }
         if (minQED != 0) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a QED under the minimum.");
             if ((QuantitativeDrugEstimateCalculator.getQED(this.phenotype) < minQED)) return false;
         }
         if (minBBB != 0) {
+            System.out.println("Rejecting candidate " + this.getIdentifier() + "for a BBB score under the minimum.");
             if (BBBScoreCalculator.getBBB(this.phenotype) < minBBB) return false;
         }
         return true;
