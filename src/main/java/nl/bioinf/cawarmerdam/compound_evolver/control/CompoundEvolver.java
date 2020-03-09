@@ -7,14 +7,12 @@ package nl.bioinf.cawarmerdam.compound_evolver.control;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
+import com.jacob.com.NotImplementedException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
-import nl.bioinf.cawarmerdam.compound_evolver.util.GenerationDataFileManager;
-import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
-import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
-import nl.bioinf.cawarmerdam.compound_evolver.util.PdbFixer;
+import nl.bioinf.cawarmerdam.compound_evolver.util.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,6 +54,7 @@ public class CompoundEvolver {
     private GenerationDataFileManager manager;
     private boolean selective;
     private boolean prepareReceptor;
+    private boolean neural_network;
 
     /**
      * The constructor for a compound evolver.
@@ -72,6 +71,7 @@ public class CompoundEvolver {
         this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         this.conformerOption = ConformerOption.CHEMAXON;
+        this.neural_network = false;
     }
 
     /**
@@ -321,6 +321,7 @@ public class CompoundEvolver {
 
     /**
      * Setter for selectivity checks
+     *
      * @param selective do selectivity checks?
      */
     public void setSelective(boolean selective) {
@@ -330,6 +331,7 @@ public class CompoundEvolver {
 
     /**
      * Checks if receptor preparation is enabled
+     *
      * @return if receptor preparation is enabled
      */
     public boolean isPrepareReceptor() {
@@ -338,6 +340,7 @@ public class CompoundEvolver {
 
     /**
      * Sets if receptor preparation is enabled
+     *
      * @param prepareReceptor set if receptor preparation is enabled
      */
     public void setPrepareReceptor(boolean prepareReceptor) {
@@ -363,20 +366,18 @@ public class CompoundEvolver {
     }
 
     private List<Candidate> filterCandidates(List<List<Candidate>> c) {
+        System.out.println("c = " + c);
         List<Candidate> out = new ArrayList<>();
-        boolean invalid = false;
-        for (List<Candidate> candidates:c) {
-            System.out.println("to_filter = " + candidates);
-            for (Candidate candidate:candidates) {
-                if (candidate == null) {
+        for(int i = 0; i < c.get(0).size(); i++) {
+            boolean invalid = false;
+            for(int j = 0; j < c.size(); j++) {
+                if (c.get(j).get(i) == null) {
                     invalid = true;
-                    break;
                 }
             }
             if (!invalid) {
-                out.add(candidates.get(0));
+                out.add(c.get(0).get(i));
             }
-            invalid = false;
         }
         return out;
     }
@@ -485,54 +486,69 @@ public class CompoundEvolver {
      * Scores the candidates in the population.
      */
     private void scoreCandidates() throws TooFewScoredCandidates, ForcedTerminationException {
-        if (!dummyFitness) {
-            // Check if pipe is present
-            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-            // Create list to hold future object associated with Callable
-            List<Future<Void>> futures = new ArrayList<>();
-            // Loop through candidates to produce and submit new tasks
-            List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
-            for (List<Candidate> candidates : matchingCandidateList) {
-                // Setup callable
-                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
-                // Add future, which the executor will return to the list
-                futures.add(executor.submit(PipelineContainer));
-            }
-            // Loop through futures to handle thrown exceptions
-            for (Future<Void> future : futures) {
-                try {
-                    if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
-                        throw new ForcedTerminationException("The program was terminated forcefully.");
-                    future.get();
-                    candidatesScored += 1;
-                } catch (InterruptedException | ExecutionException e) {
-                    // Handle exception
-//                    evolutionProgressConnector.putException(e);
-                    // Log exception
-                    System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
+        if (!neural_network) {
+            if (!dummyFitness) {
+                // Check if pipe is present
+                if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
+                // Create list to hold future object associated with Callable
+                List<Future<Void>> futures = new ArrayList<>();
+                // Loop through candidates to produce and submit new tasks
+                List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
+                for (List<Candidate> candidates : matchingCandidateList) {
+                    // Setup callable
+                    Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
+                    // Add future, which the executor will return to the list
+                    futures.add(executor.submit(PipelineContainer));
                 }
-            }
-            // Log completed scoring round
-            System.out.println("Finished all threads");
-        } else {
-            for (List<Candidate> candidates : this.population.matchingCandidateList()) {
-                for (Candidate candidate: candidates) {
-                    // Set dummy fitness
-                    double score = candidate.getPhenotype().getExactMass();
-                    candidate.setRawScore(score);
+                // Loop through futures to handle thrown exceptions
+                for (Future<Void> future : futures) {
                     try {
-                        candidate.calculateLigandEfficiency();
-                    } catch (PluginException e) {
-                        e.printStackTrace();
+                        if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
+                            throw new ForcedTerminationException("The program was terminated forcefully.");
+                        future.get();
+                        candidatesScored += 1;
+                    } catch (InterruptedException | ExecutionException e) {
+                        // Handle exception
+//                    evolutionProgressConnector.putException(e);
+                        // Log exception
+                        System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
                     }
-                    candidate.calculateLigandLipophilicityEfficiency();
+                }
+                // Log completed scoring round
+                System.out.println("Finished all threads");
+            } else {
+                for (List<Candidate> candidates : this.population.matchingCandidateList()) {
+                    for (Candidate candidate : candidates) {
+                        // Set dummy fitness
+                        double score = candidate.getPhenotype().getExactMass();
+                        candidate.setRawScore(score);
+                        try {
+                            candidate.calculateLigandEfficiency();
+                        } catch (PluginException e) {
+                            e.printStackTrace();
+                        }
+                        candidate.calculateLigandLipophilicityEfficiency();
+                    }
                 }
             }
-        }
-        population.filterUnscoredCandidates();
-        if (population.size() == 0) {
-            throw new TooFewScoredCandidates(
-                    "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
+            population.filterUnscoredCandidates();
+            if (population.size() == 0) {
+                throw new TooFewScoredCandidates(
+                        "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
+            }
+        } else {
+            NNHelper helper = new NNHelper(Paths.get("C:\\Users\\F100961\\Documents\\chemprop-master\\predict.py"),
+                    Paths.get("C:\\Users\\F100961\\Documents\\chemprop-master\\checkpoint\\fold_0\\model_0\\model.pt"),
+                    Paths.get("C:\\Users\\F100961\\Desktop\\wrappers\\chemprop\\run-in.bat"), this.pipelineOutputFilePath);
+            List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
+            if (matchingCandidateList.get(0).size() > 1) {
+                throw new NotImplementedException("Neural Network scoring is only implemented for single receptors at this point in time.");
+            }
+            try {
+                helper.getMoleculeScores(matchingCandidateList.stream().map(candidates -> candidates.get(0)).collect(Collectors.toList()));
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         processRawScores();
     }
@@ -542,7 +558,7 @@ public class CompoundEvolver {
      */
     private List<List<Candidate>> getInitialCandidates() throws ForcedTerminationException {
         List<List<Candidate>> candidates = new ArrayList<>();
-        if (!dummyFitness) {
+        if (!dummyFitness && !neural_network) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
             // Create list to hold future object associated with Callable
@@ -583,13 +599,13 @@ public class CompoundEvolver {
      */
     private void processRawScores() {
         for (List<Candidate> candidates : this.population.getCandidateList()) {
-            for(Candidate candidate: candidates) {
+            for (Candidate candidate : candidates) {
                 candidate.setFitnessMeasure(this.fitnessMeasure);
             }
         }
         // Collect scores
         List<List<Double>> fitnesses = new ArrayList<>();
-        for (List<Candidate> c: population.getCandidateList()) {
+        for (List<Candidate> c : population.getCandidateList()) {
             fitnesses.add(c.stream().map(Candidate::getFitness).collect(Collectors.toList()));
         }
 
@@ -598,14 +614,14 @@ public class CompoundEvolver {
         Double minFitness = Collections.min(fitnesses.stream().mapToDouble(Collections::min).boxed().collect(Collectors.toList()));
         // We would like to calculate the fitness with the heavy atom
         for (List<Candidate> candidates : this.population.getCandidateList()) {
-            for(Candidate candidate: candidates) {
+            for (Candidate candidate : candidates) {
                 // Ligand efficiency
                 candidate.calcNormFitness(minFitness, maxFitness);
             }
         }
         population.setFitnessCandidateList();
         // Add scores for the archive
-        if(this.selective) {
+        if (this.selective) {
             scores.add(Arrays.stream(MultiReceptorHelper.getFitnessList(population.getCandidateList())).boxed().collect(Collectors.toList()));
         } else {
             scores.add(Arrays.stream(MultiReceptorHelper.getFitnessListSelectivity(population.getCandidateList())).boxed().collect(Collectors.toList()));

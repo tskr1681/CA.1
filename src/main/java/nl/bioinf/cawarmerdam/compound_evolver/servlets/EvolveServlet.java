@@ -117,7 +117,11 @@ public class EvolveServlet extends HttpServlet {
         MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
         for (Candidate candidate :
                 initialPopulation) {
-            molExporter.write(candidate.getPhenotype());
+            try {
+                molExporter.write(candidate.getPhenotype());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
         molExporter.close();
 
