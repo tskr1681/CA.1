@@ -711,6 +711,8 @@ public class Population implements Iterable<Candidate> {
             }
             int invalidCounter = 0;
             boolean skipcheck = this.skipcheck;
+
+            System.out.println("newOffspring = " + newOffspring);
             // Iterate in blocks of pool_size, so we can do the processing with multiple threads
             for (int j = 0; j < newOffspring.size(); j += pool_size) {
                 // If we are at the last part, only increment by the remainder
@@ -735,6 +737,10 @@ public class Population implements Iterable<Candidate> {
                         } else {
                             // Count this failure
                             failureCounter++;
+                            if (c == null)
+                                System.err.println("Candidate production failed because the candidate was null.");
+                            if (offspring.contains(c) && !this.duplicatesAllowed)
+                                System.err.println("Candidate production failed because the candidate was a duplicate");
                             if (failureCounter >= this.candidateList.get(0).size() * 24) {
                                 System.err.println("Offspring rejection messages: " + this.offspringRejectionMessages);
                                 throw new OffspringFailureOverflow(
@@ -874,7 +880,12 @@ public class Population implements Iterable<Candidate> {
             return finalizeOffspring(newGenome, elitist.getSpecies());
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
             // Introduce a random immigrant
-            return introduceRandomImmigrant();
+            Candidate immigrant = introduceRandomImmigrant();
+            if (immigrant == null) {
+                System.err.println("Invalid immigrant was produced");
+            }
+            this.offspringRejectionMessages.add("Invalid immigrant was produced");
+            return immigrant;
         }
         // Throw exception when another reproduction method is wanted.
         throw new RuntimeException("Reproduction method '" + offspringChoice.toString() + "' is not yet implemented!");
@@ -906,7 +917,7 @@ public class Population implements Iterable<Candidate> {
                 newCandidate.finish(this.reactantLists, this.species)) {
             return newCandidate;
         }
-        this.offspringRejectionMessages.add(newCandidate.getRejectionMessage());
+        this.offspringRejectionMessages.add(newCandidate.getRejectionMessage().equals("") ? "Finalizing failed" : newCandidate.getRejectionMessage());
         return null;
     }
 

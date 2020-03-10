@@ -366,7 +366,7 @@ public class CompoundEvolver {
     }
 
     private List<Candidate> filterCandidates(List<List<Candidate>> c) {
-        System.out.println("c = " + c);
+        System.out.println("Candidates to filter: " + c);
         List<Candidate> out = new ArrayList<>();
         if (c.size() > 0) {
             for (int i = 0; i < c.get(0).size(); i++) {
@@ -381,6 +381,7 @@ public class CompoundEvolver {
                 }
             }
         }
+        System.out.println("Filtered candidates: " + out);
         return out;
     }
 
