@@ -737,10 +737,14 @@ public class Population implements Iterable<Candidate> {
                         } else {
                             // Count this failure
                             failureCounter++;
-                            if (c == null)
+                            if (c == null) {
                                 System.err.println("Candidate production failed because the candidate was null.");
-                            if (offspring.contains(c) && !this.duplicatesAllowed)
+                                this.offspringRejectionMessages.add("Candidate production failed because the candidate was null.");
+                            }
+                            if (offspring.contains(c) && !this.duplicatesAllowed) {
                                 System.err.println("Candidate production failed because the candidate was a duplicate");
+                                this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate.");
+                            }
                             if (failureCounter >= this.candidateList.get(0).size() * 24) {
                                 System.err.println("Offspring rejection messages: " + this.offspringRejectionMessages);
                                 throw new OffspringFailureOverflow(
