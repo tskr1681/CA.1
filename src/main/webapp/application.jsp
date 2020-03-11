@@ -1257,7 +1257,7 @@
             </ul>
             <canvas id="score-distribution-chart" width="400" height="400"></canvas>
             <canvas id="species-distribution-chart" width="400" height="400"></canvas>
-            <h6>Selected generation</h6>
+            <h6>Generation {{$rootScope.selectedGenerationNumber}}</h6>
             <table class="table table-condensed table-borderless mono-font">
                 <thead>
                 <tr>
