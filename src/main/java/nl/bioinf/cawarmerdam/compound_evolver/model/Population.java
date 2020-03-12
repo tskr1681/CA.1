@@ -887,8 +887,8 @@ public class Population implements Iterable<Candidate> {
             Candidate immigrant = introduceRandomImmigrant();
             if (immigrant == null) {
                 System.err.println("Invalid immigrant was produced");
+                this.offspringRejectionMessages.add("Invalid immigrant was produced");
             }
-            this.offspringRejectionMessages.add("Invalid immigrant was produced");
             return immigrant;
         }
         // Throw exception when another reproduction method is wanted.
