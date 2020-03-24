@@ -181,7 +181,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
                 if (line.endsWith("Moloc")) {
                     line = line.substring(0,6) + " 0  0  0  0  0  0  0  0999 V2000";
                 }
-                if (line.strip().split(" +").length == 6) {
+                if (line.trim().split(" +").length == 6) {
                     line = line + "  0";
                 }
                 lines.add(line + "\n");
