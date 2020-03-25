@@ -899,6 +899,7 @@
                                     <option value="ChemAxon">ChemAxon</option>
                                     <option value="Moloc">Moloc (Normal)</option>
                                     <option value="Macrocycle">Moloc (Macrocycle)</option>
+                                    <option value="Custom">Custom RDKit script</option>
                                 </select>
                             </div>
                         </div>

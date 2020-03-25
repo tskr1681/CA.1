@@ -708,18 +708,22 @@ public class CompoundEvolver {
             receptorFilePath = receptorFilePath.resolveSibling("pro.pdb");
         }
         // Get the step for converting 'flat' molecules into multiple 3d conformers
-        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount);
+        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount, anchor);
 //        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
-        PipelineStep<Candidate, Candidate> conformerAlignmentStep = new ConformerAlignmentStep(anchor, fast_align);
+        PipelineStep<Candidate, Candidate> converterStep;
+        if (this.conformerOption == ConformerOption.CUSTOM) {
+            converterStep = threeDimensionalConverterStep;
+        } else {
+            converterStep = threeDimensionalConverterStep.pipe(new ConformerAlignmentStep(anchor, fast_align));
+        }
         // Get step that handles scored candidates
         PipelineStep<Candidate, Void> scoredCandidateHandlingStep = new ScoredCandidateHandlingStep(
         );
         // Get the step for energy minimization
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
         // Combine the steps and set the pipe.
-        PipelineStep<Candidate, Candidate> converterStep = threeDimensionalConverterStep.pipe(conformerAlignmentStep);
 
         PipelineStep<Candidate, Candidate> validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter);
         String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
@@ -806,7 +810,7 @@ public class CompoundEvolver {
         }
     }
 
-    private PipelineStep<Candidate, Candidate> getConformerStep(int conformerCount) {
+    private PipelineStep<Candidate, Candidate> getConformerStep(int conformerCount, Path anchor) {
         switch (this.conformerOption) {
             case CHEMAXON:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
@@ -816,6 +820,9 @@ public class CompoundEvolver {
             case MACROCYCLE:
                 return new MolocConformerStep(
                         this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"), true);
+            case CUSTOM:
+                return new CustomConformerStep(
+                        this.pipelineOutputFilePath, Paths.get(System.getenv("RDKIT_WRAPPER")), Paths.get(System.getenv("CONFORMER_SCRIPT")), anchor, conformerCount);
             default:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }
@@ -854,7 +861,8 @@ public class CompoundEvolver {
     public enum ConformerOption {
         CHEMAXON("ChemAxon"),
         MOLOC("Moloc"),
-        MACROCYCLE("Macrocycle");
+        MACROCYCLE("Macrocycle"),
+        CUSTOM("Custom");
 
         private final String text;
 

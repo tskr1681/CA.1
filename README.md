@@ -94,3 +94,7 @@ It also needs some environment variables to be set, being the following:
 `FIXER_EXE`: Specifies the location of the bundled get_scorp_for_conformers.py script
 
 `PYTHON_EXE`: Specifies the location or name of the python executable
+
+`RDKIT_WRAPPER`: An exec-wrappers generated run-in wrapper for a conda environment with RDKit. Required to run the custom conformer script.
+
+`CONFORMER_SCRIPT`: The location of the bundled Constrained_confs.py script
