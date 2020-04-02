@@ -24,17 +24,20 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private Map<Long, Integer> tooDistantConformerCounter;
     private ExclusionShape exclusionShape;
     private final double maximumDistanceFromAnchor;
+    private boolean deleteInvalid;
 
     public ValidateConformersStep(Path anchorFilePath,
                                   Path receptorFilePath,
                                   double exclusionShapeTolerance,
                                   double maximumDistanceFromAnchor,
                                   Map<Long, Integer> clashingConformerCounter,
-                                  Map<Long, Integer> tooDistantConformerCounter) throws PipelineException {
+                                  Map<Long, Integer> tooDistantConformerCounter,
+                                  boolean deleteInvalid) throws PipelineException {
         this.anchorFilePath = anchorFilePath;
         this.clashingConformerCounter = clashingConformerCounter;
         this.tooDistantConformerCounter = tooDistantConformerCounter;
         this.maximumDistanceFromAnchor = maximumDistanceFromAnchor;
+        this.deleteInvalid = deleteInvalid;
         try {
             Molecule receptor = new MolImporter(receptorFilePath.toFile(), "pdb").read();
             this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
@@ -86,14 +89,15 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
                 candidate.setConformerScores(new_scores);
             }
             return candidate;
-        } else {
+        } else if (deleteInvalid) {
             try {
                 FileUtils.deleteDirectory(candidate.getConformersFile().getParent().toFile());
             } catch (IOException ignored) {
 
             }
-            return null;
+
         }
+        return null;
     }
     /**
      * Counts a too distant conformer or a conformer that is in the restricted space.

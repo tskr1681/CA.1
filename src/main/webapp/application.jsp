@@ -1202,6 +1202,31 @@
                         </div>
                     </div>
                 </div>
+                <div class="card">
+                    <h5 class="card-header"><b>Scoring</b></h5>
+                    <div id="debug-settings" class="card-body">
+                        <p>
+                            Warning: these options are only for debugging purposes. Do not touch them if you don't know what they do, and even then only if asked.
+                        </p>
+                        <div class="form-group row">
+                            <label for="align-fast" class="col-sm-3 col-form-label">Delete invalid candidates
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.deleteInvalid"
+                                           id="delete-invalid"
+                                           name="deleteInvalid"
+                                           value="fast">
+                                    <label class="form-check-label" for="align-fast">
+                                        Delete invalid candidates
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="submit">
                     <div class="card card-body">
                         <div class="form-group row">

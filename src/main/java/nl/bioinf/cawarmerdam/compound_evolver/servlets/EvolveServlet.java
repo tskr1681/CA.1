@@ -231,6 +231,8 @@ public class EvolveServlet extends HttpServlet {
 
         evolver.setSelective(getBooleanParameterFromRequest(request, "selective"));
 
+        evolver.setDeleteInvalid(getBooleanParameterFromRequest(request, "deleteInvalid"));
+
         System.out.printf("Evolution setup complete with session-id %s", sessionID);
         return evolver;
     }
