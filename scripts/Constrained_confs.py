@@ -4,7 +4,7 @@ import sys
 
 
 def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
-    mol = Chem.MolFromSmiles(smiles,False)
+    mol = Chem.MolFromSmiles(smiles)
     AllChem.EmbedMolecule(mol)
 
     constrain = Chem.SDMolSupplier(anchor,False)[0]

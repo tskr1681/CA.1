@@ -1,6 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import nl.bioinf.cawarmerdam.compound_evolver.util.FixArom;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,12 +35,13 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
         return value;
     }
 
-    private void run(Candidate candidate) {
+    private void run(Candidate candidate) throws PipelineException {
         ProcessBuilder builder = new ProcessBuilder();
 
         try {
             candidate.setConformersFile(getConformerFileName(candidate));
             candidate.setFixedConformersFile(getConformerFileName(candidate));
+            FixArom.fixArom(candidate.getPhenotype());
             builder.command(
                     this.wrapper.toString(),
                     "python",
@@ -51,8 +53,9 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     );
 
             Process p = builder.inheritIO().start();
-        } catch (IOException e) {
-            e.printStackTrace();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            throw new PipelineException("Custom conformer script failed");
         }
     }
 
