@@ -1203,7 +1203,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h5 class="card-header"><b>Scoring</b></h5>
+                    <h5 class="card-header"><b>DEBUG OPTIONS</b></h5>
                     <div id="debug-settings" class="card-body">
                         <p>
                             Warning: these options are only for debugging purposes. Do not touch them if you don't know what they do, and even then only if asked.
