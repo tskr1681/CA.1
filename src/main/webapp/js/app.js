@@ -91,6 +91,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     let species = [];
     let smilesDrawer = new SmilesDrawer.Drawer({width: 300, height: 200});
     let marvinSketcherInstance;
+    let updatefailurecounter = 0;
 
     function getProgressUpdate(handleData) {
         jQuery.ajax({
@@ -102,15 +103,21 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
                 // log data to the console so we can see
                 console.log(data);
                 handleData(data);
+                updatefailurecounter = 0;
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 // Check which error was thrown
                 // If progress was stopped due to an exception set big error
                 // Reset form fields and output error to the page
-                getErrorResponse(jqXHR);
-                setPristine();
-                $scope.response.hasError = true;
-                $scope.$apply();
+                if (jqXHR.status === 0 && updatefailurecounter < 12) {
+                    updatefailurecounter += 1;
+                } else {
+                    updatefailurecounter = 0;
+                    getErrorResponse(jqXHR);
+                    setPristine();
+                    $scope.response.hasError = true;
+                    $scope.$apply();
+                }
             }
         });
     }
@@ -169,7 +176,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             }
         } else if (jqXHR.status === 0) {
             //ignore this, it breaks stuff
-            //$scope.response.error = "An error has occurred: the connection has failed (" + jqXHR.status + ")"
+            $scope.response.error = "An error has occurred: the connection has failed (" + jqXHR.status + ")"
         } else {
             $scope.response.error = "An error has occurred: " + jqXHR.statusText + " (" + jqXHR.status + ")";
         }
