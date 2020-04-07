@@ -131,7 +131,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             evolveStatus = jsonData.status;
             handleGenerationCollection(jsonData.generations);
 
-            if (evolveStatus === "RUNNING") {
+            if (evolveStatus === "RUNNING" || !$scope.response.hasError) {
                 handleGenerationCollection(jsonData.generationBuffer);
                 setFrequentUpdateInterval()
             } else if (evolveStatus === "FAILED") {
