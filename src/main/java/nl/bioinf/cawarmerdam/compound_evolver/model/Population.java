@@ -710,6 +710,8 @@ public class Population implements Iterable<Candidate> {
                 }
             }
             int invalidCounter = 0;
+            int duplicatecounter = 0;
+            int nullcounter = 0;
             boolean skipcheck = this.skipcheck;
 
             System.out.println("newOffspring = " + newOffspring);
@@ -727,6 +729,8 @@ public class Population implements Iterable<Candidate> {
                             if (skipcheck) {
                                 offspring.add(c);
                                 failureCounter = 0;
+                                duplicatecounter = 0;
+                                nullcounter = 0;
                             } else {
                                 List<Candidate> candidateAsList = new ArrayList<>();
                                 candidateAsList.add(c);
@@ -740,15 +744,18 @@ public class Population implements Iterable<Candidate> {
                             if (c == null) {
                                 System.err.println("Candidate production failed because the candidate was null.");
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was null.");
+                                nullcounter++;
                             }
-                            if (offspring.contains(c) && !this.duplicatesAllowed) {
-                                System.err.println("Candidate production failed because the candidate was a duplicate");
-                                this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate.");
+                            else if (offspring.contains(c)) {
+                                System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
+                                this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
+                                duplicatecounter++;
                             }
                             if (failureCounter >= this.candidateList.get(0).size() * 24) {
                                 System.err.println("Offspring rejection messages: " + this.offspringRejectionMessages);
                                 throw new OffspringFailureOverflow(
-                                        String.format("Tried to create a new candidate %s times without a viable result", failureCounter),
+                                        String.format("Tried to create a new candidate %s times without a viable result, %s times of which were because of null candidates and %s times of which were due to duplicate candidates",
+                                                failureCounter, nullcounter, duplicatecounter),
                                         this.offspringRejectionMessages);
                             }
                         }
@@ -763,6 +770,8 @@ public class Population implements Iterable<Candidate> {
                                 offspring.add(c);
                                 this.offspringRejectionMessages.clear();
                                 failureCounter = 0;
+                                duplicatecounter = 0;
+                                nullcounter = 0;
                             }
                         } catch (InterruptedException | ExecutionException e) {
                             invalidCounter++;
