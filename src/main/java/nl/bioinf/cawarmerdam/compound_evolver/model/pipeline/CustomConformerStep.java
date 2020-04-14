@@ -2,8 +2,10 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 import nl.bioinf.cawarmerdam.compound_evolver.util.FixArom;
+import org.apache.tika.io.IOUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -54,6 +56,9 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
 
             Process p = builder.start();
             p.waitFor();
+            if (IOUtils.toString(p.getErrorStream()).contains("ImportError")) {
+                throw new PipelineException("RDKit wrapper is having issues!");
+            };
         } catch (IOException | InterruptedException e) {
             throw new PipelineException("Custom conformer script failed");
         }
