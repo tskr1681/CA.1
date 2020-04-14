@@ -734,10 +734,7 @@ public class CompoundEvolver {
         // Get the step for energy minimization
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
         // Combine the steps and set the pipe.
-
         PipelineStep<Candidate, Candidate> validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid);
-        String mol3dExecutable = getEnvironmentVariable("MOL3D_EXE");
-        String esprntoExecutable = getEnvironmentVariable("ESPRNTO_EXE");
         this.pipe2.add(converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(validifyStep));
         this.pipe.add(converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep));
         System.out.println("Initializing generation manager");
