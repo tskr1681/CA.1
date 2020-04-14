@@ -52,7 +52,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     candidate.getFixedConformersFile().toString()
                     );
 
-            Process p = builder.inheritIO().start();
+            Process p = builder.start();
             p.waitFor();
         } catch (IOException | InterruptedException e) {
             throw new PipelineException("Custom conformer script failed");
