@@ -231,8 +231,6 @@ public class EvolveServlet extends HttpServlet {
 
         evolver.setSelective(getBooleanParameterFromRequest(request, "selective"));
 
-        evolver.setDeleteInvalid(getBooleanParameterFromRequest(request, "deleteInvalid"));
-
         System.out.printf("Evolution setup complete with session-id %s", sessionID);
         return evolver;
     }
@@ -296,6 +294,9 @@ public class EvolveServlet extends HttpServlet {
         double maxAnchorMinimizedRmsd = getDoubleParameterFromRequest(request, "maxAnchorMinimizedRmsd");
 
         boolean fastAlign = getBooleanParameterFromRequest(request, "alignFast");
+
+        boolean deleteInvalid = getBooleanParameterFromRequest(request, "deleteInvalid");
+        evolver.setDeleteInvalid(deleteInvalid);
 
         // Setup the pipeline using the gathered locations paths
         for (int i = 0; i < anchorLocations.size(); i++) {
