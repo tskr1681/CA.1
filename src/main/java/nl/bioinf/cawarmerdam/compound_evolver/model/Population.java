@@ -681,12 +681,12 @@ public class Population implements Iterable<Candidate> {
                 double mutation_similarity = 0;
                 // Get some genomes by crossing over according to crossover probability
                 if (this.adaptive) {
-                    ImmutablePair<Candidate, Candidate> parents = getParents(i);
+                    ImmutablePair<Candidate, Candidate> parents = getParents(j);
 
                     double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
                     double f_avg = Arrays.stream(fitnesslist).sum() / fitnessCandidateList.size();
                     this.setCrossoverRate(Math.min((1 - f_high) / (1 - f_avg), 1));
-                    double f = fitnesslist[i % fitnesslist.length];
+                    double f = fitnesslist[j % fitnesslist.length];
                     this.setMutationRate(Math.min(0.5 * (1 - f) / (1 - f_avg), 0.5));
                 }
                 if (this.adaptiveMutation) {
