@@ -10,10 +10,13 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
 import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -749,6 +752,12 @@ public class Population implements Iterable<Candidate> {
                             else if (offspring.contains(c)) {
                                 System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
+                                try {
+                                    FileUtils.deleteDirectory(Paths.get(outputLocation.toString(),
+                                            String.valueOf(c.getIdentifier())).toAbsolutePath().toFile());
+                                } catch (IOException exception) {
+                                    System.err.println(exception.getMessage());
+                                }
                                 duplicatecounter++;
                             }
                             if (failureCounter >= this.candidateList.get(0).size() * 24) {
