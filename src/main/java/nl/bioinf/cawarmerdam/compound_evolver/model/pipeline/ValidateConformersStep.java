@@ -92,8 +92,8 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
         } else if (deleteInvalid) {
             try {
                 FileUtils.deleteDirectory(candidate.getConformersFile().getParent().toFile());
-            } catch (IOException ignored) {
-
+            } catch (IOException exception) {
+                System.err.println(exception.getMessage());
             }
 
         }
