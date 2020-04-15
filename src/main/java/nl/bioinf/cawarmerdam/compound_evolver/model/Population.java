@@ -721,7 +721,7 @@ public class Population implements Iterable<Candidate> {
                 int increment = j + pool_size > newOffspring.size() ? newOffspring.size() - j : pool_size;
                 List<Future<List<Candidate>>> futures2 = new ArrayList<>();
                 for (int k = j; k < j + increment; k++) {
-                    Candidate c = newOffspring.get(j);
+                    Candidate c = newOffspring.get(k);
                     if (offspring.size() < offspringSize) {
                         if (c != null && (this.duplicatesAllowed || !offspring.contains(c))) {
                             if (this.outputLocation.resolve("terminate").toFile().exists())
