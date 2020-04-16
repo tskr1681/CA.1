@@ -51,6 +51,7 @@ public class ConformerHelper {
             // Return the molecule
             return m;
         } catch (IOException e) {
+            e.printStackTrace();
             throw new PipelineException("Could not import minimized file", e);
         }
     }
