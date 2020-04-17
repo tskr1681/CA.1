@@ -56,7 +56,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
 
             Process p = builder.start();
             p.waitFor();
-            if (IOUtils.toString(p.getErrorStream()).contains("ImportError") || IOUtils.toString(p.getInputStream()).contains("ImportError")) {
+            if (IOUtils.toString(p.getErrorStream()).contains("ImportError") || IOUtils.toString(p.getInputStream()).contains("ImportError") || candidate.getConformersFile().toFile().exists()) {
                 throw new PipelineException("RDKit wrapper is having issues!");
             }
         } catch (IOException | InterruptedException e) {
