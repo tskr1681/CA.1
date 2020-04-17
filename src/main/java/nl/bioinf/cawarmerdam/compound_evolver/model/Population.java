@@ -760,7 +760,7 @@ public class Population implements Iterable<Candidate> {
                                 }
                                 duplicatecounter++;
                             }
-                            if (failureCounter >= this.candidateList.get(0).size() * 24) {
+                            if (failureCounter >= offspringSize * 24) {
                                 System.err.println("Offspring rejection messages: " + this.offspringRejectionMessages);
                                 throw new OffspringFailureOverflow(
                                         String.format("Tried to create a new candidate %s times without a viable result, %s times of which were because of null candidates and %s times of which were due to duplicate candidates",
@@ -785,7 +785,7 @@ public class Population implements Iterable<Candidate> {
                         } catch (InterruptedException | ExecutionException e) {
                             invalidCounter++;
                             // Make sure we don't try to get candidates from this list forever. Shouldn't be called in most cases.
-                            if (invalidCounter > this.candidateList.get(0).size() * 4) {
+                            if (invalidCounter > offspringSize * 4) {
                                 skipcheck = true;
                             }
                         }
