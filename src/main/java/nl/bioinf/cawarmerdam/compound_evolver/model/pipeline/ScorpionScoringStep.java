@@ -130,6 +130,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     "-p", String.valueOf(receptorFilePath),
                     "-i", String.valueOf(inputFile)) : new ProcessBuilder(
                     wrapper,
+                    "python",
                     scorpionExecutable,
                     "-p", String.valueOf(receptorFilePath),
                     "-i", String.valueOf(inputFile));
