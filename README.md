@@ -87,6 +87,8 @@ It also needs some environment variables to be set, being the following:
 
 `PRPR_REC_EXE`: Specifies the location of the prepare_receptor4.py script, which is included with AutoDockTools
 
+`SCORPION_WRAPPER`: Specifies the location of an exec-wrappers generated run-in wrapper with python2 and other scorpion dependencies. Optional, only needed if viewpaths3.py can't be run directly.
+
 `FINDPATHS3_EXE`: Specifies the location of the viewpaths3.py script, which is included with Scorpion/Viper
 
 `LEPRO_EXE`: Specifies the location of the lepro executable for receptor preparation

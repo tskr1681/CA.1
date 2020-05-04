@@ -811,7 +811,8 @@ public class CompoundEvolver {
                 String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
                 String pythonExecutable = getEnvironmentVariable("PYTHON_EXE");
                 String fixerExecutable = getEnvironmentVariable("FIXER_EXE");
-                return step.pipe(new ScorpionScoringStep(receptorFile, scorpionExecutable, fixerExecutable, pythonExecutable));
+                String scorpionWrapper = System.getenv("SCORPION_WRAPPER");
+                return step.pipe(new ScorpionScoringStep(receptorFile, scorpionExecutable, fixerExecutable, pythonExecutable, scorpionWrapper));
             default:
                 throw new RuntimeException(String.format("Scoring step '%s' is not implemented", this.scoringOption.toString()));
 

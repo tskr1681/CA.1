@@ -21,23 +21,27 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
     private final String scorpionExecutable;
     private final String fixerExecutable;
     private final String pythonExecutable;
+    private final String wrapper;
 
     /**
      * Constructor for the scorpion scoring step.
-     * @param receptor     The force field that should be chosen in minimization.
+     *
+     * @param receptor           The force field that should be chosen in minimization.
      * @param scorpionExecutable The executable to run scorpion, or specifically, viewpaths3.py
-     * @param fixerExecutable the location of the scorpion output fixer executable
-     * @param pythonExecutable the location of the python executable to run this
+     * @param fixerExecutable    the location of the scorpion output fixer executable
+     * @param pythonExecutable   the location of the python executable to run this
      */
-    public ScorpionScoringStep(Path receptor, String scorpionExecutable, String fixerExecutable, String pythonExecutable) {
+    public ScorpionScoringStep(Path receptor, String scorpionExecutable, String fixerExecutable, String pythonExecutable, String wrapper) {
         this.receptorFilePath = receptor;
         this.scorpionExecutable = scorpionExecutable;
         this.fixerExecutable = fixerExecutable;
         this.pythonExecutable = pythonExecutable;
+        this.wrapper = wrapper;
     }
 
     /**
      * Runs scorpion on the candidate
+     *
      * @param candidate The candidate to find the conformer scores for
      * @return the candidate with updated parameters
      * @throws PipelineException when a problem occurs with running scorpion
@@ -77,6 +81,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
 
     /**
      * Gets the conformer scores from the output of scorpion
+     *
      * @param scorpionoutput the path to the scorpion output file
      * @return a list of scores for each conformer, or positive infinity if the conformer has no score
      * @throws PipelineException if reading the file fails
@@ -85,29 +90,29 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
         ArrayList<Double> conformerScores = new ArrayList<>();
         try {
             List<String> l = Files.readAllLines(scorpionoutput);
-        //Does the next line have a score? Used to read the scores without reading other random numbers
-        boolean next_has_score = false;
+            //Does the next line have a score? Used to read the scores without reading other random numbers
+            boolean next_has_score = false;
 
-        //Did the block we were in contain a score? If not, we append Double.POSITIVE_INFINITY, to guarantee it won't be the best one
-        boolean block_has_score = false;
-        for (String line : l) {
-            // The scores are on each line starting with 'Affinity:'
-            if (line.startsWith(">  <TOTAL>") && !block_has_score) {
-                next_has_score = true;
-                block_has_score = true;
-            } else if (next_has_score) {
-                next_has_score = false;
-                //Higher scores are better in scorpion, but the rest of the pipeline assumes lower scores are better
-                conformerScores.add(-Double.parseDouble(line));
-            } else if (line.startsWith("$$$$")) {
-                if (!block_has_score) {
-                    conformerScores.add(Double.POSITIVE_INFINITY);
+            //Did the block we were in contain a score? If not, we append Double.POSITIVE_INFINITY, to guarantee it won't be the best one
+            boolean block_has_score = false;
+            for (String line : l) {
+                // The scores are on each line starting with 'Affinity:'
+                if (line.startsWith(">  <TOTAL>") && !block_has_score) {
+                    next_has_score = true;
+                    block_has_score = true;
+                } else if (next_has_score) {
+                    next_has_score = false;
+                    //Higher scores are better in scorpion, but the rest of the pipeline assumes lower scores are better
+                    conformerScores.add(-Double.parseDouble(line));
+                } else if (line.startsWith("$$$$")) {
+                    if (!block_has_score) {
+                        conformerScores.add(Double.POSITIVE_INFINITY);
+                    }
+                    //New block, so the new block doesn't have a score yet
+                    block_has_score = false;
                 }
-                //New block, so the new block doesn't have a score yet
-                block_has_score = false;
             }
-        }
-        return conformerScores;
+            return conformerScores;
         } catch (IOException e) {
             throw new PipelineException("Couldn't get conformer scores from file! " + e);
         }
@@ -119,7 +124,12 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
 
         try {
             //The command to run
-            ProcessBuilder builder = new ProcessBuilder(
+            //Only uses the wrapper if it's declared, runs scorpion directly otherwise
+            ProcessBuilder builder = wrapper == null ? new ProcessBuilder(
+                    scorpionExecutable,
+                    "-p", String.valueOf(receptorFilePath),
+                    "-i", String.valueOf(inputFile)) : new ProcessBuilder(
+                    wrapper,
                     scorpionExecutable,
                     "-p", String.valueOf(receptorFilePath),
                     "-i", String.valueOf(inputFile));
@@ -140,7 +150,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
                     Paths.get(output_str).getFileName().toString(),
                     rec_dir.getFileName().toString(),
                     pml_script.toString()
-                    );
+            );
 
             // Build process with the command
             builder2.directory(inputFile.getParent().toFile());
