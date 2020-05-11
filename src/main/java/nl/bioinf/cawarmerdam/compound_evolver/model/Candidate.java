@@ -10,13 +10,16 @@ import chemaxon.marvin.calculations.HBDAPlugin;
 import chemaxon.marvin.calculations.IUPACNamingPlugin;
 import chemaxon.marvin.calculations.logPPlugin;
 import chemaxon.marvin.plugin.PluginException;
+import chemaxon.reaction.AtomIdentifier;
 import chemaxon.reaction.ReactionException;
 import chemaxon.reaction.Reactor;
+import chemaxon.struc.MolAtom;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.EnumColor;
 import nl.bioinf.cawarmerdam.compound_evolver.util.BBBScoreCalculator;
 import nl.bioinf.cawarmerdam.compound_evolver.util.QuantitativeDrugEstimateCalculator;
+import nl.bioinf.cawarmerdam.compound_evolver.util.ReactantScoreHelper;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -64,6 +67,7 @@ public class Candidate implements Comparable<Candidate> {
     private EnumColor color;
     private double minBBB;
     private Molecule[] reactants;
+    private Map<MolAtom, AtomIdentifier> atommap;
 
     /**
      * Constructor for candidate instance.
@@ -189,7 +193,9 @@ public class Candidate implements Comparable<Candidate> {
         t.start();
         // Try to get the result, unless it takes more than 5 seconds, in which case we stop the thread and return false
         try {
-            return future.get(10, TimeUnit.SECONDS);
+            List<Molecule> products = future.get(10, TimeUnit.SECONDS);
+            this.atommap = reaction.getReactionMap();
+            return products;
         } catch (TimeoutException | ExecutionException | InterruptedException ex) {
             this.rejectionMessage = ex.getMessage() != null ? ex.getMessage() : Arrays.toString(ex.getStackTrace());
             System.out.println("Reactor produced the following error: " + this.rejectionMessage);
@@ -417,6 +423,10 @@ public class Candidate implements Comparable<Candidate> {
      */
     public List<Integer> getGenotype() {
         return genotype;
+    }
+
+    public Map<MolAtom, AtomIdentifier> getAtommap() {
+        return atommap;
     }
 
     /**
