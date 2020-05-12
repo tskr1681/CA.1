@@ -453,6 +453,34 @@ public class CompoundEvolver {
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
                 updateDuration();
             }
+            if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
+                try {
+                    int[] best_reactants = new int[this.population.reactantLists.size()];
+                    double[] best_reactant_scores = new double[this.population.reactantLists.size()];
+
+                    Arrays.fill(best_reactant_scores, Double.NEGATIVE_INFINITY);
+                    for (Candidate candidate : this.population.getCurrentGeneration().getCandidateList()) {
+                        List<Double> scores = ReactantScoreHelper.getReactantScores(candidate);
+                        for (int i = 0; i < scores.size(); i++) {
+                            if (scores.get(i) > best_reactant_scores[i]) {
+                                best_reactants[i] = candidate.getGenotype().get(i);
+                                best_reactant_scores[i] = scores.get(i);
+                            }
+                        }
+                    }
+                    Candidate best = new Candidate(Arrays.stream(best_reactants).boxed().collect(Collectors.toList()),population.species.get(0));
+                    System.out.println("best = " + best.getPhenotype().toFormat("smiles"));
+                    Callable<Void> best_pipe = new CallableFullPipelineContainer(pipe,this.pipelineOutputFilePath, Collections.singletonList(best), true);
+                    try {
+                        executor.submit(best_pipe).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("best.getConformerScores() = " + best.getConformerScores());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
