@@ -749,7 +749,7 @@ public class Population implements Iterable<Candidate> {
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was null.");
                                 nullcounter++;
                             }
-                            else if (offspring.contains(c)) {
+                            else if (offspring.contains(c) && !this.duplicatesAllowed) {
                                 System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 try {
