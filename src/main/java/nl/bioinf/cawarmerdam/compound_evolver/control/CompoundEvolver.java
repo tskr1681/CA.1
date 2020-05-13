@@ -477,6 +477,9 @@ public class CompoundEvolver {
                         e.printStackTrace();
                     }
                     System.out.println("best.getConformerScores() = " + best.getConformerScores());
+                    Population best_pop = new Population(this.population.reactantLists, this.population.species, 1, 1);
+                    best_pop.setCandidateList(Collections.singletonList(best));
+                    manager.writeGeneration(best_pop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
