@@ -414,8 +414,7 @@ public class CompoundEvolver {
         while (validCandidates.size() < population.getPopulationSize() && !evolutionProgressConnector.isTerminationRequired()) {
             if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
                 throw new ForcedTerminationException("The program was terminated forcefully.");
-            population = new Population(population.reactantLists, population.species, population.getSpeciesDeterminationMethod(), population.getPopulationSize(), population.getReceptorAmount());
-            population.setSelective(this.selective);
+            population = population.newPopulation();
             candidates = getInitialCandidates();
             validCandidates.addAll(filterCandidates(candidates));
             System.out.println("candidates = " + candidates);

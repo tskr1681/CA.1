@@ -716,6 +716,7 @@ public class Population implements Iterable<Candidate> {
             int duplicatecounter = 0;
             int nullcounter = 0;
             boolean skipcheck = this.skipcheck;
+            System.out.println("this.duplicatesAllowed = " + this.duplicatesAllowed);
 
             System.out.println("newOffspring = " + newOffspring);
             // Iterate in blocks of pool_size, so we can do the processing with multiple threads
@@ -829,6 +830,45 @@ public class Population implements Iterable<Candidate> {
 
     public void setMinBBB(double minBBB) {
         this.minBBB = minBBB;
+    }
+
+    /**
+     * Creates a new population with the same parameters
+     * @return a new population
+     */
+    public Population newPopulation() {
+        Population population;
+        Population.SelectionMethod method = this.getSelectionMethod();
+        population = new Population(this.reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
+        population.setSelective(this.selective);
+
+        population.setDuplicatesAllowed(this.duplicatesAllowed);
+
+        population.setAdaptive(this.adaptive);
+        population.setAdaptiveMutation(this.adaptiveMutation);
+
+        population.setSelectionMethod(method);
+        population.setMutationMethod(this.mutationMethod);
+        population.setInterspeciesCrossoverMethod(this.interspeciesCrossoverMethod);
+
+        population.setCrossoverRate(this.crossoverRate);
+        population.setElitismRate(this.elitismRate);
+        population.setMutationRate(this.mutationRate);
+        population.setSelectionFraction(this.selectionFraction);
+        population.setRandomImmigrantRate(this.randomImmigrantRate);
+
+        population.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
+        population.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
+        population.setMaxMolecularMass(this.maxMolecularMass);
+        population.setMaxPartitionCoefficient(this.maxPartitionCoefficient);
+        population.setMinBBB(this.minBBB);
+        population.setMinQED(this.minQED);
+
+        population.setTotalGenerations(this.totalGenerations);
+
+        population.setOutputLocation(this.outputLocation);
+
+        return population;
     }
 
     private class OffSpringProducer implements Callable<Candidate> {
