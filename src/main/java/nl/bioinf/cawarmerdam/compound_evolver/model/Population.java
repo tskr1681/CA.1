@@ -186,7 +186,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param maxHydrogenBondAcceptors, the maximum hydrogen bond acceptors that new candidates must comply with.
      */
-    public void setMaxHydrogenBondAcceptors(double maxHydrogenBondAcceptors) {
+    public void setMaxHydrogenBondAcceptors(Double maxHydrogenBondAcceptors) {
         this.maxHydrogenBondAcceptors = maxHydrogenBondAcceptors;
     }
 
@@ -195,7 +195,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param maxHydrogenBondDonors, the maximum hydrogen bond donors that new candidates must comply with.
      */
-    public void setMaxHydrogenBondDonors(double maxHydrogenBondDonors) {
+    public void setMaxHydrogenBondDonors(Double maxHydrogenBondDonors) {
         this.maxHydrogenBondDonors = maxHydrogenBondDonors;
     }
 
@@ -204,7 +204,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param maxMolecularMass, the maximum molecular mass that new candidates must comply with.
      */
-    public void setMaxMolecularMass(double maxMolecularMass) {
+    public void setMaxMolecularMass(Double maxMolecularMass) {
         this.maxMolecularMass = maxMolecularMass;
     }
 
@@ -213,7 +213,7 @@ public class Population implements Iterable<Candidate> {
      *
      * @param maxPartitionCoefficient, the maximum partition coefficient that new candidates must comply with.
      */
-    public void setMaxPartitionCoefficient(double maxPartitionCoefficient) {
+    public void setMaxPartitionCoefficient(Double maxPartitionCoefficient) {
         this.maxPartitionCoefficient = maxPartitionCoefficient;
     }
 
@@ -838,7 +838,7 @@ public class Population implements Iterable<Candidate> {
      */
     public Population newPopulation() {
         Population population;
-        Population.SelectionMethod method = this.getSelectionMethod();
+        SelectionMethod method = this.getSelectionMethod();
         population = new Population(this.reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
         population.setSelective(this.selective);
 
