@@ -10,19 +10,23 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class ReactantScoreHelper {
 
     public static List<Double> getReactantScores(Candidate candidate) throws IOException {
+        System.out.println("Scored file = " + candidate.getScoredConformersFile());
         List<Double> reactantscores = new ArrayList<>();
         Map<MolAtom, AtomIdentifier> atommap = candidate.getAtommap();
         Molecule[] reactants = candidate.getReactants();
         Molecule phenotype = candidate.getPhenotype();
         MolImporter importer = new MolImporter(candidate.getScoredConformersFile().toFile());
         Molecule scored = getScorpScores(importer);
-
+        if (scored == null) {
+            return null;
+        }
         // Find the max common substructure, aka the mapping from unscored to scored molecule
         MaxCommonSubstructure substructure = MaxCommonSubstructure.newInstance();
         substructure.setQuery(phenotype);
@@ -61,16 +65,20 @@ public class ReactantScoreHelper {
         Molecule best_mol = null;
         for (MoleculeIterator it = importer.getMoleculeIterator(); it.hasNext(); ) {
             Molecule m = it.next();
-            double score = Double.parseDouble(m.properties().get("TOTAL").getPropValue().toString());
-            if (score > best) {
-                best = score;
-                best_mol = m;
-                String[] contacts = m.properties().get("CONTACTS").getPropValue().toString().split("\\n");
-                for (String contact : contacts) {
-                    String[] contents = contact.replace("'", "").split(",");
-                    double atom_score = Double.parseDouble(contents[contents.length - 1]);
-                    int atom_index = Integer.parseInt(contents[0].substring(2)) - 1;
-                    m.atoms().get(atom_index).putProperty("score", atom_score);
+            System.out.println("m.properties().getKeys() = " + Arrays.toString(m.properties().getKeys()));
+            if (m.properties().get("TOTAL") != null) {
+                System.out.println("m.properties().get(\"TOTAL\").getPropValue() = " + m.properties().get("TOTAL").getPropValue());
+                double score = Double.parseDouble(m.properties().get("TOTAL").getPropValue().toString());
+                if (score > best) {
+                    best = score;
+                    best_mol = m;
+                    String[] contacts = m.properties().get("CONTACTS").getPropValue().toString().split("\\n");
+                    for (String contact : contacts) {
+                        String[] contents = contact.replace("'", "").split(",");
+                        double atom_score = Double.parseDouble(contents[contents.length - 1]);
+                        int atom_index = Integer.parseInt(contents[0].substring(2)) - 1;
+                        m.atoms().get(atom_index).putProperty("score", atom_score);
+                    }
                 }
             }
         }
