@@ -19,8 +19,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.EnumColor;
 import nl.bioinf.cawarmerdam.compound_evolver.util.BBBScoreCalculator;
 import nl.bioinf.cawarmerdam.compound_evolver.util.QuantitativeDrugEstimateCalculator;
-import nl.bioinf.cawarmerdam.compound_evolver.util.ReactantScoreHelper;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
@@ -145,7 +143,7 @@ public class Candidate implements Comparable<Candidate> {
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
         try {
             // Not sure of the exact cause, but this is needed to prevent random, otherwise unexplainable errors
-            Reactor reaction = SerializationUtils.clone(species.getReaction());
+            Reactor reaction = species.getReaction();
             reaction.restart();
             // Setup for multithreading, which in case is used for a timeout
 
