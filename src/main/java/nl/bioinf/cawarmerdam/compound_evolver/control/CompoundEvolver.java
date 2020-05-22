@@ -13,7 +13,9 @@ import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.*;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -419,6 +421,7 @@ public class CompoundEvolver {
             validCandidates.addAll(filterCandidates(candidates));
             System.out.println("candidates = " + candidates);
             System.out.println("validCandidates.size() = " + validCandidates.size());
+            deleteEmtpy();
         }
         if (evolutionProgressConnector.isTerminationRequired()) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
@@ -451,6 +454,7 @@ public class CompoundEvolver {
                 }
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
                 updateDuration();
+                deleteEmtpy();
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
                 try {
@@ -460,16 +464,18 @@ public class CompoundEvolver {
                     Arrays.fill(best_reactant_scores, Double.NEGATIVE_INFINITY);
                     for (Candidate candidate : this.population.getCurrentGeneration().getCandidateList()) {
                         List<Double> scores = ReactantScoreHelper.getReactantScores(candidate);
-                        for (int i = 0; i < scores.size(); i++) {
-                            if (scores.get(i) > best_reactant_scores[i]) {
-                                best_reactants[i] = candidate.getGenotype().get(i);
-                                best_reactant_scores[i] = scores.get(i);
+                        if (scores != null) {
+                            for (int i = 0; i < scores.size(); i++) {
+                                if (scores.get(i) > best_reactant_scores[i]) {
+                                    best_reactants[i] = candidate.getGenotype().get(i);
+                                    best_reactant_scores[i] = scores.get(i);
+                                }
                             }
                         }
                     }
-                    Candidate best = new Candidate(Arrays.stream(best_reactants).boxed().collect(Collectors.toList()),population.species.get(0));
+                    Candidate best = new Candidate(Arrays.stream(best_reactants).boxed().collect(Collectors.toList()), population.species.get(0));
                     System.out.println("best = " + best.getPhenotype().toFormat("smiles"));
-                    Callable<Void> best_pipe = new CallableFullPipelineContainer(pipe,this.pipelineOutputFilePath, Collections.singletonList(best), true);
+                    Callable<Void> best_pipe = new CallableFullPipelineContainer(pipe, this.pipelineOutputFilePath, Collections.singletonList(best), true);
                     try {
                         executor.submit(best_pipe).get();
                     } catch (InterruptedException | ExecutionException e) {
@@ -500,6 +506,19 @@ public class CompoundEvolver {
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
         this.manager.close();
+    }
+
+    private void deleteEmtpy() {
+        File[] directories = this.pipelineOutputFilePath.toFile().listFiles(File::isDirectory);
+        for (File directory : directories) {
+            if (directory.listFiles().length == 0) {
+                try {
+                    FileUtils.deleteDirectory(directory);
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -555,7 +574,8 @@ public class CompoundEvolver {
 //                    evolutionProgressConnector.putException(e);
                         // Log exception
                         System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
-                        if (e.getMessage().equals("RDKit wrapper is having issues!")) throw new ForcedTerminationException("RDKit is not working. Stopping program execution.");
+                        if (e.getMessage().equals("RDKit wrapper is having issues!"))
+                            throw new ForcedTerminationException("RDKit is not working. Stopping program execution.");
                     }
                 }
                 // Log completed scoring round
