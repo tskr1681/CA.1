@@ -6,7 +6,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
 import chemaxon.formats.MolExporter;
 import chemaxon.reaction.Reactor;
-import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
