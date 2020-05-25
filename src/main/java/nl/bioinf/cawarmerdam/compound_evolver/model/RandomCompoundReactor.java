@@ -38,7 +38,7 @@ class RandomCompoundReactor {
      * @param species a list with species that contain reactions and how reactants map to the reaction.
      * @return the list of generated candidates.
      */
-    List<Candidate> randReact(List<List<Molecule>> reactantLists, List<Species> species) {
+    List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species) {
 
         // Amount of products generated
         int nSampled = 0;
@@ -80,15 +80,15 @@ class RandomCompoundReactor {
      * @param reactantLists The list of lists of reactants.
      * @return a randomly combined genome.
      */
-    private List<Integer> selectRandomIndexGenome(Random random, List<List<Molecule>> reactantLists) {
+    private List<Integer> selectRandomIndexGenome(Random random, List<List<String>> reactantLists) {
         // Get iterator from reactant lists
-        Iterator<List<Molecule>> iterator = reactantLists.iterator();
+        Iterator<List<String>> iterator = reactantLists.iterator();
         // Define a list of indices corresponding to the reactants in the genome
         List<Integer> indexGenome = new ArrayList<>();
 
         while (iterator.hasNext()) {
             // Get random reactants for a single reaction
-            List<Molecule> map = iterator.next();
+            List<String> map = iterator.next();
             // Get a random int within range 0 (inclusive) - n-reactants (exclusive)
             int index = random.nextInt(map.size());
             // Add the new reactant in both representations to the list

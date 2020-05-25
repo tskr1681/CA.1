@@ -4,6 +4,8 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import chemaxon.formats.MolFormatException;
+import chemaxon.formats.MolImporter;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
 
@@ -100,10 +102,18 @@ public class Species {
      * @param reactants the list of reactants that can form a genotype.
      * @return those reactants that are used in this species' reaction.
      */
-    Molecule[] getReactantsSubset(List<Molecule> reactants) {
+    Molecule[] getReactantsSubset(List<String> reactants) {
         return this.getReactantIndices()
                 .stream()
                 .map(reactants::get)
+                .map(s -> {
+                    try {
+                        return MolImporter.importMol(s);
+                    } catch (MolFormatException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
                 .toArray(Molecule[]::new);
     }
 

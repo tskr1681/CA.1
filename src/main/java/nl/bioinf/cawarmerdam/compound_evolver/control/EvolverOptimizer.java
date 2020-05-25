@@ -1,7 +1,6 @@
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
 import chemaxon.reaction.Reactor;
-import chemaxon.struc.Molecule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Deprecated
 public class EvolverOptimizer {
-    private EvolverOptimizer(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int candidateCount, int repetitions) {
+    private EvolverOptimizer(List<List<String>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, List<Pair<String, List<Object>>> parameterLists, int candidateCount, int repetitions) {
         List<GAParameters> filteredGAParameterVectors = getParameterVectors(parameterLists, candidateCount);
 
         List<List<Object>> resultsTable = getResultsTable();
@@ -69,7 +68,7 @@ public class EvolverOptimizer {
         }
     }
 
-    private void performRepetitions(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int repetitions, List<List<Object>> resultsTable, int i, GAParameters parameterVector) {
+    private void performRepetitions(List<List<String>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, int repetitions, List<List<Object>> resultsTable, int i, GAParameters parameterVector) {
         for (int repetition = 0; repetition < repetitions; repetition++) {
             String identifier = i + "r" + repetition;
             Path runPath;
@@ -240,7 +239,7 @@ public class EvolverOptimizer {
      * @throws OffspringFailureOverflow when creation of new offspring has failed too many times
      * @throws TooFewScoredCandidates when too few candidates are scored to run the next step of the algorithm
      */
-    private CompoundEvolver run(List<List<Molecule>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
+    private CompoundEvolver run(List<List<String>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());
         Population population = new Population(
                 reactantLists,

@@ -101,7 +101,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param reactantLists The entire pool of reactants for every reactant in the current experiment.
      * @return true if this candidate was viable and valid, false if not.
      */
-    boolean finish(List<List<Molecule>> reactantLists) {
+    boolean finish(List<List<String>> reactantLists) {
         if (this.species == null) throw new RuntimeException("Species was not specified");
         return finish(reactantLists, this.species);
     }
@@ -118,7 +118,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param species       The list of species to try.
      * @return true if this candidate was viable and valid, false if not.
      */
-    boolean finish(List<List<Molecule>> reactantLists, List<Species> species) {
+    boolean finish(List<List<String>> reactantLists, List<Species> species) {
         for (Species singleSpecies : species) {
             boolean isFinished = finish(reactantLists, singleSpecies);
             if (isFinished) {
@@ -138,7 +138,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param species       The species to use for this candidate.
      * @return true if this candidate was viable and valid, false if not.
      */
-    private boolean finish(List<List<Molecule>> reactantLists, Species species) {
+    private boolean finish(List<List<String>> reactantLists, Species species) {
         // get Reactants from the indices
         Molecule[] reactants = species.getReactantsSubset(getReactantsFromIndices(reactantLists));
         try {
@@ -209,7 +209,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param reactantLists, a list of lists of reactants
      * @return an array of reactants from the reactant lists.
      */
-    private List<Molecule> getReactantsFromIndices(List<List<Molecule>> reactantLists) {
+    private List<String> getReactantsFromIndices(List<List<String>> reactantLists) {
         return IntStream.range(0, reactantLists.size())
                 .mapToObj(i -> reactantLists.get(i).get(this.genotype.get(i)))
                 .collect(Collectors.toList());

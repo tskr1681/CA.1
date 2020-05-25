@@ -1,43 +1,59 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
+import chemaxon.formats.MolFormatException;
+import chemaxon.formats.MolImporter;
 import chemaxon.sss.search.MolSearch;
 import chemaxon.sss.search.SearchException;
-import chemaxon.struc.Molecule;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ReactantFilter {
-    private ReactantFilter() {}
+    private ReactantFilter() {
+    }
 
     /**
      * Filters a list of reactants by molecular weight.
+     *
      * @param reactants the reactants to filter
-     * @param weight the maximum weight the reactants can have
+     * @param weight    the maximum weight the reactants can have
      * @return a filtered list of reactants
      */
-    public static List<Molecule> filterByWeight(List<Molecule> reactants, double weight) {
-        return reactants.stream().filter(molecule -> molecule.getMass() < weight).collect(Collectors.toList());
+    public static List<String> filterByWeight(List<String> reactants, double weight) {
+        return reactants.stream().filter(molecule -> {
+            try {
+                return MolImporter.importMol(molecule).getMass() < weight;
+            } catch (MolFormatException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 
-    private static boolean filterMoleculeBySmarts(Molecule m, String[] smarts) {
+    private static boolean filterMoleculeBySmarts(String m, String[] smarts) {
         MolSearch s = new MolSearch();
-        s.setTarget(m);
-        for (String smart : smarts) {
-            if (!smart.equals("")) {
-                s.setQuery(smart);
-                try {
-                    if (s.getMatchCount() > 0) {
-                        return false;
+        try {
+            s.setTarget(MolImporter.importMol(m));
+
+            for (String smart : smarts) {
+                if (!smart.equals("")) {
+                    s.setQuery(smart);
+                    try {
+                        if (s.getMatchCount() > 0) {
+                            return false;
+                        }
+                    } catch (SearchException ignored) {
                     }
-                } catch (SearchException ignored) {
                 }
             }
+            return true;
+        } catch (MolFormatException e) {
+            e.printStackTrace();
+            return false;
         }
-        return true;
     }
 
-    public static List<Molecule> filterBySmarts(List<Molecule> reactants, String[] smarts) {
+    public static List<String> filterBySmarts(List<String> reactants, String[] smarts) {
         return reactants.stream().filter(molecule -> filterMoleculeBySmarts(molecule, smarts)).collect(Collectors.toList());
     }
 }

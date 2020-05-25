@@ -4,7 +4,8 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.struc.Molecule;
+import chemaxon.formats.MolFormatException;
+import chemaxon.formats.MolImporter;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallableValidificationPipelineContainer;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
@@ -32,7 +33,7 @@ public class Population implements Iterable<Candidate> {
 
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
-    public final List<List<Molecule>> reactantLists;
+    public final List<List<String>> reactantLists;
     private final Random random;
     public final List<Species> species;
     private SelectionMethod selectionMethod;
@@ -77,7 +78,7 @@ public class Population implements Iterable<Candidate> {
      * @param receptorAmount             The amount of receptors, used for polypharmacology
      */
     public Population(
-            List<List<Molecule>> reactantLists,
+            List<List<String>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
             int initialGenerationSize, int receptorAmount) {
@@ -111,7 +112,7 @@ public class Population implements Iterable<Candidate> {
      * @param receptorAmount        The amount of receptors, used for polypharmacology
      */
     public Population(
-            List<List<Molecule>> reactantLists,
+            List<List<String>> reactantLists,
             List<Species> species,
             int initialGenerationSize, int receptorAmount) {
         this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount);
@@ -521,7 +522,7 @@ public class Population implements Iterable<Candidate> {
 
         // Loop through every reactant list (Acids, Amines, etc...)
         for (int i1 = 0; i1 < reactantLists.size(); i1++) {
-            List<Molecule> reactants = reactantLists.get(i1);
+            List<String> reactants = reactantLists.get(i1);
             // Create a 2d matrix for the current reactant list
             alleleSimilarities[i1] = new double[reactants.size()][reactants.size()];
 
@@ -532,7 +533,12 @@ public class Population implements Iterable<Candidate> {
                 // We stop here because the similarity values at the diagonal (location i,i) should always be 1
                 for (int j = 0; j < i; j++) {
                     // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-                    double tanimoto = SimilarityHelper.similarity(reactants.get(i), reactants.get(j));
+                    double tanimoto = 0;
+                    try {
+                        tanimoto = SimilarityHelper.similarity(MolImporter.importMol(reactants.get(i)), MolImporter.importMol(reactants.get(j)));
+                    } catch (MolFormatException e) {
+                        e.printStackTrace();
+                    }
                     alleleSimilarities[i1][i][j] = tanimoto;
                     alleleSimilarities[i1][j][i] = tanimoto;
                 }
@@ -554,7 +560,7 @@ public class Population implements Iterable<Candidate> {
         this.alleleSimilarities = new double[reactantLists.size()][][];
         // Loop through every reactant list (Acids, Amines, etc...)
         for (int i1 = 0; i1 < reactantLists.size(); i1++) {
-            List<Molecule> reactants = reactantLists.get(i1);
+            List<String> reactants = reactantLists.get(i1);
             // Create a 2d matrix for the current reactant list
             alleleSimilarities[i1] = new double[reactants.size()][reactants.size()];
         }
@@ -603,7 +609,7 @@ public class Population implements Iterable<Candidate> {
 
     private double[] computeSpecificAlleleSimilarities(int reactantsListIndex, int alleleIndex, double mutation_similarity) {
         // Get reactants which it is about
-        List<Molecule> reactants = reactantLists.get(reactantsListIndex);
+        List<String> reactants = reactantLists.get(reactantsListIndex);
         // Loop through reactants in the reactant list for all reactants
         // Calculate tanimoto only if the diagonal in the matrix is not encountered and the cell is not yet filled
         // We don't calculate the tanimoto for the diagonal because the similarity values at the diagonal (location i,i)
@@ -624,13 +630,18 @@ public class Population implements Iterable<Candidate> {
     }
 
 
-    private double[] similarityHelper(int alleleIndex, List<Molecule> reactants) {
+    private double[] similarityHelper(int alleleIndex, List<String> reactants) {
         double[] temp = new double[reactants.size()];
         temp[alleleIndex] = 0;
         for (int j = 0; j < reactants.size(); j++) {
             if (j != alleleIndex) {
                 // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-                double tanimoto = SimilarityHelper.similarity(reactants.get(alleleIndex), reactants.get(j));
+                double tanimoto = 0;
+                try {
+                    tanimoto = SimilarityHelper.similarity(MolImporter.importMol(reactants.get(alleleIndex)), MolImporter.importMol(reactants.get(j)));
+                } catch (MolFormatException e) {
+                    e.printStackTrace();
+                }
                 temp[j] = tanimoto;
             }
         }

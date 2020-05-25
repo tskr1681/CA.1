@@ -6,7 +6,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.io;
 
 import chemaxon.formats.MolFormatException;
 import chemaxon.formats.MolImporter;
-import chemaxon.struc.Molecule;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ReactantFilter;
@@ -32,8 +31,8 @@ public final class ReactantFileHandler {
      * @throws ReactantFileHandlingException If a reactant file could not be read.
      * @throws ReactantFileFormatException   If a erroneous reactant format was encountered.
      */
-    public static List<List<Molecule>> loadMolecules(String[] filenames, double weight) throws ReactantFileHandlingException, ReactantFileFormatException {
-        List<List<Molecule>> reactantLists = new ArrayList<>();
+    public static List<List<String>> loadMolecules(String[] filenames, double weight) throws ReactantFileHandlingException, ReactantFileFormatException {
+        List<List<String>> reactantLists = new ArrayList<>();
         for (String fileName : filenames) {
             File initialFile = new File(fileName);
             try {
@@ -41,7 +40,7 @@ public final class ReactantFileHandler {
                     // Read file by file.
                     reactantLists.add(readSmileFile(new FileInputStream(initialFile), fileName));
                 } else {
-                    List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(new FileInputStream(initialFile), fileName), weight);
+                    List<String> filtered = ReactantFilter.filterByWeight(readSmileFile(new FileInputStream(initialFile), fileName), weight);
                     if (filtered.size() < 3) {
                         throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
                     }
@@ -62,13 +61,13 @@ public final class ReactantFileHandler {
      * @throws ReactantFileHandlingException if an IO exception is encountered.
      * @throws ReactantFileFormatException   if a SMILES molecule could not be read.
      */
-    public static List<List<Molecule>> loadMolecules(List<Part> fileParts, double weight, String[] smarts_filters) throws ReactantFileHandlingException, ReactantFileFormatException {
-        List<List<Molecule>> reactantLists = new ArrayList<>();
+    public static List<List<String>> loadMolecules(List<Part> fileParts, double weight, String[] smarts_filters) throws ReactantFileHandlingException, ReactantFileFormatException {
+        List<List<String>> reactantLists = new ArrayList<>();
         for (Part filePart : fileParts) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             try {
                 if (weight == 0) {
-                    List<Molecule> filtered = ReactantFilter.filterBySmarts(readSmileFile(
+                    List<String> filtered = ReactantFilter.filterBySmarts(readSmileFile(
                             filePart.getInputStream(),
                             fileName), smarts_filters);
                     if (filtered.size() < 2) {
@@ -76,7 +75,7 @@ public final class ReactantFileHandler {
                     }
                     reactantLists.add(filtered);
                 } else {
-                    List<Molecule> filtered = ReactantFilter.filterByWeight(readSmileFile(filePart.getInputStream(), fileName), weight);
+                    List<String> filtered = ReactantFilter.filterByWeight(readSmileFile(filePart.getInputStream(), fileName), weight);
                     filtered = ReactantFilter.filterBySmarts(filtered, smarts_filters);
                     if (filtered.size() < 2) {
                         throw new ReactantFileHandlingException("Filtering removed too many items, algorithm can not run.", fileName);
@@ -99,8 +98,8 @@ public final class ReactantFileHandler {
      * @throws ReactantFileHandlingException if an IO exception is encountered.
      * @throws ReactantFileFormatException   if the molecules could not be read due to a formatting problem.
      */
-    private static List<Molecule> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
-        List<Molecule> moleculeList = new ArrayList<>();
+    private static List<String> readSmileFile(InputStream inputStream, String fileName) throws ReactantFileHandlingException, ReactantFileFormatException {
+        List<String> moleculeList = new ArrayList<>();
 
         /*
          * Create byte array with the content of the file
@@ -115,7 +114,7 @@ public final class ReactantFileHandler {
                 if (line.contains("."))
                     continue;
                 try {
-                    moleculeList.add(MolImporter.importMol(line));
+                    moleculeList.add(MolImporter.importMol(line).toFormat("smiles"));
                 } catch (MolFormatException e) {
                     throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }

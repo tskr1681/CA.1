@@ -6,7 +6,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.control;
 
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.Reactor;
-import chemaxon.struc.Molecule;
 import com.jacob.com.NotImplementedException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
@@ -89,7 +88,7 @@ public class CompoundEvolver {
         int maxSamples = Integer.parseInt(args[args.length - 1]);
         // Load molecules
         String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 4);
-        List<List<Molecule>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles, 0);
+        List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles, 0);
         // Load anchor and receptor molecules
         Path pipelineLocation = Paths.get(args[args.length - 2]);
         Path receptor = Paths.get(args[args.length - 4]);
