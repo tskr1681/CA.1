@@ -456,6 +456,7 @@ public class CompoundEvolver {
                 deleteEmtpy();
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
+                scoreCandidates();
                 try {
                     int[] best_reactants = new int[this.population.reactantLists.size()];
                     double[] best_reactant_scores = new double[this.population.reactantLists.size()];
