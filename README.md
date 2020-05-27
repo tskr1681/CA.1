@@ -97,6 +97,8 @@ It also needs some environment variables to be set, being the following:
 
 `PYTHON_EXE`: Specifies the location or name of the python executable
 
-`RDKIT_WRAPPER`: An exec-wrappers generated run-in wrapper for a conda environment with RDKit. Required to run the custom conformer script.
+`RDKIT_WRAPPER`: An exec-wrappers generated run-in wrapper for a conda environment with RDKit. Required to run the program.
 
 `CONFORMER_SCRIPT`: The location of the bundled Constrained_confs.py script
+
+`SIMILARITY_HELPER`: The location of the bundled similarity_helper.py script
