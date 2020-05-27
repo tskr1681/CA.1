@@ -644,18 +644,6 @@ public class Population implements Iterable<Candidate> {
 
         SimilarityHelper helper = new SimilarityHelper(Paths.get(System.getenv("SIMILARITY_HELPER")), Paths.get(System.getenv("RDKIT_WRAPPER")));
         double[] temp = helper.similarityList(alleleIndex, temp_smiles, reactants.size());
-//        for (int j = 0; j < reactants.size(); j++) {
-//            if (j != alleleIndex) {
-//                // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-//                double tanimoto = 0;
-//                try {
-//                    tanimoto = SimilarityHelper.similarity(MolImporter.importMol(reactants.get(alleleIndex)), MolImporter.importMol(reactants.get(j)));
-//                } catch (MolFormatException e) {
-//                    e.printStackTrace();
-//                }
-//                temp[j] = tanimoto;
-//            }
-//        }
         // Get the sum of all similarity values for the current reactant
         // excluding the i,i location (because this is set to zero (0))
         double weightsSum = DoubleStream.of(temp).sum();
