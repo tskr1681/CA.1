@@ -86,7 +86,7 @@ public class EvolveServlet extends HttpServlet {
             ReactionFileHandlerException,
             ServletUtils.FormFieldHandlingException,
             MisMatchedReactantCount,
-            PipelineException {
+            PipelineException, OrderMissingException {
 
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
@@ -108,6 +108,10 @@ public class EvolveServlet extends HttpServlet {
         List<Part> receptorParts = getFilesFromRequest(request, "receptorFile");
         List<Integer> recOrder = getOrderParameterFromRequest(request, "recOrder");
         List<Part> copy = getFilesFromRequest(request, "receptorFile");
+
+        if (recOrder.size() == 0) {
+            throw new OrderMissingException("No order was specified for receptors, aborting.");
+        }
         for(int i = 0; i < receptorParts.size(); i++) {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
@@ -246,7 +250,7 @@ public class EvolveServlet extends HttpServlet {
      * @throws ServletUtils.FormFieldHandlingException If a form field could not be handled.
      */
     private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, Path outputFileLocation)
-            throws IOException, ServletException, PipelineException, ServletUtils.FormFieldHandlingException {
+            throws IOException, ServletException, PipelineException, ServletUtils.FormFieldHandlingException, OrderMissingException {
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -278,6 +282,10 @@ public class EvolveServlet extends HttpServlet {
         List<Part> anchorParts = getFilesFromRequest(request, "anchorFragmentFile");
         List<Integer> anchorOrder = getOrderParameterFromRequest(request, "anchorOrder");
         List<Part> copy = getFilesFromRequest(request, "anchorFragmentFile");
+
+        if (anchorOrder.size() == 0) {
+            throw new OrderMissingException("No order was specified for receptors, aborting.");
+        }
         for(int i = 0; i < anchorParts.size(); i++) {
             anchorParts.set(i, copy.get(anchorOrder.get(i)));
         }
@@ -466,5 +474,11 @@ public class EvolveServlet extends HttpServlet {
                 .filter(part -> fileFieldName
                         .equals(part.getName()))
                 .collect(Collectors.toList());
+    }
+
+    private class OrderMissingException extends Exception {
+        OrderMissingException(String message) {
+            super(message);
+        }
     }
 }
