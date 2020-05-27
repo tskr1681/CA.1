@@ -727,7 +727,6 @@ public class Population implements Iterable<Candidate> {
             int duplicatecounter = 0;
             int nullcounter = 0;
             boolean skipcheck = this.skipcheck;
-            System.out.println("this.duplicatesAllowed = " + this.duplicatesAllowed);
 
             System.out.println("newOffspring = " + newOffspring);
             // Iterate in blocks of pool_size, so we can do the processing with multiple threads
