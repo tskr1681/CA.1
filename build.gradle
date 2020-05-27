@@ -30,8 +30,8 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'jstl', name: 'jstl', version: '1.2'
     compile group: 'taglibs', name: 'standard', version: '1.1.2'
-    compile group: 'com.chemaxon', name: 'marvin-app', version: '20.12.0'
-    compile group: 'com.chemaxon', name: 'jchem-main', version: '20.12.0'
+    compile group: 'com.chemaxon', name: 'marvin-app', version: '19.+'
+    compile group: 'com.chemaxon', name: 'jchem-main', version: '19.+'
     compile group: 'com.ibm.icu', name: 'icu4j', version: '63.1'
 }
 
