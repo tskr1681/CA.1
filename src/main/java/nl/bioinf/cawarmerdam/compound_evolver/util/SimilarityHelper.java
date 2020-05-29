@@ -31,8 +31,8 @@ public class SimilarityHelper {
                 this.rdkit_wrapper.toString(),
                 "python",
                 this.helper_exe.toString(),
-                String.valueOf(reference_index),
-                reactants.toString()
+                reactants.toString(),
+                String.valueOf(reference_index)
         );
 
         try {
@@ -40,15 +40,20 @@ public class SimilarityHelper {
             BufferedReader reader = new BufferedReader(new InputStreamReader(out.getInputStream()));
             String line;
             int i = 0;
-            while ((line = reader.readLine()) != null && i < size) {
+            while (((line = reader.readLine()) != null) && i < size) {
                 similarities[i] = Double.parseDouble(line);
                 i++;
+            }
+
+            reader = new BufferedReader(new InputStreamReader(out.getErrorStream()));
+            while (((line = reader.readLine()) != null)) {
+                System.out.println("Similarity helper produced the following error: " + line);
             }
             reader.close();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-
+        System.out.println("reference = " + similarities[reference_index]);
         return similarities;
     }
 
