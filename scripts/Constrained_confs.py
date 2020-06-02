@@ -4,7 +4,7 @@ import sys
 
 
 def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
-    mol = Chem.MolFromSmiles(smiles)
+    mol = Chem.MolFromSmiles(smiles,False)
     AllChem.EmbedMolecule(mol)
 
     constrain = Chem.SDMolSupplier(anchor,False)[0]
@@ -21,11 +21,11 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
 
     w = Chem.SDWriter(output)
 
-    AllChem.EmbedMolecule(mol)
-    mp = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant='MMFF94s')
-    ff = AllChem.MMFFGetMoleculeForceField(mol, mp)
-    for i in mol.GetSubstructMatch(constrain):
-        ff.MMFFAddPositionConstraint(i, 0, 1.0e5)
+    #AllChem.EmbedMolecule(mol)
+    #mp = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant='MMFF94s')
+    #ff = AllChem.MMFFGetMoleculeForceField(mol, mp)
+    #for i in mol.GetSubstructMatch(constrain):
+        #ff.MMFFAddPositionConstraint(i, 0, 1.0e5)
 
     confs = AllChem.EmbedMultipleConfs(mol,
                                        numConfs=int(num_confs),
@@ -36,6 +36,7 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
                                        useBasicKnowledge=True)
 
     for element in confs:
+        Chem.SanitizeMol(mol)
         rmsd = rdMolAlign.AlignMol(mol, constrain, element, 0, atomMap=amap)
         w.write(mol, confId=element)
     w.close()
