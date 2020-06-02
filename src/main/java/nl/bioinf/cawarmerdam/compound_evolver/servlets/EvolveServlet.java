@@ -329,7 +329,7 @@ public class EvolveServlet extends HttpServlet {
     private String getSessionId(HttpSession session, Path pipelineTargetDirectory, String name) throws PipelineException {
         String sessionID;
         // Create new session id
-        sessionID = name + sdf.format(new Date());
+        sessionID = name.replaceAll("\\s","_") + sdf.format(new Date());
         if (Files.exists(pipelineTargetDirectory.resolve(sessionID))) {
             throw new PipelineException("Couldn't create directory, presumably last try was less than a minute ago. Please wait a minute before submitting another request.");
         }
