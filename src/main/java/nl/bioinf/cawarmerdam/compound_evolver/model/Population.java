@@ -687,7 +687,7 @@ public class Population implements Iterable<Candidate> {
         int i = 0;
         double[] fitnesslist = fitnessCandidateList.stream().mapToDouble(Candidate::getNormFitness).toArray();
         while (offspring.size() < offspringSize) {
-
+            System.out.println("Creating new candidates, current offspring size: " + offspring.size());
             List<Candidate> newOffspring = new ArrayList<>();
             // Try to produce offspring
             for (int j = i; j < i + pool_size; j++) {
