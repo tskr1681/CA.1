@@ -53,7 +53,6 @@ public class SimilarityHelper {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-        System.out.println("reference = " + similarities[reference_index]);
         return similarities;
     }
 
