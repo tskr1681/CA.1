@@ -9,7 +9,6 @@ def main():
     with open(sys.argv[1]) as smiles:
         smiles_list = list(smiles)
         mols = (get_mol(mol.strip()) for mol in smiles_list)
-    print(smiles_list[reference].strip())
     reference = FingerprintMols.FingerprintMol(get_mol(smiles_list[reference].strip("\n")))
     fingerprints = (FingerprintMols.FingerprintMol(mol) if mol is not None else None for mol in mols)
     similarities = (DataStructs.FingerprintSimilarity(reference, fingerprint) if fingerprint is not None else 0 for fingerprint in fingerprints)
