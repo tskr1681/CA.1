@@ -50,8 +50,8 @@ public class Candidate implements Comparable<Candidate> {
     private Double maxHydrogenBondAcceptors = null;
     private Double maxMolecularMass = null;
     private Double maxPartitionCoefficient = null;
-    private final HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
-    private final logPPlugin logPPlugin = new logPPlugin();
+    private static final HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
+    private static final logPPlugin logPPlugin = new logPPlugin();
     private List<Integer> genotype;
     private Molecule phenotype;
     private String rejectionMessage;
@@ -569,10 +569,10 @@ public class Candidate implements Comparable<Candidate> {
     private void calculateLipinskiValues() {
         if (maxHydrogenBondAcceptors != null || maxHydrogenBondDonors != null) {
             try {
-                this.hydrogenBondPlugin.setMolecule(this.phenotype);
-                this.hydrogenBondPlugin.setExcludeSulfur(true);
-                this.hydrogenBondPlugin.setExcludeHalogens(true);
-                this.hydrogenBondPlugin.run();
+                hydrogenBondPlugin.setMolecule(this.phenotype);
+                hydrogenBondPlugin.setExcludeSulfur(true);
+                hydrogenBondPlugin.setExcludeHalogens(true);
+                hydrogenBondPlugin.run();
             } catch (PluginException e) {
                 throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
             }
@@ -585,8 +585,8 @@ public class Candidate implements Comparable<Candidate> {
      */
     private void runLogPPluginIfNotRan() {
         try {
-            this.logPPlugin.setMolecule(this.phenotype);
-            this.logPPlugin.run();
+            logPPlugin.setMolecule(this.phenotype);
+            logPPlugin.run();
         } catch (PluginException e) {
             throw new RuntimeException("Could not set molecule in plugin: " + e.toString());
         }
@@ -600,7 +600,7 @@ public class Candidate implements Comparable<Candidate> {
      * @return true if the partition coefficient is valid, false if not.
      */
     private boolean isPartitionCoefficientValid() {
-        double logPTrue = this.logPPlugin.getlogPTrue();
+        double logPTrue = logPPlugin.getlogPTrue();
         boolean valid = logPTrue <= maxPartitionCoefficient;
         // Write why this molecule was invalid to create a descriptive error
         if (!valid) this.rejectionMessage = String.format("PartitionCoefficient was %s, should be <= %s",
