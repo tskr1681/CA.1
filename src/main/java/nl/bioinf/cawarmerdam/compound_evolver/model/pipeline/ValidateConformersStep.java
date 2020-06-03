@@ -97,6 +97,8 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             }
 
         }
+        System.err.println("Invalid candidate: " + candidate);
+        System.err.println("Rejected file:" + outputFilePath);
         return null;
     }
     /**
