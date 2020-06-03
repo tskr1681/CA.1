@@ -408,19 +408,20 @@ public class CompoundEvolver {
 
         this.population.setTotalGenerations(maxNumberOfGenerations);
         // Score the initial population
+        System.out.println("Generating candidates!");
         List<List<Candidate>> candidates = getInitialCandidates();
         List<Candidate> validCandidates = new ArrayList<>(filterCandidates(candidates));
-        System.out.println("candidates = " + candidates);
-        System.out.println("validCandidates.size() = " + validCandidates.size());
+        System.out.println("Current candidates: " + candidates);
+        System.out.println("Amount of valid candidates: " + validCandidates.size());
         while (validCandidates.size() < population.getPopulationSize() && !evolutionProgressConnector.isTerminationRequired()) {
             if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
                 throw new ForcedTerminationException("The program was terminated forcefully.");
             population = population.newPopulation();
             candidates = getInitialCandidates();
             validCandidates.addAll(filterCandidates(candidates));
-            System.out.println("candidates = " + candidates);
-            System.out.println("validCandidates.size() = " + validCandidates.size());
-            deleteEmtpy();
+            System.out.println("Current candidates: " + candidates);
+            System.out.println("Amount of valid candidates: " + validCandidates.size());
+            deleteEmpty();
         }
         if (evolutionProgressConnector.isTerminationRequired()) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
@@ -443,9 +444,11 @@ public class CompoundEvolver {
                 System.out.println(this.population.toString());
 
                 // Try to produce offspring
+                System.out.println("Producing offspring!");
                 this.population.produceOffspring();
 
                 // Score the candidates
+                System.out.println("Scoring candidates!");
                 scoreCandidates();
                 try {
                     manager.writeGeneration(population);
@@ -453,7 +456,8 @@ public class CompoundEvolver {
                 }
                 evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
                 updateDuration();
-                deleteEmtpy();
+                System.out.println("Deleting empty folders!");
+                deleteEmpty();
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
                 scoreCandidates();
@@ -508,7 +512,7 @@ public class CompoundEvolver {
         this.manager.close();
     }
 
-    private void deleteEmtpy() {
+    private void deleteEmpty() {
         File[] directories = this.pipelineOutputFilePath.toFile().listFiles(File::isDirectory);
         for (File directory : directories) {
             if (directory.listFiles().length == 0) {
