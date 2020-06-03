@@ -769,7 +769,7 @@ public class CompoundEvolver {
             receptorFilePath = receptorFilePath.resolveSibling("pro.pdb");
         }
         // Get the step for converting 'flat' molecules into multiple 3d conformers
-        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount, anchor);
+        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount, anchor, maximumAnchorDistance);
 //        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
@@ -869,7 +869,7 @@ public class CompoundEvolver {
         }
     }
 
-    private PipelineStep<Candidate, Candidate> getConformerStep(int conformerCount, Path anchor) {
+    private PipelineStep<Candidate, Candidate> getConformerStep(int conformerCount, Path anchor, double rmsd) {
         switch (this.conformerOption) {
             case CHEMAXON:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
@@ -881,7 +881,7 @@ public class CompoundEvolver {
                         this.pipelineOutputFilePath, conformerCount, System.getenv("MCNF_EXE"), System.getenv("MSMAB_EXE"), true);
             case CUSTOM:
                 return new CustomConformerStep(
-                        this.pipelineOutputFilePath, Paths.get(System.getenv("RDKIT_WRAPPER")), Paths.get(System.getenv("CONFORMER_SCRIPT")), anchor, conformerCount);
+                        this.pipelineOutputFilePath, Paths.get(System.getenv("RDKIT_WRAPPER")), Paths.get(System.getenv("CONFORMER_SCRIPT")), anchor, conformerCount, rmsd);
             default:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }

@@ -5,7 +5,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.util.FixArom;
 import org.apache.tika.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -15,13 +14,15 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
     private final Path anchor;
     private final Path pipeline;
     private final int confs;
+    private final double rmsd;
 
-    public CustomConformerStep(Path pipeline, Path wrapper, Path script, Path anchor, int confs){
+    public CustomConformerStep(Path pipeline, Path wrapper, Path script, Path anchor, int confs, double rmsd){
         this.wrapper = wrapper;
         this.script = script;
         this.confs = confs;
         this.anchor = anchor;
         this.pipeline = pipeline;
+        this.rmsd = rmsd;
     }
 
     /**
@@ -51,7 +52,8 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     candidate.getPhenotypeSmiles(),
                     this.anchor.toString(),
                     String.valueOf(confs),
-                    candidate.getFixedConformersFile().toString()
+                    candidate.getFixedConformersFile().toString(),
+                    String.valueOf(rmsd)
                     );
 
             Process p = builder.start();

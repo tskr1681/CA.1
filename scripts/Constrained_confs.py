@@ -3,7 +3,7 @@ from rdkit.Chem import rdFMCS, AllChem, rdMolAlign
 import sys
 
 
-def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
+def get_conformers(smiles=None, anchor=None, num_confs=None, output=None,rmsd_threshold=1):
     mol = Chem.MolFromSmiles(smiles,False)
     AllChem.EmbedMolecule(mol)
 
@@ -13,15 +13,17 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
     a = mol.GetSubstructMatch(Chem.MolFromSmarts(r.smartsString))
     b = constrain.GetSubstructMatch(Chem.MolFromSmarts(r.smartsString))
     amap = list(zip(a, b))
-
     coors = dict()
 
-    for i in a:
-        coors[i] = mol.GetConformer().GetAtomPosition(i)
+    for a,b in amap:
+        coors[a] = constrain.GetConformer().GetAtomPosition(b)
 
     w = Chem.SDWriter(output)
 
-    #AllChem.EmbedMolecule(mol)
+    mol.UpdatePropertyCache()
+    constrain.UpdatePropertyCache()
+    
+    #AllChem.EmbedMolecule(mol,coordMap=coors,forceTol=0.01)
     #mp = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant='MMFF94s')
     #ff = AllChem.MMFFGetMoleculeForceField(mol, mp)
     #for i in mol.GetSubstructMatch(constrain):
@@ -33,12 +35,14 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None):
                                        coordMap=coors,
                                        enforceChirality=True,
                                        useExpTorsionAnglePrefs=True,
-                                       useBasicKnowledge=True)
-
+                                       useBasicKnowledge=True
+                                       )
     for element in confs:
         Chem.SanitizeMol(mol)
-        rmsd = rdMolAlign.AlignMol(mol, constrain, element, 0, atomMap=amap)
-        w.write(mol, confId=element)
+        rmsd = AllChem.GetBestRMS(mol,constrain,element,0,map=[list(amap)])
+        #rmsd = rdMolAlign.AlignMol(mol, constrain, element, 0, atomMap=amap)
+        if rmsd<=float(rmsd_threshold):
+            w.write(mol, confId=element)
     w.close()
 
 
@@ -47,7 +51,7 @@ def main():
         USAGE: python Constrained_confs.py smiles_code anchor.sdf num_confs output.sdf
         ''')
 
-    get_conformers(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    get_conformers(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],sys.argv[5])
 
 
 if __name__ == '__main__':
