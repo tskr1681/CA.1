@@ -618,11 +618,11 @@ public class Population implements Iterable<Candidate> {
         // When computing the alleles in random fashion it is uncertain which values are already filled
         if (allelemap.get(reactantsListIndex) != null) {
             if (allelemap.get(reactantsListIndex).get(alleleIndex) == null) {
-                double[] temp = similarityHelper(alleleIndex, reactants);
+                double[] temp = similarityHelper(alleleIndex, reactants, reactantsListIndex);
                 allelemap.get(reactantsListIndex).put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
             }
         } else {
-            double[] temp = similarityHelper(alleleIndex, reactants);
+            double[] temp = similarityHelper(alleleIndex, reactants, reactantsListIndex);
             HashMap<Integer, List<Double>> tempmap = new HashMap<>();
             tempmap.put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
             allelemap.put(reactantsListIndex, tempmap);
@@ -631,15 +631,14 @@ public class Population implements Iterable<Candidate> {
     }
 
 
-    private double[] similarityHelper(int alleleIndex, List<String> reactants) {
-        File temp_smiles = this.outputLocation.resolve("temp.smiles").toFile();
-        if (temp_smiles.exists()) {
-            temp_smiles.delete();
-        }
-        try {
-            FileUtils.writeLines(temp_smiles, reactants);
-        } catch (IOException exception) {
-            exception.printStackTrace();
+    private double[] similarityHelper(int alleleIndex, List<String> reactants, int reactantsListIndex) {
+        File temp_smiles = this.outputLocation.resolve("temp_" + reactantsListIndex + ".smiles").toFile();
+        if (!temp_smiles.exists()) {
+            try {
+                FileUtils.writeLines(temp_smiles, reactants);
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
         }
 
         SimilarityHelper helper = new SimilarityHelper(Paths.get(System.getenv("SIMILARITY_HELPER")), Paths.get(System.getenv("RDKIT_WRAPPER")));
