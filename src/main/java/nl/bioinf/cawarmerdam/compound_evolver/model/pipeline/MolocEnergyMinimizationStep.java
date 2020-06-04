@@ -136,6 +136,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
                     molocExecutable,
                     "-e", receptorFilePath.toString(),
                     "-w0.01",
+                    "-a",
                     inputFile.toString());
 
             // Start the process
