@@ -68,6 +68,7 @@ public class Population implements Iterable<Candidate> {
     private int totalGenerations;
     private boolean adaptiveMutation;
     private boolean skipcheck;
+    private boolean debugPrint;
 
     /**
      * Constructor for population.
@@ -119,6 +120,10 @@ public class Population implements Iterable<Candidate> {
         this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount);
     }
 
+
+    public void setDebugPrint(boolean debugPrint) {
+        this.debugPrint = debugPrint;
+    }
 
     /**
      * Setter for the output location for the pipeline
@@ -642,6 +647,7 @@ public class Population implements Iterable<Candidate> {
         }
 
         SimilarityHelper helper = new SimilarityHelper(Paths.get(System.getenv("SIMILARITY_HELPER")), Paths.get(System.getenv("RDKIT_WRAPPER")));
+        helper.setDebug(debugPrint);
         double[] temp = helper.similarityList(alleleIndex, temp_smiles, reactants.size());
         // Get the sum of all similarity values for the current reactant
         // excluding the i,i location (because this is set to zero (0))
@@ -849,6 +855,7 @@ public class Population implements Iterable<Candidate> {
         SelectionMethod method = this.getSelectionMethod();
         population = new Population(this.reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
         population.setSelective(this.selective);
+        population.setDebugPrint(debugPrint);
 
         population.setDuplicatesAllowed(this.duplicatesAllowed);
 

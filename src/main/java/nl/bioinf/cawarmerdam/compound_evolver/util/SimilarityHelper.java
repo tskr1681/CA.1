@@ -12,6 +12,7 @@ public class SimilarityHelper {
 
     private final Path helper_exe;
     private final Path rdkit_wrapper;
+    private boolean debug = false;
 
     public SimilarityHelper(Path helper_exe, Path rdkit_wrapper) {
         this.helper_exe = helper_exe;
@@ -45,11 +46,13 @@ public class SimilarityHelper {
                 i++;
             }
 
-            reader = new BufferedReader(new InputStreamReader(out.getErrorStream()));
-            while (((line = reader.readLine()) != null)) {
-                System.out.println("Similarity helper produced the following error: " + line);
+            if (debug) {
+                reader = new BufferedReader(new InputStreamReader(out.getErrorStream()));
+                while (((line = reader.readLine()) != null)) {
+                    System.out.println("Similarity helper produced the following error: " + line);
+                }
+                reader.close();
             }
-            reader.close();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -59,5 +62,9 @@ public class SimilarityHelper {
     public static double similarity(Molecule m1, Molecule m2) {
         //TODO make this an actual similarity function
         return 1-(m1.getMass() - m2.getMass())/(m1.getMass()+m2.getMass());
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

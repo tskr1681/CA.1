@@ -25,6 +25,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private ExclusionShape exclusionShape;
     private final double maximumDistanceFromAnchor;
     private boolean deleteInvalid;
+    private boolean debug = false;
 
     public ValidateConformersStep(Path anchorFilePath,
                                   Path receptorFilePath,
@@ -61,7 +62,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             } else {
                 conformer_count = scores.size();
             }
-        } catch(IOException ignored) {
+        } catch (IOException ignored) {
 
         }
         for (int i = 0; i < conformer_count; i++) {
@@ -97,27 +98,29 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             }
 
         }
-        //TODO Add debug option to webpage to enable logging of invalid candidates and such
-//        System.err.println("Invalid candidate: " + candidate);
-//        System.err.println("Rejected file:" + outputFilePath);
+        if (debug) {
+            System.err.println("Invalid candidate: " + candidate);
+            System.err.println("Rejected file:" + outputFilePath);
+        }
         return null;
     }
+
     /**
      * Counts a too distant conformer or a conformer that is in the restricted space.
      *
-     * @param candidate The candidate that the conformer belongs to.
+     * @param candidate    The candidate that the conformer belongs to.
      * @param isTooDistant If the conformer is too distant.
-     * @param isInShape If the conformer is in the excluded shape.
+     * @param isInShape    If the conformer is in the excluded shape.
      */
     private void countInvalidities(Candidate candidate, boolean isTooDistant, boolean isInShape) {
         if (isInShape) {
             // Count the clashing conformer.
             clashingConformerCounter.compute(
-                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
+                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue + 1));
         }
         if (isTooDistant) {
             tooDistantConformerCounter.compute(
-                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue+1));
+                    candidate.getIdentifier(), (key, oldValue) -> ((oldValue == null) ? 1 : oldValue + 1));
         }
     }
 
@@ -172,8 +175,8 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
      * and the anchor molecule.
      *
      * @param minimizedMolecule The molecule with a substructure (partially matching) to the anchor molecule.
-     * @param anchorMolecule The anchor molecule.
-     * @param result The maximum common substructure search result.
+     * @param anchorMolecule    The anchor molecule.
+     * @param result            The maximum common substructure search result.
      * @return the RMSD.
      * @throws PipelineException if no substructure was found in the minimized molecule.
      */
@@ -209,14 +212,17 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private void removeMarker(Molecule m) {
         ArrayList<Integer> toRemove = new ArrayList<>();
         MolAtom[] atomArray = m.getAtomArray();
-        for(int i = 0; i < atomArray.length; i++) {
+        for (int i = 0; i < atomArray.length; i++) {
             if (atomArray[i].getAtno() == 118) {
                 toRemove.add(i);
             }
         }
-        for (int i:toRemove) {
+        for (int i : toRemove) {
             m.removeAtom(i);
         }
     }
 
+    public void setDebug(boolean debugPrint) {
+        this.debug = debugPrint;
+    }
 }

@@ -57,6 +57,7 @@ public class CompoundEvolver {
     private boolean prepareReceptor;
     private boolean neural_network;
     private boolean deleteInvalid;
+    private boolean debugPrint;
 
     /**
      * The constructor for a compound evolver.
@@ -107,6 +108,14 @@ public class CompoundEvolver {
         compoundEvolver.setDummyFitness(false);
         // Evolve compounds
         compoundEvolver.evolve();
+    }
+
+    public boolean isDebugPrint() {
+        return debugPrint;
+    }
+
+    public void setDebugPrint(boolean debugPrint) {
+        this.debugPrint = debugPrint;
     }
 
     /**
@@ -789,7 +798,8 @@ public class CompoundEvolver {
         // Get the step for energy minimization
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance);
         // Combine the steps and set the pipe.
-        PipelineStep<Candidate, Candidate> validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid);
+        ValidateConformersStep validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid);
+        validifyStep.setDebug(this.debugPrint);
         this.pipe2.add(converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(validifyStep));
         this.pipe.add(converterStep.pipe(validifyStep).pipe(energyMinimizationStep).pipe(scoredCandidateHandlingStep));
         System.out.println("Initializing generation manager");

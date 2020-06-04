@@ -48,7 +48,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         anchorOrder: [],
         setPrepareReceptor: true,
         setFillGen: false,
-        deleteInvalid: true
+        deleteInvalid: true,
+        debugPrint: false
     };
 
     // Define the properties of reaction files.

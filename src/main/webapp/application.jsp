@@ -1218,9 +1218,26 @@
                                            ng-model="formModel.deleteInvalid"
                                            id="delete-invalid"
                                            name="deleteInvalid"
-                                           value="fast">
-                                    <label class="form-check-label" for="align-fast">
+                                           value="delete">
+                                    <label class="form-check-label" for="delete-invalid">
                                         Delete invalid candidates
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="align-fast" class="col-sm-3 col-form-label">Delete invalid candidates
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.debugPrint"
+                                           id="debug-print"
+                                           name="debugPrint"
+                                           value="print">
+                                    <label class="form-check-label" for="debug-print">
+                                        Add debug logging to console
                                     </label>
                                 </div>
                             </div>
