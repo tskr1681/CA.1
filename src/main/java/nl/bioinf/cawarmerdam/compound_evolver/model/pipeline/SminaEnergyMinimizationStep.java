@@ -47,12 +47,11 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
+        if (candidate == null)
+            throw new PipelineException("Smina got null as a candidate, validation failed?");
         if (debug) {
             System.out.println("Running Smina!");
         }
-        if (candidate == null)
-            throw new PipelineException("Smina got null as a candidate, validation failed?");
-
         // If we've already minimized, used the minimized versions as input, otherwise use the fixed conformers
         Path inputFile = candidate.getMinimizationOutputFilePath() != null ? candidate.getMinimizationOutputFilePath() : candidate.getFixedConformersFile();
         // THe output file path will be called smina.sdf, located in the candidate specific folder.
