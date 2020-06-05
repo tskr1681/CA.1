@@ -13,6 +13,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.File;
 import java.io.IOException;
@@ -470,37 +471,27 @@ public class CompoundEvolver {
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
                 scoreCandidates();
+                int candidate_count = this.population.getCurrentGeneration().getCandidateList().size();
+                List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
                 try {
-                    int[] best_reactants = new int[this.population.reactantLists.size()];
-                    double[] best_reactant_scores = new double[this.population.reactantLists.size()];
 
-                    Arrays.fill(best_reactant_scores, Double.NEGATIVE_INFINITY);
-                    for (Candidate candidate : this.population.getCurrentGeneration().getCandidateList()) {
-                        List<Double> scores = ReactantScoreHelper.getReactantScores(candidate);
+
+                    for (int i = 0; i < candidate_count; i++) {
+                        Candidate c = this.population.getCurrentGeneration().getCandidateList().get(i);
+                        List<Double> scores = ReactantScoreHelper.getReactantScores(c);
                         if (scores != null) {
-                            for (int i = 0; i < scores.size(); i++) {
-                                if (scores.get(i) > best_reactant_scores[i]) {
-                                    best_reactants[i] = candidate.getGenotype().get(i);
-                                    best_reactant_scores[i] = scores.get(i);
+                            for (int j = 0; j < scores.size(); j++) {
+                                if (best_reactants.size() < i) {
+                                    best_reactants.add(new ArrayList<>());
                                 }
+                                best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
                             }
                         }
                     }
-                    Candidate best = new Candidate(Arrays.stream(best_reactants).boxed().collect(Collectors.toList()), population.species.get(0));
-                    System.out.println("best = " + best.getPhenotype().toFormat("smiles"));
-                    Callable<Void> best_pipe = new CallableFullPipelineContainer(pipe, this.pipelineOutputFilePath, Collections.singletonList(best), true);
-                    try {
-                        executor.submit(best_pipe).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println("best.getConformerScores() = " + best.getConformerScores());
-                    Population best_pop = new Population(this.population.reactantLists, this.population.species, 1, 1);
-                    best_pop.setCandidateList(Collections.singletonList(best));
-                    manager.writeGeneration(best_pop);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 3), population.reactantLists);
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
@@ -519,6 +510,23 @@ public class CompoundEvolver {
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
         this.manager.close();
+    }
+
+    private List<List<String>> getBestReactants(List<List<ImmutablePair<Double, Integer>>> scored, int amount, List<List<String>> reactants) {
+        List<List<String>> out = new ArrayList<>();
+        for (int i = 0; i < scored.get(0).size(); i++) {
+            List<ImmutablePair<Double,Integer>> scored_reactant_subset = new ArrayList<>();
+            for (int j = 0; j < scored.size(); j++) {
+                scored_reactant_subset.add(scored.get(j).get(i));
+            }
+            scored_reactant_subset.sort(Comparator.comparingDouble(ImmutablePair::getLeft));
+            List<String> out_subset = new ArrayList<>();
+            for (int j = 0; j < amount; j++) {
+                out_subset.add(reactants.get(i).get(scored_reactant_subset.get(i).getRight()));
+            }
+            out.add(out_subset);
+        }
+        return out;
     }
 
     private void deleteEmpty() {
@@ -831,15 +839,13 @@ public class CompoundEvolver {
                 break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
-                String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
-                String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
                 // Return Smina implementation of the energy minimization step
-                step = new SminaEnergyMinimizationStep(
+                SminaEnergyMinimizationStep temp = new SminaEnergyMinimizationStep(
                         receptorFile,
-                        sminaExecutable,
-                        pythonExecutable,
-                        prepareReceptorExecutable).pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid));
+                        sminaExecutable);
+                temp.setDebug(this.debugPrint);
+                step = temp.pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid));
                 break;
             default:
                 throw new RuntimeException(String.format("Force field '%s' is not implemented", this.forceField.toString()));
@@ -864,12 +870,13 @@ public class CompoundEvolver {
                     String pythonExecutable = getEnvironmentVariable("MGL_PYTHON");
                     String prepareReceptorExecutable = getEnvironmentVariable("PRPR_REC_EXE");
 
-                    // Return Smina implementation of the energy minimization step
-                    return step.pipe(new SminaEnergyMinimizationStep(
+                    SminaEnergyMinimizationStep sminaStep = new SminaEnergyMinimizationStep(
                             receptorFile,
-                            sminaExecutable,
-                            pythonExecutable,
-                            prepareReceptorExecutable));
+                            sminaExecutable);
+                    sminaStep.setDebug(this.debugPrint);
+
+                    // Return Smina implementation of the energy minimization step
+                    return step.pipe(sminaStep);
                 }
             case SCORPION:
                 String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");

@@ -13,11 +13,11 @@ of reactants (building blocks), which make up a compound.
 ```
 Java 8 (https://www.java.com/en/download/)
 Apache Tomcat 8.5 (https://tomcat.apache.org/download-80.cgi)
+A Conda Environment with Python 3.7 and RDKit 
+    (https://docs.conda.io/projects/conda/en/latest/index.html,  https://www.python.org/, http://rdkit.org/docs/index.html)
 
 At least one of the following:
 smina (https://sourceforge.net/projects/smina/files/), 
-    AutoDockTools 1.5.6 (http://mgltools.scripps.edu/downloads) 
-    and Python 2.7.16 (https://www.python.org/downloads/release/python-2716/)
 moloc (http://www.moloc.ch/)
 
 Optional:
@@ -82,10 +82,6 @@ It also needs some environment variables to be set, being the following:
 `POOL_SIZE`: Specifies the number of threads to use for the energy minimization step
 
 `SMINA_EXE`: Specifies the location of the smina executable
-
-`MGL_PYTHON`: Specifies the python executable
-
-`PRPR_REC_EXE`: Specifies the location of the prepare_receptor4.py script, which is included with AutoDockTools
 
 `SCORPION_WRAPPER`: Specifies the location of an exec-wrappers generated run-in wrapper with python2 and other scorpion dependencies. Optional, only needed if viewpaths3.py can't be run directly.
 
