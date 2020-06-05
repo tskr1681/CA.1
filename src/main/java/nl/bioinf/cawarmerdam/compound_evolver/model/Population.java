@@ -796,6 +796,7 @@ public class Population implements Iterable<Candidate> {
                                 failureCounter = 0;
                                 duplicatecounter = 0;
                                 nullcounter = 0;
+                                invalidCounter = 0;
                             }
                         } catch (InterruptedException | ExecutionException e) {
                             System.out.println("Error occured while trying to get offspring: " + e.getMessage());
