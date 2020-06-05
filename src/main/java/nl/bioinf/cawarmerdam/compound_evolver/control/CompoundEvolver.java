@@ -59,6 +59,7 @@ public class CompoundEvolver {
     private boolean neural_network;
     private boolean deleteInvalid;
     private boolean debugPrint;
+    private boolean isBoosting = false;
 
     /**
      * The constructor for a compound evolver.
@@ -410,7 +411,12 @@ public class CompoundEvolver {
      * Evolve compounds
      */
     public void evolve() throws OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
-//        dummyFitness = true;
+        getInitialPopulation();
+        mainEvolution();
+    }
+
+    private void getInitialPopulation() throws ForcedTerminationException, TooFewScoredCandidates {
+        //        dummyFitness = true;
         // Set startTime and signal that the evolution procedure has started
         startTime = System.currentTimeMillis();
         this.executor = Executors.newFixedThreadPool(getIntegerEnvironmentVariable("POOL_SIZE"));
@@ -448,6 +454,9 @@ public class CompoundEvolver {
         }
         evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
         updateDuration();
+    }
+
+    private void mainEvolution() throws ForcedTerminationException, OffspringFailureOverflow, TooFewScoredCandidates {
         try {
             // Evolve
             while (!shouldTerminate()) {
@@ -469,29 +478,8 @@ public class CompoundEvolver {
                 System.out.println("Deleting empty folders!");
                 deleteEmpty();
             }
-            if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1) {
-                scoreCandidates();
-                int candidate_count = this.population.getCurrentGeneration().getCandidateList().size();
-                List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
-                try {
-
-
-                    for (int i = 0; i < candidate_count; i++) {
-                        Candidate c = this.population.getCurrentGeneration().getCandidateList().get(i);
-                        List<Double> scores = ReactantScoreHelper.getReactantScores(c);
-                        if (scores != null) {
-                            for (int j = 0; j < scores.size(); j++) {
-                                if (best_reactants.size() < i) {
-                                    best_reactants.add(new ArrayList<>());
-                                }
-                                best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 3), population.reactantLists);
+            if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1 && !this.isBoosting) {
+                runBooster();
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
@@ -510,6 +498,36 @@ public class CompoundEvolver {
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
         this.manager.close();
+    }
+
+    private void runBooster() throws ForcedTerminationException, TooFewScoredCandidates, OffspringFailureOverflow {
+        scoreCandidates();
+        int candidate_count = this.population.getCurrentGeneration().getCandidateList().size();
+        List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
+        try {
+            for (int i = 0; i < candidate_count; i++) {
+                Candidate c = this.population.getCurrentGeneration().getCandidateList().get(i);
+                List<Double> scores = ReactantScoreHelper.getReactantScores(c);
+                if (scores != null) {
+                    for (int j = 0; j < scores.size(); j++) {
+                        if (best_reactants.size() < i) {
+                            best_reactants.add(new ArrayList<>());
+                        }
+                        best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 3), population.reactantLists);
+
+        this.population = population.newPopulation(reactants);
+
+        this.setTerminationCondition(TerminationCondition.FIXED_GENERATION_NUMBER);
+        this.setMaxNumberOfGenerations(this.population.getGenerationNumber() + 3);
+        this.isBoosting = true;
+        mainEvolution();
     }
 
     private List<List<String>> getBestReactants(List<List<ImmutablePair<Double, Integer>>> scored, int amount, List<List<String>> reactants) {

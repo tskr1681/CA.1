@@ -846,14 +846,18 @@ public class Population implements Iterable<Candidate> {
         this.minBBB = minBBB;
     }
 
+    public Population newPopulation() {
+        return this.newPopulation(this.reactantLists);
+    }
+
     /**
      * Creates a new population with the same parameters
      * @return a new population
      */
-    public Population newPopulation() {
+    public Population newPopulation(List<List<String>> reactantLists){
         Population population;
         SelectionMethod method = this.getSelectionMethod();
-        population = new Population(this.reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
+        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
         population.setSelective(this.selective);
         population.setDebugPrint(debugPrint);
 
