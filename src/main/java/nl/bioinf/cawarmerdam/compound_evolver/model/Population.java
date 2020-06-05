@@ -798,6 +798,7 @@ public class Population implements Iterable<Candidate> {
                                 nullcounter = 0;
                             }
                         } catch (InterruptedException | ExecutionException e) {
+                            System.out.println("Error occured while trying to get offspring: " + e.getMessage());
                             invalidCounter++;
                             // Make sure we don't try to get candidates from this list forever. Shouldn't be called in most cases.
                             if (invalidCounter > offspringSize * 4) {

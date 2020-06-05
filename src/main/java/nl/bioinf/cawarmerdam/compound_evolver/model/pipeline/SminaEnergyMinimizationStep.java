@@ -58,6 +58,9 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         Path outputPath = inputFile.resolveSibling("smina.sdf");
         // Run the smina minimization
         List<String> smina = smina(inputFile, outputPath);
+        if (!outputPath.toFile().exists()) {
+            throw new PipelineException("Smina did not produce output!");
+        }
         // Set the conformer scores and output path.
         candidate.setMinimizationOutputFilePath(outputPath);
         candidate.setConformerScores(getConformerScores(smina));
