@@ -47,6 +47,9 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      */
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
+        if (debug) {
+            System.out.println("Running Smina!");
+        }
         if (candidate == null)
             throw new PipelineException("Smina got null as a candidate, validation failed?");
 
@@ -63,6 +66,9 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         candidate.setFixedConformersFile(outputPath);
         candidate.setConformerScores(getConformerScores(smina));
         candidate.setScoredConformersFile(outputPath);
+        if (debug) {
+            System.out.println("Completing Smina run, output candidate: " + candidate);
+        }
         return candidate;
     }
 
