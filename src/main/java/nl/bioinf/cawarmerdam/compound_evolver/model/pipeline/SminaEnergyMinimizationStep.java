@@ -60,7 +60,7 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         // Run the smina minimization
         List<String> smina = smina(inputFile, outputPath);
         // Set the conformer scores and output path.
-        candidate.setFixedConformersFile(outputPath);
+        candidate.setMinimizationOutputFilePath(outputPath);
         candidate.setConformerScores(getConformerScores(smina));
         candidate.setScoredConformersFile(outputPath);
         if (debug) {
