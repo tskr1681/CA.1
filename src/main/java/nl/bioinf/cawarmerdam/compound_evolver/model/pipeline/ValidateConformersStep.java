@@ -52,7 +52,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         List<Molecule> validConformers = new ArrayList<>();
-        Path outputFilePath = candidate.getMinimizationOutputFilePath() == null ? candidate.getFixedConformersFile() : candidate.getMinimizationOutputFilePath();
+        Path outputFilePath = !candidate.getMinimizationOutputFilePath().toFile().exists() ? candidate.getFixedConformersFile() : candidate.getMinimizationOutputFilePath();
         List<Double> scores = candidate.getConformerScores();
         List<Double> new_scores = new ArrayList<>();
         int conformer_count = 15;
