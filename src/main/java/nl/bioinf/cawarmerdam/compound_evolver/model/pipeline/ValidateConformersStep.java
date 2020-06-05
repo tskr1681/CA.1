@@ -89,6 +89,9 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
                 candidate.setScoredConformersFile(outputFilePath);
                 candidate.setConformerScores(new_scores);
             }
+            if (debug) {
+                System.out.println("Accepted candidate: " + candidate);
+            }
             return candidate;
         } else if (deleteInvalid) {
             try {

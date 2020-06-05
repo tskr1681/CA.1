@@ -670,7 +670,8 @@ public class CompoundEvolver {
             List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
             for (List<Candidate> candidateList : matchingCandidateList) {
                 // Setup callable
-                Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidateList);
+                CallableValidificationPipelineContainer PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidateList);
+                PipelineContainer.setDebug(this.debugPrint);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -857,7 +858,6 @@ public class CompoundEvolver {
                 break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
-
                 // Return Smina implementation of the energy minimization step
                 SminaEnergyMinimizationStep temp = new SminaEnergyMinimizationStep(
                         receptorFile,

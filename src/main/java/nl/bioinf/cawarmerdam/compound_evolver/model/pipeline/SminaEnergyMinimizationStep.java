@@ -53,9 +53,6 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         if (candidate == null)
             throw new PipelineException("Smina got null as a candidate, validation failed?");
 
-        //No need to rerun smina if we've already scored this compound. It's clearly optimized already, otherwise it wouldn't be scored.
-        if (candidate.getRawScore() != null)
-            return candidate;
         // If we've already minimized, used the minimized versions as input, otherwise use the fixed conformers
         Path inputFile = candidate.getMinimizationOutputFilePath() != null ? candidate.getMinimizationOutputFilePath() : candidate.getFixedConformersFile();
         // THe output file path will be called smina.sdf, located in the candidate specific folder.
@@ -102,9 +99,6 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      */
     private List<String> smina(Path inputFile,
                                     Path outputPath) throws PipelineException {
-        // Initialize string line
-        String line;
-
         // Initialize smina output list.
         List<String> sminaOutput;
 

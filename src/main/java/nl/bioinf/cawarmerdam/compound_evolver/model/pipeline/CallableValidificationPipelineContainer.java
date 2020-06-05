@@ -24,6 +24,7 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
     private final List<PipelineStep<Candidate, Candidate>> pipeline;
     private final Path pipelineOutputFilePath;
     private final List<Candidate> candidates;
+    private boolean debug = false;
 
     /**
      * Constructor of a callable pipeline container.
@@ -54,6 +55,9 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
             // Execute pipeline
             out.add(this.pipeline.get(i).execute(candidates.get(i)));
         }
+        if (debug) {
+            System.out.println("Validation complete, output list: " + out);
+        }
         return out;
     }
 
@@ -78,5 +82,9 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
                         exceptionMessage, e);
             }
         }
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }
