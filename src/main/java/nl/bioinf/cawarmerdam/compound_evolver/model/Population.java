@@ -889,6 +889,8 @@ public class Population implements Iterable<Candidate> {
 
         population.setSkipcheck(this.skipcheck);
 
+        population.setValidifypipe(this.validatepipe);
+
         return population;
     }
 
