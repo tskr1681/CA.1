@@ -60,6 +60,7 @@ public class CallableValidationPipelineContainer implements Callable<List<Candid
             candidates.get(i).setMinimizationOutputFilePath(null);
             candidates.get(i).setFixedConformersFile(null);
             candidates.get(i).setConformersFile(null);
+            candidates.get(i).setConformerScores(null);
             // Execute pipeline
             out.add(this.pipeline.get(i).execute(candidates.get(i)));
         }
