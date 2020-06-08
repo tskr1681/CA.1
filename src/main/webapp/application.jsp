@@ -1226,7 +1226,7 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="align-fast" class="col-sm-3 col-form-label">Delete invalid candidates
+                            <label for="align-fast" class="col-sm-3 col-form-label">Add debug logging to console
                             </label>
                             <div class="col-sm-9">
                                 <div class="form-check">
