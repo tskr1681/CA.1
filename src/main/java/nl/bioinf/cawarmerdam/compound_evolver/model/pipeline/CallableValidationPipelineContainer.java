@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
  * @author c.a.warmerdam@st.hanze.nl
  * @version 0.0.1
  */
-public class CallableValidificationPipelineContainer implements Callable<List<Candidate>> {
+public class CallableValidationPipelineContainer implements Callable<List<Candidate>> {
     private final List<PipelineStep<Candidate, Candidate>> pipeline;
     private final Path pipelineOutputFilePath;
     private final List<Candidate> candidates;
@@ -33,7 +33,7 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
      * @param pipelineOutputFilePath The output where the pipeline writes to.
      * @param candidates The candidates that this container will score.
      */
-    public CallableValidificationPipelineContainer(List<PipelineStep<Candidate, Candidate>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates) {
+    public CallableValidationPipelineContainer(List<PipelineStep<Candidate, Candidate>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
         this.candidates = candidates;

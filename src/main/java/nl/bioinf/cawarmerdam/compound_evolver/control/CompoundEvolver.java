@@ -670,7 +670,7 @@ public class CompoundEvolver {
             List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
             for (List<Candidate> candidateList : matchingCandidateList) {
                 // Setup callable
-                CallableValidificationPipelineContainer PipelineContainer = new CallableValidificationPipelineContainer(pipe2, pipelineOutputFilePath, candidateList);
+                CallableValidationPipelineContainer PipelineContainer = new CallableValidationPipelineContainer(pipe2, pipelineOutputFilePath, candidateList);
                 PipelineContainer.setDebug(this.debugPrint);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));

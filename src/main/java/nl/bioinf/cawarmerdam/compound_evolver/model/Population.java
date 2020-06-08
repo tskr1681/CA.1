@@ -6,7 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model;
 
 import chemaxon.formats.MolFormatException;
 import chemaxon.formats.MolImporter;
-import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallableValidificationPipelineContainer;
+import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallableValidationPipelineContainer;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
 import nl.bioinf.cawarmerdam.compound_evolver.util.NumberCheckUtilities;
@@ -752,7 +752,7 @@ public class Population implements Iterable<Candidate> {
                             } else {
                                 List<Candidate> candidateAsList = new ArrayList<>();
                                 candidateAsList.add(c);
-                                Callable<List<Candidate>> PipelineContainer = new CallableValidificationPipelineContainer(validatepipe, outputLocation, candidateAsList);
+                                Callable<List<Candidate>> PipelineContainer = new CallableValidationPipelineContainer(validatepipe, outputLocation, candidateAsList);
                                 // Add future, so we can check the candidate for validity before using it as offspring
                                 futures2.add(executor.submit(PipelineContainer));
                             }
