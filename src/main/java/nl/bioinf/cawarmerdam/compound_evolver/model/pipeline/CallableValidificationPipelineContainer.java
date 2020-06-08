@@ -54,7 +54,12 @@ public class CallableValidificationPipelineContainer implements Callable<List<Ca
         for(int i = 0; i < candidates.size(); i++) {
             // Create new directory
             createCandidateDirectory(candidates.get(i));
-            // Setting Level to ALL
+
+            //Reset all the files in the candidate, to make sure they are properly validated
+            candidates.get(i).setScoredConformersFile(null);
+            candidates.get(i).setMinimizationOutputFilePath(null);
+            candidates.get(i).setFixedConformersFile(null);
+            candidates.get(i).setConformersFile(null);
             // Execute pipeline
             out.add(this.pipeline.get(i).execute(candidates.get(i)));
         }
