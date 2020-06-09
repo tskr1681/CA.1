@@ -32,12 +32,14 @@ public class ReactantScoreHelper {
         substructure.setQuery(phenotype);
         substructure.setTarget(scored);
         int[] mapping = substructure.find().getAtomMapping();
-
+        System.out.println("mapping = " + Arrays.toString(mapping));
         // Go through all the atoms in the phenotype
         for (int i = 0; i < phenotype.atoms().size(); i++) {
             MolAtom atom = phenotype.atoms().get(i);
             AtomIdentifier identifier = atommap.get(atom);
-            if (identifier != null) {
+
+            // It should have an identifier, it should be mapped, and it should be part of the reactants
+            if (identifier != null && mapping[i] != -1 && identifier.getMoleculeIndex() != -1) {
                 //get atom score
                 MolAtom scoredatom = scored.atoms().get(mapping[i]);
                 System.out.println("scoredatom = " + scoredatom);
@@ -76,7 +78,12 @@ public class ReactantScoreHelper {
                     for (String contact : contacts) {
                         String[] contents = contact.replace("'", "").split(",");
                         double atom_score = Double.parseDouble(contents[contents.length - 1]);
-                        int atom_index = Integer.parseInt(contents[0].substring(2)) - 1;
+                        System.out.println("contents = " + Arrays.toString(contents));
+                        int temp = 100;
+                        for (int i = 0; i < 10; i++) {
+                            temp = contents[0].indexOf(String.valueOf(i)) < temp && contents[0].contains(String.valueOf(i)) ? contents[0].indexOf(String.valueOf(i)) : temp;
+                        }
+                        int atom_index = Integer.parseInt(contents[0].substring(temp)) - 1;
                         m.atoms().get(atom_index).putProperty("score", atom_score);
                     }
                 }
@@ -87,12 +94,11 @@ public class ReactantScoreHelper {
 
 //    public static void main(String[] args) {
 //        try {
-//            MolImporter importer = new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\fixed-conformers_3d_scorp.sdf");
 //            Reactor reactor = new Reactor();
-//            Molecule reaction = new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\test_proteins\\GBB reaction.mrv").read();
+//            Molecule reaction = new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\SarsUgi4CR.mrv").read();
 //            reactor.setReaction(reaction);
 //            List<Molecule> reactants = new ArrayList<>();
-//            new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\reactants.smiles").getMoleculeIterator().forEachRemaining(reactants::add);
+//            new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\reactants.smiles").getMoleculeIterator().forEachRemaining(reactants::add);
 //            Molecule[] reactantarray = new Molecule[reactants.size()];
 //            reactantarray = reactants.toArray(reactantarray);
 //            reactor.setReactants(reactantarray);
@@ -102,7 +108,7 @@ public class ReactantScoreHelper {
 //            candidate.phenotype = reactor.react()[0];
 //            candidate.atommap = reactor.getReactionMap();
 //            candidate.reactants = reactantarray;
-//            candidate.setScoredConformersFile(Paths.get("D:\\Hanze\\Stage\\CompoundEvolver\\fixed-conformers_3d_scorp.sdf"));
+//            candidate.setScoredConformersFile(Paths.get("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\smina_scorp.sdf"));
 //            System.out.println(getReactantScores(candidate));
 //            for (Molecule reactant : candidate.reactants) {
 //                System.out.println(reactant.toFormat("smiles"));
