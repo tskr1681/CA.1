@@ -502,11 +502,11 @@ public class CompoundEvolver {
 
     private void runBooster() throws ForcedTerminationException, TooFewScoredCandidates, OffspringFailureOverflow {
         scoreCandidates();
-        int candidate_count = this.population.getCurrentGeneration().getCandidateList().size();
+        int candidate_count = this.population.matchingCandidateList().size();
         List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
         try {
             for (int i = 0; i < candidate_count; i++) {
-                Candidate c = this.population.getCurrentGeneration().getCandidateList().get(i);
+                Candidate c = this.population.matchingCandidateList().get(i).get(0);
                 List<Double> scores = ReactantScoreHelper.getReactantScores(c);
                 if (scores != null) {
                     for (int j = 0; j < scores.size(); j++) {
@@ -520,7 +520,7 @@ public class CompoundEvolver {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 3), population.reactantLists);
+        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 10), population.reactantLists);
 
         this.population = population.newPopulation(reactants);
 
