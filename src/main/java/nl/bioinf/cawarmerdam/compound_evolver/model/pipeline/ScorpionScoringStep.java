@@ -54,6 +54,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
         //No need to rerun scorpion if we've already scored this compound
         if (candidate.getRawScore() != null)
             return candidate;
+        candidate.setConformerScores(null);
         Path fixedconformers = candidate.getMinimizationOutputFilePath();
         scorpion(fixedconformers);
         //scorpion output takes the form of "original name_scorp.sdf" where original_name is the original file name without the extension
