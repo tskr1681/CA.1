@@ -501,7 +501,6 @@ public class CompoundEvolver {
     }
 
     private void runBooster() throws ForcedTerminationException, TooFewScoredCandidates, OffspringFailureOverflow {
-        scoreCandidates();
         int candidate_count = this.population.matchingCandidateList().size();
         List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
         try {
@@ -721,6 +720,7 @@ public class CompoundEvolver {
             for (Candidate candidate : candidates) {
                 // Ligand efficiency
                 candidate.calcNormFitness(minFitness, maxFitness);
+                candidate.setCanBeDeleted(false);
             }
         }
         population.setFitnessCandidateList();

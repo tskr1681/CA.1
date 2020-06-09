@@ -67,6 +67,7 @@ public class Candidate implements Comparable<Candidate> {
     private double minBBB;
     private Molecule[] reactants;
     private Map<MolAtom, AtomIdentifier> atommap;
+    private boolean canBeDeleted = true;
 
     /**
      * Constructor for candidate instance.
@@ -832,5 +833,13 @@ public class Candidate implements Comparable<Candidate> {
                 ", normFitness=" + normFitness +
                 ", id=" + identifier +
                 '}';
+    }
+
+    public boolean canBeDeleted() {
+        return canBeDeleted;
+    }
+
+    public void setCanBeDeleted(boolean canBeDeleted) {
+        this.canBeDeleted = canBeDeleted;
     }
 }
