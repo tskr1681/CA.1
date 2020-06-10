@@ -509,10 +509,17 @@ public class CompoundEvolver {
                 List<Double> scores = ReactantScoreHelper.getReactantScores(c);
                 if (scores != null) {
                     for (int j = 0; j < scores.size(); j++) {
-                        if (best_reactants.size() < i) {
+                        while (best_reactants.size() < i) {
                             best_reactants.add(new ArrayList<>());
                         }
-                        best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
+                        try {
+                            best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
+                        } catch (IndexOutOfBoundsException ex) {
+                            System.out.println("i = " + i);
+                            System.out.println("j = " + j);
+                            System.out.println("best_reactants.size() = " + best_reactants.size());
+                            System.out.println("scores.size() = " + scores.size());
+                        }
                     }
                 }
             }
