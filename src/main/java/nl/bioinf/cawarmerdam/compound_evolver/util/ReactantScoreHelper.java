@@ -32,7 +32,6 @@ public class ReactantScoreHelper {
         substructure.setQuery(phenotype);
         substructure.setTarget(scored);
         int[] mapping = substructure.find().getAtomMapping();
-        System.out.println("mapping = " + Arrays.toString(mapping));
         // Go through all the atoms in the phenotype
         for (int i = 0; i < phenotype.atoms().size(); i++) {
             MolAtom atom = phenotype.atoms().get(i);
@@ -42,7 +41,6 @@ public class ReactantScoreHelper {
             if (identifier != null && mapping[i] != -1 && identifier.getMoleculeIndex() != -1) {
                 //get atom score
                 MolAtom scoredatom = scored.atoms().get(mapping[i]);
-                System.out.println("scoredatom = " + scoredatom);
                 double score = scoredatom.getProperty("score") == null ? 0.0D : (double) scoredatom.getProperty("score");
 
                 //get matching reactant atom and set score
@@ -78,7 +76,6 @@ public class ReactantScoreHelper {
                     for (String contact : contacts) {
                         String[] contents = contact.replace("'", "").split(",");
                         double atom_score = Double.parseDouble(contents[contents.length - 1]);
-                        System.out.println("contents = " + Arrays.toString(contents));
                         int temp = 100;
                         for (int i = 0; i < 10; i++) {
                             temp = contents[0].indexOf(String.valueOf(i)) < temp && contents[0].contains(String.valueOf(i)) ? contents[0].indexOf(String.valueOf(i)) : temp;
