@@ -138,6 +138,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
                     "-w0.0",
                     "-a",
                     "-l",
+                    "-i30",
                     inputFile.toString());
 
             // Start the process
