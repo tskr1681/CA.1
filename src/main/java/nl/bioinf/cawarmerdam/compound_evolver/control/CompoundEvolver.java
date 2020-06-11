@@ -506,7 +506,7 @@ public class CompoundEvolver {
         try {
             for (int i = 0; i < candidate_count; i++) {
                 Candidate c = this.population.matchingCandidateList().get(i).get(0);
-                List<Double> scores = ReactantScoreHelper.getReactantScores(c);
+                List<Double> scores = ReactantScoreHelper.getReactantScores(c, this.fitnessMeasure);
                 if (scores != null) {
                     for (int j = 0; j < scores.size(); j++) {
                         while (best_reactants.size() < i) {

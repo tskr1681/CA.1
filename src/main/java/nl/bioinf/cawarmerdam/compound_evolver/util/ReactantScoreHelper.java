@@ -1,11 +1,14 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import chemaxon.formats.MolImporter;
+import chemaxon.marvin.calculations.logPPlugin;
+import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.AtomIdentifier;
 import chemaxon.struc.MolAtom;
 import chemaxon.struc.Molecule;
 import chemaxon.util.iterator.MoleculeIterator;
 import com.chemaxon.search.mcs.MaxCommonSubstructure;
+import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.IOException;
@@ -16,7 +19,9 @@ import java.util.Map;
 
 public class ReactantScoreHelper {
 
-    public static List<Double> getReactantScores(Candidate candidate) throws IOException {
+    public static logPPlugin logPPlugin = new logPPlugin();
+
+    public static List<Double> getReactantScores(Candidate candidate, CompoundEvolver.FitnessMeasure measure) throws IOException {
         System.out.println("Scored file = " + candidate.getScoredConformersFile());
         List<Double> reactantscores = new ArrayList<>();
         Map<MolAtom, AtomIdentifier> atommap = candidate.getAtommap();
@@ -52,12 +57,29 @@ public class ReactantScoreHelper {
         }
 
         for (Molecule reactant : reactants) {
+            double normalizationfactor = measure == CompoundEvolver.FitnessMeasure.LIGAND_EFFICIENCY ? (reactant.getAtomCount() - reactant.getExplicitHcount()) : 1.0D;
+
+            double score = reactant.atoms().stream().mapToDouble(molAtom ->
+                    molAtom.getProperty("score") == null ? 0.0D : ((double) molAtom.getProperty("score") / normalizationfactor)
+            ).sum();
+
+            score = measure == CompoundEvolver.FitnessMeasure.LIGAND_LIPOPHILICITY_EFFICIENCY ? calculateLigandLipophilicityEfficiency(reactant, score) : score;
             // Sum all the scores for each reactant
-            reactantscores.add(reactant.atoms().stream().mapToDouble(molAtom ->
-                    molAtom.getProperty("score") == null ? 0.0D : (double) molAtom.getProperty("score")
-            ).sum());
+            reactantscores.add(score);
         }
         return reactantscores;
+    }
+
+    public static double calculateLigandLipophilicityEfficiency(Molecule reactant, double score) {
+        final double kcalToJouleConstant = 4.186798188;
+        try {
+            logPPlugin.setMolecule(reactant);
+            logPPlugin.run();
+            return Math.log(-score * kcalToJouleConstant) - logPPlugin.getlogPTrue();
+        } catch (PluginException e) {
+            e.printStackTrace();
+        }
+        return 0.0D;
     }
 
     public static Molecule getScorpScores(MolImporter importer) {
