@@ -60,6 +60,9 @@ def set_colors(i):
                 "color orange, pi-pi",
                 "color yellow, vdw",
                 "color grey, unfavorable_ionic",
+                "color grey, unfavorable_hbond",
+                "color grey, unfavorable_dipole",
+                "color grey, unfavorable_vdw",
                 "color white, poor_ang",
                 "color white, unclass"]
     out = []
@@ -110,6 +113,8 @@ def get_dist_commands(lines, sdf, rec):
         for contact in conformer:
             ligand_atom = contact[0]
             interaction_type = contact[-3]
+            if "unfavorable_vdw" in interaction_type:
+                interaction_type = "unfavorable_vdw"
             residue_full = contact[-4].split()
             residue_name = residue_full[0]
             residue_chain = residue_full[1]
@@ -131,7 +136,7 @@ def get_dist_commands(lines, sdf, rec):
         "unfavorable_ionic",
         "unfavorable_hbond",
         "unfavorable_dipole",
-        "unfavorable_vdw"
+        "unfavorable_vdw",
         "poor_ang",
         "unclass"
     ]
