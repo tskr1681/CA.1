@@ -195,6 +195,9 @@ def main(file, rec, pymol_script):
             script.write(line + "\n")
         for line in score_commands:
             script.write(line + "\n")
+        with open("custom.pml") as custom:
+            for line in custom:
+                script.write(line)
     with open("Pymol_widget.py", "w") as o:
         content = base64.b64decode(pymol_widget_b64)
         o.write(content.decode("utf-8"))
