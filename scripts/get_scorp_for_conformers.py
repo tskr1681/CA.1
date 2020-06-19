@@ -196,7 +196,7 @@ def main(file, rec, pymol_script):
         for line in score_commands:
             script.write(line + "\n")
         try:
-            with open("custom.pml") as custom:
+            with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "custom.pml")) as custom:
                 for line in custom:
                     script.write(line)
         except FileNotFoundError:
