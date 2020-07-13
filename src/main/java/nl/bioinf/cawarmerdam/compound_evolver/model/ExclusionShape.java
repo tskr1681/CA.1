@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class ExclusionShape {
     private static final double DEFAULT_PROBE_SIZE = 1.4;
-    private static final double RESOLUTION = 0.1;
+    private static final double RESOLUTION = 0.5;
 
     private static final Map<Integer, Double> ELEMENT_VDW_RADII = new HashMap<>();
 
