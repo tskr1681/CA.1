@@ -28,25 +28,16 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private boolean debug = false;
 
     public ValidateConformersStep(Path anchorFilePath,
-                                  Path receptorFilePath,
-                                  double exclusionShapeTolerance,
                                   double maximumDistanceFromAnchor,
                                   Map<Long, Integer> clashingConformerCounter,
                                   Map<Long, Integer> tooDistantConformerCounter,
-                                  boolean deleteInvalid) throws PipelineException {
+                                  boolean deleteInvalid, ExclusionShape shape)  {
         this.anchorFilePath = anchorFilePath;
         this.clashingConformerCounter = clashingConformerCounter;
         this.tooDistantConformerCounter = tooDistantConformerCounter;
         this.maximumDistanceFromAnchor = maximumDistanceFromAnchor;
         this.deleteInvalid = deleteInvalid;
-        try {
-            Molecule receptor = new MolImporter(receptorFilePath.toFile(), "pdb").read();
-            this.exclusionShape = new ExclusionShape(receptor, exclusionShapeTolerance);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new PipelineException(
-                    String.format("Could not import receptor molecule %s", receptorFilePath.getFileName()));
-        }
+        this.exclusionShape = shape;
     }
 
     @Override

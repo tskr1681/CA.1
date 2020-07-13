@@ -4,8 +4,10 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.control;
 
+import chemaxon.formats.MolImporter;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.Reactor;
+import chemaxon.struc.Molecule;
 import com.jacob.com.NotImplementedException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
@@ -815,6 +817,14 @@ public class CompoundEvolver {
             PdbFixer.runFixer(System.getenv("LEPRO_EXE"), receptorFilePath);
             receptorFilePath = receptorFilePath.resolveSibling("pro.pdb");
         }
+        Molecule receptor;
+        try {
+            receptor = new MolImporter(receptorFilePath.toFile(), "pdb").read();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+            throw new PipelineException("Could not import receptor for exclusion shape");
+        }
+        ExclusionShape shape = new ExclusionShape(receptor, exclusionShapeTolerance);
         // Get the step for converting 'flat' molecules into multiple 3d conformers
         PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = getConformerStep(conformerCount, anchor, maximumAnchorDistance);
 //        PipelineStep<Candidate, Candidate> threeDimensionalConverterStep = new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
@@ -833,7 +843,7 @@ public class CompoundEvolver {
         PipelineStep<Candidate, Candidate> energyMinimizationStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance, false);
         PipelineStep<Candidate, Candidate> energyAndScoringStep = getEnergyMinimizationStep(receptorFilePath, anchor, exclusionShapeTolerance, maximumAnchorDistance, true);
         // Combine the steps and set the pipe.
-        ValidateConformersStep validifyStep = new ValidateConformersStep(anchor, receptorFilePath, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid);
+        ValidateConformersStep validifyStep = new ValidateConformersStep(anchor, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape);
         validifyStep.setDebug(this.debugPrint);
         this.pipe2.add(converterStep.pipe(validifyStep).pipe(energyMinimizationStep));
         this.pipe.add(converterStep.pipe(validifyStep).pipe(energyAndScoringStep).pipe(scoredCandidateHandlingStep));
@@ -855,7 +865,15 @@ public class CompoundEvolver {
      */
     private PipelineStep<Candidate, Candidate> getEnergyMinimizationStep(Path receptorFile, Path anchorFilePath, double exclusionShapeTolerance, double maximumAnchorDistance, boolean appendScoring) throws PipelineException {
         PipelineStep<Candidate, Candidate> step;
-        ValidateConformersStep validateConformersStep = new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid);
+        Molecule receptor;
+        try {
+            receptor = new MolImporter(receptorFile.toFile(), "pdb").read();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+            throw new PipelineException("Could not import receptor for exclusion shape");
+        }
+        ExclusionShape shape = new ExclusionShape(receptor, exclusionShapeTolerance);
+        ValidateConformersStep validateConformersStep = new ValidateConformersStep(anchorFilePath, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape);
         validateConformersStep.setDebug(this.debugPrint);
         switch (this.forceField) {
             case MAB:
@@ -889,7 +907,7 @@ public class CompoundEvolver {
                         return step.pipe(new MolocEnergyMinimizationStep(
                                 receptorFile,
                                 mol3dExecutable,
-                                esprntoExecutable).pipe(new ValidateConformersStep(anchorFilePath, receptorFile, exclusionShapeTolerance, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid)));
+                                esprntoExecutable).pipe(new ValidateConformersStep(anchorFilePath, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape)));
                     }
                 case SMINA:
                     if (this.forceField == ForceField.SMINA) {
@@ -903,7 +921,7 @@ public class CompoundEvolver {
                         sminaStep.setDebug(this.debugPrint);
 
                         // Return Smina implementation of the energy minimization step
-                        return step.pipe(sminaStep);
+                        return step.pipe(sminaStep).pipe(new ValidateConformersStep(anchorFilePath, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape));
                     }
                 case SCORPION:
                     String scorpionExecutable = getEnvironmentVariable("FINDPATHS3_EXE");
