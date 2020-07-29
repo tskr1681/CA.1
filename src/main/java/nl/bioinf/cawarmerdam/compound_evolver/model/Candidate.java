@@ -412,8 +412,7 @@ public class Candidate implements Comparable<Candidate> {
      * Method responsible for calculating and setting the ligand lipophilicity efficiency.
      */
     public void calculateLigandLipophilicityEfficiency() {
-        double kcalToJouleConstant = 4.186798188;
-        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore() * kcalToJouleConstant) - logPPlugin.getlogPTrue();
+        this.ligandLipophilicityEfficiency = Math.log(-this.getRawScore()) - logPPlugin.getlogPTrue();
     }
 
     /**
