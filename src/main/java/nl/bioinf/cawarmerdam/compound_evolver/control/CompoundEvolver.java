@@ -481,7 +481,7 @@ public class CompoundEvolver {
                 deleteEmpty();
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1 && !this.isBoosting) {
-                runBooster();
+//                runBooster();
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
