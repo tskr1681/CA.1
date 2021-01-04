@@ -8,7 +8,6 @@ import chemaxon.formats.MolImporter;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
-import com.jacob.com.NotImplementedException;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
@@ -58,7 +57,6 @@ public class CompoundEvolver {
     private GenerationDataFileManager manager;
     private boolean selective;
     private boolean prepareReceptor;
-    private boolean neural_network;
     private boolean deleteInvalid;
     private boolean debugPrint;
     private boolean isBoosting = false;
@@ -78,7 +76,6 @@ public class CompoundEvolver {
         this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         this.conformerOption = ConformerOption.CHEMAXON;
-        this.neural_network = false;
     }
 
     /**
@@ -595,7 +592,6 @@ public class CompoundEvolver {
      * Scores the candidates in the population.
      */
     private void scoreCandidates() throws TooFewScoredCandidates, ForcedTerminationException {
-        if (!neural_network) {
             if (!dummyFitness) {
                 // Check if pipe is present
                 if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
@@ -647,20 +643,6 @@ public class CompoundEvolver {
                 throw new TooFewScoredCandidates(
                         "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
             }
-        } else {
-            NNHelper helper = new NNHelper(Paths.get("C:\\Users\\F100961\\Documents\\chemprop-master\\predict.py"),
-                    Paths.get("C:\\Users\\F100961\\Documents\\chemprop-master\\checkpoint\\fold_0\\model_0\\model.pt"),
-                    Paths.get("C:\\Users\\F100961\\Desktop\\wrappers\\chemprop\\run-in.bat"), this.pipelineOutputFilePath);
-            List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
-            if (matchingCandidateList.get(0).size() > 1) {
-                throw new NotImplementedException("Neural Network scoring is only implemented for single receptors at this point in time.");
-            }
-            try {
-                helper.getMoleculeScores(matchingCandidateList.stream().map(candidates -> candidates.get(0)).collect(Collectors.toList()));
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         processRawScores();
     }
 
@@ -669,7 +651,7 @@ public class CompoundEvolver {
      */
     private List<List<Candidate>> getInitialCandidates() throws ForcedTerminationException {
         List<List<Candidate>> candidates = new ArrayList<>();
-        if (!dummyFitness && !neural_network) {
+        if (!dummyFitness) {
             // Check if pipe is present
             if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
             // Create list to hold future object associated with Callable
