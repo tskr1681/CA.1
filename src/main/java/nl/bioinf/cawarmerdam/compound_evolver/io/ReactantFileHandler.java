@@ -108,7 +108,7 @@ public final class ReactantFileHandler {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fileContent),
                 getCorrectCharset(fileContent)))) {
-            int lineNumber = 0;
+            int lineNumber = 1;
             for (String line; (line = reader.readLine()) != null; lineNumber++) {
                 // Don't bother with lines with multiple molecules
                 if (line.contains("."))
