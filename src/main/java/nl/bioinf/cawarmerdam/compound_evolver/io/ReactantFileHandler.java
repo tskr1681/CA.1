@@ -115,7 +115,7 @@ public final class ReactantFileHandler {
                     continue;
                 try {
                     moleculeList.add(MolImporter.importMol(line).toFormat("smiles"));
-                } catch (MolFormatException e) {
+                } catch (MolFormatException | IllegalArgumentException e) {
                     throw new ReactantFileFormatException(e.getMessage(), lineNumber, fileName);
                 }
             }
