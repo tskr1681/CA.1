@@ -55,7 +55,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     candidate.getFixedConformersFile().toString(),
                     String.valueOf(rmsd)
                     );
-
+            System.out.println("builder.command() = " + builder.command());
             Process p = builder.start();
             p.waitFor();
             if (IOUtils.toString(p.getErrorStream()).contains("ImportError") || IOUtils.toString(p.getInputStream()).contains("ImportError") || !candidate.getConformersFile().toFile().exists()) {

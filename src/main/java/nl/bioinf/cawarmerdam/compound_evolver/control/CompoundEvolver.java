@@ -831,7 +831,7 @@ public class CompoundEvolver {
         // Get the step for fixing conformers to an anchor point
 //        ConformerFixationStep conformerFixationStep = new ConformerFixationStep(anchor, System.getenv("OBFIT_EXE"));
         PipelineStep<Candidate, Candidate> converterStep;
-        if (this.conformerOption == ConformerOption.CUSTOM) {
+        if (threeDimensionalConverterStep instanceof CustomConformerStep) {
             converterStep = threeDimensionalConverterStep;
         } else {
             converterStep = threeDimensionalConverterStep.pipe(new ConformerAlignmentStep(anchor, fast_align));
@@ -951,6 +951,9 @@ public class CompoundEvolver {
             case CUSTOM:
                 return new CustomConformerStep(
                         this.pipelineOutputFilePath, Paths.get(System.getenv("RDKIT_WRAPPER")), Paths.get(System.getenv("CONFORMER_SCRIPT")), anchor, conformerCount, rmsd);
+            case CUSTOM_MACROCYCLE:
+                return new CustomConformerStep(
+                        this.pipelineOutputFilePath, Paths.get(System.getenv("RDKIT_WRAPPER")), Paths.get(System.getenv("MACROCYCLE_SCRIPT")), anchor, conformerCount, rmsd);
             default:
                 return new ThreeDimensionalConverterStep(this.pipelineOutputFilePath, conformerCount);
         }
@@ -990,7 +993,8 @@ public class CompoundEvolver {
         CHEMAXON("ChemAxon"),
         MOLOC("Moloc"),
         MACROCYCLE("Macrocycle"),
-        CUSTOM("Custom");
+        CUSTOM("Custom"),
+        CUSTOM_MACROCYCLE("Custom Macrocycle");
 
         private final String text;
 

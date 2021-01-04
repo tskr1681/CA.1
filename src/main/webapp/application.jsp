@@ -900,6 +900,7 @@
                                     <option value="Moloc">Moloc (Normal)</option>
                                     <option value="Macrocycle">Moloc (Macrocycle)</option>
                                     <option value="Custom">Custom RDKit script</option>
+                                    <option value="Custom Macrocycle">Custom Macrocyle RDKit script</option>
                                 </select>
                             </div>
                         </div>
