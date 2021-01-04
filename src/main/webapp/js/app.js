@@ -169,7 +169,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         // Set the error message if the response was in json
         if (ct.indexOf('json') > -1 && jqXHR.responseJSON !== undefined && jqXHR.responseJSON !== "") {
-            let exception = jqXHR.responseJSON;
+            let exception = JSON.parse(jqXHR.responseJSON);
             if ("offspringRejectionMessages" in exception) {
                 $scope.response.error = exception.message + " " + exception.offspringRejectionMessages.toString()
             } else {

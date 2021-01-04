@@ -51,7 +51,7 @@ public class ProgressUpdateServlet extends HttpServlet {
         } catch (Exception e) {
             ObjectMapper mapper = new ObjectMapper();
             response.setStatus(400);
-            mapper.writeValue(response.getOutputStream(), e.getMessage());
+            mapper.writeValue(response.getOutputStream(), "{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
