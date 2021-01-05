@@ -11,16 +11,17 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class ConformerHelper {
-    private ConformerHelper(){}
+    private ConformerHelper() {
+    }
 
     /**
      * Reads a conformer from a file at the specified index.
      *
      * @param minimizedConformersFilePath The path to the file that holds multiple conformers.
-     * @param conformerIndex The index at which the conformer resides (zero-indexed).
+     * @param conformerIndex              The index at which the conformer resides (zero-indexed).
      * @return the conformers molecule instance.
      * @throws PipelineException if the conformer could not be obtained, or the minimized conformer file could not be
-     * imported.
+     *                           imported.
      */
     @Nullable
     public static Molecule getConformer(Path minimizedConformersFilePath, int conformerIndex) throws PipelineException {
@@ -58,6 +59,7 @@ public class ConformerHelper {
 
     /**
      * Gets the amount of conformers in a conformer file
+     *
      * @param conformerPath the file to get the conformer amount from
      * @return the amount of conformers
      * @throws IOException when the conformer file can't be read
@@ -84,7 +86,7 @@ public class ConformerHelper {
      * Method exporting a list of molecules to the given file path.
      *
      * @param fixedConformersPath The file path that the list of molecules should be written to.
-     * @param alignedMolecules The list of molecule to write.
+     * @param alignedMolecules    The list of molecule to write.
      * @throws PipelineException if the molecules could not be exported.
      */
     public static void exportConformers(Path fixedConformersPath, List<Molecule> alignedMolecules) throws PipelineException {

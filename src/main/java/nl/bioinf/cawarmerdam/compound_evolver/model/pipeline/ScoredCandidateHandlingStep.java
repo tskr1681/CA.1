@@ -45,7 +45,7 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
             // Get best conformer.
             double score = Collections.min(conformerScores);
             Molecule bestConformer = conformers.get(conformerScores.indexOf(score));
-            if(bestConformer == null) {
+            if (bestConformer == null) {
                 throw new PipelineException("Scored candidate handling could not get best conformer!");
             }
             List<Molecule> conformerAsList = new ArrayList<>();

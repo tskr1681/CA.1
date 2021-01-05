@@ -19,7 +19,7 @@ public class MisMatchedReactantCount extends Exception {
      * Constructor for the exception that creates a custom message.
      *
      * @param reactantCount The amount of reactants the reaction expects.
-     * @param listSize The amount of reactant sets that was provided.
+     * @param listSize      The amount of reactant sets that was provided.
      */
     MisMatchedReactantCount(int reactantCount, int listSize) {
         super(String.format("%s reactants expected by the reaction. received %s", reactantCount, listSize));

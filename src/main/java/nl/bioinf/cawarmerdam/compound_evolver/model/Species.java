@@ -33,7 +33,7 @@ public class Species {
      * @param reactantIndices A list of indices that each corresponds to a list of reactants out of the list of
      *                        lists of reactants. this list of reactants should contain reactants that fit in the
      *                        location of the reaction according to the position of the index in this list.
-     * @param reaction The reactor reaction.
+     * @param reaction        The reactor reaction.
      */
     public Species(List<Integer> reactantIndices, Reactor reaction) throws MisMatchedReactantCount {
         if (reactantIndices.size() != reaction.getReactantCount()) {
@@ -47,7 +47,7 @@ public class Species {
     /**
      * Constructs a list of species that map identically between the reactions and the given list of lists of reactants.
      *
-     * @param reactions The reactor reactions which resemble species.
+     * @param reactions     The reactor reactions which resemble species.
      * @param reactantCount The amount of lists of reactants received.
      * @return a list of species.
      * @throws MisMatchedReactantCount if the number of reactants does not match the number of reactants required
@@ -120,7 +120,7 @@ public class Species {
     /**
      * Constructs a list of species according to the list of reactor reaction and list of reactant file orders.
      *
-     * @param reactions The list of reactions that each resembles a species.
+     * @param reactions          The list of reactions that each resembles a species.
      * @param reactantsFileOrder The list of reactant file orders, each a list with each integer referring to a
      *                           list of reactants or a specific reactant in a genotype.
      * @return a list of species.

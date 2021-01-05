@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate> {
 
-    private static AtomicLong currentValue = new AtomicLong(0L);
+    private static final AtomicLong currentValue = new AtomicLong(0L);
     private final long identifier;
     private final int genomeSize;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
@@ -52,7 +52,7 @@ public class Candidate implements Comparable<Candidate> {
     private Double maxPartitionCoefficient = null;
     private static final HBDAPlugin hydrogenBondPlugin = new HBDAPlugin();
     private static final logPPlugin logPPlugin = new logPPlugin();
-    private List<Integer> genotype;
+    private final List<Integer> genotype;
     private Molecule phenotype;
     private String rejectionMessage;
     private boolean isScored;
@@ -179,7 +179,7 @@ public class Candidate implements Comparable<Candidate> {
             try {
                 List<Molecule> temp = new ArrayList<>();
                 Molecule[] product;
-                while ((product = reaction.react())!=null) {
+                while ((product = reaction.react()) != null) {
                     temp.add(product[0]);
                 }
                 return temp;
@@ -228,6 +228,7 @@ public class Candidate implements Comparable<Candidate> {
 
     /**
      * Gets the reactants used for this candidate
+     *
      * @return the reactants
      */
     public Molecule[] getReactants() {
@@ -254,6 +255,7 @@ public class Candidate implements Comparable<Candidate> {
 
     /**
      * Getter for the minimum QED (quantitive estimate of druglikeness)
+     *
      * @return the minimum QED
      */
     public double getMinQED() {
@@ -262,6 +264,7 @@ public class Candidate implements Comparable<Candidate> {
 
     /**
      * Setter for the minimum QED (quantitive estimate of druglikeness)
+     *
      * @param minQED the minimum QED
      */
     public void setMinQED(double minQED) {
@@ -270,6 +273,7 @@ public class Candidate implements Comparable<Candidate> {
 
     /**
      * Getter for the minimum BBB score (Blood-Brain Barrier score)
+     *
      * @return the minimum BBB score
      */
     public double getMinBBB() {
@@ -278,6 +282,7 @@ public class Candidate implements Comparable<Candidate> {
 
     /**
      * Setter for the minimum BBB score (Blood-Brain Barrier score)
+     *
      * @param minBBB the minimum BBB score
      */
     public void setMinBBB(double minBBB) {
@@ -558,7 +563,7 @@ public class Candidate implements Comparable<Candidate> {
         }
         if (minBBB != 0) {
             System.out.println("Rejecting candidate " + this.getIdentifier() + "for a BBB score under the minimum.");
-            if (BBBScoreCalculator.getBBB(this.phenotype) < minBBB) return false;
+            return !(BBBScoreCalculator.getBBB(this.phenotype) < minBBB);
         }
         return true;
     }

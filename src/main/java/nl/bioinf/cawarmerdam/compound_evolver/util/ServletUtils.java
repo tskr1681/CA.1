@@ -16,6 +16,10 @@ import javax.servlet.http.HttpSession;
  * @version 0.0.1
  */
 public class ServletUtils {
+    //Don't allow instantiation of the class
+    private ServletUtils() {
+    }
+
     /**
      * Gets the ip address from a http request
      *

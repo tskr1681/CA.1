@@ -23,7 +23,7 @@ public class Generation {
      * Constructor for a generation instance
      *
      * @param candidateList The list of candidates that comprise this generation.
-     * @param number The generation number of this generation.
+     * @param number        The generation number of this generation.
      */
     Generation(List<Candidate> candidateList, int number) {
         this.number = number;

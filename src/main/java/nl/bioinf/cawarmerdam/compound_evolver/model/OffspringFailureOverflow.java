@@ -19,7 +19,7 @@ public class OffspringFailureOverflow extends Exception {
     /**
      * Constructor for the offspring failure overflow.
      *
-     * @param message The exception message.
+     * @param message                    The exception message.
      * @param offspringRejectionMessages The messages that are created whenever new offspring fails.
      */
     OffspringFailureOverflow(String message, List<String> offspringRejectionMessages) {

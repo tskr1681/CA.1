@@ -21,9 +21,10 @@ public class SimilarityHelper {
 
     /**
      * Gets a list of similarities from a smiles file to a reference molecule at a specific index.
+     *
      * @param reference_index The index in the file of the reference molecule to compare to
-     * @param reactants A smiles file of reactants
-     * @param size The amount of smiles in the file
+     * @param reactants       A smiles file of reactants
+     * @param size            The amount of smiles in the file
      * @return A list of similarities compared to the reference
      */
     public double[] similarityList(int reference_index, File reactants, int size) {
@@ -61,7 +62,7 @@ public class SimilarityHelper {
 
     public static double similarity(Molecule m1, Molecule m2) {
         //TODO make this an actual similarity function
-        return 1-(m1.getMass() - m2.getMass())/(m1.getMass()+m2.getMass());
+        return 1 - (m1.getMass() - m2.getMass()) / (m1.getMass() + m2.getMass());
     }
 
     public void setDebug(boolean debug) {

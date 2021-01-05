@@ -33,10 +33,10 @@ public class CallableFullPipelineContainer implements Callable<Void> {
     /**
      * Constructor of a callable pipeline container.
      *
-     * @param pipeline The pipeline that has to be executed.
+     * @param pipeline               The pipeline that has to be executed.
      * @param pipelineOutputFilePath The output where the pipeline writes to.
-     * @param candidates The candidates that this container will score.
-     * @param cleanupFiles If this should remove temporary files.
+     * @param candidates             The candidates that this container will score.
+     * @param cleanupFiles           If this should remove temporary files.
      */
     public CallableFullPipelineContainer(List<PipelineStep<Candidate, Void>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates, boolean cleanupFiles) {
         this.pipeline = pipeline;
@@ -50,7 +50,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
      *
      * @return void
      * @throws PipelineException if an exception occurred during the pipeline execution.
-     * @throws PluginException if a Chemaxon plugin failed.
+     * @throws PluginException   if a Chemaxon plugin failed.
      */
     @Override
     public Void call() throws PipelineException, PluginException {
@@ -70,7 +70,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
 
                 // Execute pipeline
                 MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.resolve("reactants.smiles").toFile()), "smiles");
-                for (Molecule reactant:candidates.get(i).getReactants()) {
+                for (Molecule reactant : candidates.get(i).getReactants()) {
                     m.write(reactant);
                 }
                 m.close();
@@ -98,7 +98,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
     private Path createCandidateDirectory(Candidate candidate) throws PipelineException {
         Path directory = pipelineOutputFilePath.resolve(String.valueOf(candidate.getIdentifier()));
         // Make directory if it does not exist
-        if (! directory.toFile().exists()){
+        if (!directory.toFile().exists()) {
             try {
                 Files.createDirectory(directory);
             } catch (IOException e) {
@@ -125,9 +125,9 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 (dir, name) -> !name.matches("^pipeline\\.log$"));
         // Remove all files
         if (files != null) {
-            for ( final File file : files ) {
-                if ( !file.delete() ) {
-                    System.err.println( "Can't remove " + file.getAbsolutePath() );
+            for (final File file : files) {
+                if (!file.delete()) {
+                    System.err.println("Can't remove " + file.getAbsolutePath());
                 }
             }
         }

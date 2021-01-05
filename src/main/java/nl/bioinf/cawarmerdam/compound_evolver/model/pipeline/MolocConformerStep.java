@@ -24,7 +24,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
     /**
      * Constructor for three dimensional converter step.
      *
-     * @param filePath The path that corresponds to the location of pipeline files for the entire run
+     * @param filePath       The path that corresponds to the location of pipeline files for the entire run
      * @param conformerCount The amount of conformers that should be generated.
      */
     public MolocConformerStep(Path filePath, int conformerCount, String mcnfExecutable, String msmabExecutable, boolean macrocycle) {
@@ -153,6 +153,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
 
     /**
      * Generates a temporary smiles file and returns the location of said file
+     *
      * @param candidate the candidate to generate the smiles file for
      * @return the location of the generated smiles file
      * @throws IOException when writing the smiles file fails
@@ -171,15 +172,13 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
     private static void fixSdf(Path sdf) {
         ArrayList<String> lines = new ArrayList<>();
         String line;
-        try
-        {
+        try {
             File f1 = sdf.toFile();
             FileReader fr = new FileReader(f1);
             BufferedReader br = new BufferedReader(fr);
-            while ((line = br.readLine()) != null)
-            {
+            while ((line = br.readLine()) != null) {
                 if (line.endsWith("Moloc")) {
-                    line = line.substring(0,6) + " 0  0  0  0  0  0  0  0999 V2000";
+                    line = line.substring(0, 6) + " 0  0  0  0  0  0  0  0999 V2000";
                 }
                 if (line.trim().split(" +").length == 6) {
                     line = line + "  0";
@@ -195,9 +194,7 @@ public class MolocConformerStep implements PipelineStep<Candidate, Candidate> {
             }
             out.flush();
             out.close();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }

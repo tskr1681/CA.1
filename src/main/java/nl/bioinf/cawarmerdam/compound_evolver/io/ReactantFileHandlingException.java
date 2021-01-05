@@ -15,7 +15,7 @@ public class ReactantFileHandlingException extends Exception {
     /**
      * Constructor for reactant file handling exception.
      *
-     * @param message The exception message.
+     * @param message  The exception message.
      * @param fileName The filename that corresponds to the exception.
      */
     ReactantFileHandlingException(String message, String fileName) {

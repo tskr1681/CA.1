@@ -15,9 +15,9 @@ public class FuzzyScoreStep implements PipelineStep<Candidate, Candidate> {
     @Override
     public Candidate execute(Candidate candidate) {
         double fuzzyfactor = rand.nextDouble();
-        candidate.setConformerScores(candidate.getConformerScores().stream().map(d -> d*fuzzyfactor).collect(Collectors.toList()));
+        candidate.setConformerScores(candidate.getConformerScores().stream().map(d -> d * fuzzyfactor).collect(Collectors.toList()));
         EnumColor color = EnumColor.RED;
-        for (EnumColor c:EnumColor.values()) {
+        for (EnumColor c : EnumColor.values()) {
             if (fuzzyfactor >= c.MIN && fuzzyfactor <= c.MAX) {
                 color = c;
                 break;

@@ -40,8 +40,8 @@ public class DownloadMultiSdfServlet extends HttpServlet {
             ArrayList<Path> list = new ArrayList<>();
 
             for (Candidate candidate : requestedCandidates) {
-                    Path resolve = uploadDirectory.resolve(String.valueOf(candidate.getIdentifier()));
-                    list.add(resolve);
+                Path resolve = uploadDirectory.resolve(String.valueOf(candidate.getIdentifier()));
+                list.add(resolve);
             }
 
             try (ServletOutputStream outputStream = response.getOutputStream()) {

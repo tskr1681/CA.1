@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
  */
 public class CompoundEvolver {
     private ExecutorService executor;
-    private Map<Long, Integer> clashingConformerCounter = new HashMap<>();
-    private Map<Long, Integer> tooDistantConformerCounter = new HashMap<>();
-    private List<List<Double>> scores = new ArrayList<>();
+    private final Map<Long, Integer> clashingConformerCounter = new HashMap<>();
+    private final Map<Long, Integer> tooDistantConformerCounter = new HashMap<>();
+    private final List<List<Double>> scores = new ArrayList<>();
     private Path pipelineOutputFilePath;
     private ConformerOption conformerOption;
     private ForceField forceField;
@@ -43,7 +43,7 @@ public class CompoundEvolver {
     private List<PipelineStep<Candidate, Void>> pipe;
     private List<PipelineStep<Candidate, Candidate>> pipe2;
     private Population population;
-    private EvolutionProgressConnector evolutionProgressConnector;
+    private final EvolutionProgressConnector evolutionProgressConnector;
     private FitnessMeasure fitnessMeasure;
     private long startTime;
     private long duration;
@@ -538,7 +538,7 @@ public class CompoundEvolver {
     private List<List<String>> getBestReactants(List<List<ImmutablePair<Double, Integer>>> scored, int amount, List<List<String>> reactants) {
         List<List<String>> out = new ArrayList<>();
         for (int i = 0; i < scored.get(0).size(); i++) {
-            List<ImmutablePair<Double,Integer>> scored_reactant_subset = new ArrayList<>();
+            List<ImmutablePair<Double, Integer>> scored_reactant_subset = new ArrayList<>();
             for (int j = 0; j < scored.size(); j++) {
                 scored_reactant_subset.add(scored.get(j).get(i));
             }
@@ -592,57 +592,57 @@ public class CompoundEvolver {
      * Scores the candidates in the population.
      */
     private void scoreCandidates() throws TooFewScoredCandidates, ForcedTerminationException {
-            if (!dummyFitness) {
-                // Check if pipe is present
-                if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
-                // Create list to hold future object associated with Callable
-                List<Future<Void>> futures = new ArrayList<>();
-                // Loop through candidates to produce and submit new tasks
-                List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
-                for (List<Candidate> candidates : matchingCandidateList) {
-                    // Setup callable
-                    Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
-                    // Add future, which the executor will return to the list
-                    futures.add(executor.submit(PipelineContainer));
-                }
-                // Loop through futures to handle thrown exceptions
-                for (Future<Void> future : futures) {
-                    try {
-                        if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
-                            throw new ForcedTerminationException("The program was terminated forcefully.");
-                        future.get();
-                        candidatesScored += 1;
-                    } catch (InterruptedException | ExecutionException e) {
-                        // Handle exception
+        if (!dummyFitness) {
+            // Check if pipe is present
+            if (pipe == null) throw new RuntimeException("pipeline setup not complete!");
+            // Create list to hold future object associated with Callable
+            List<Future<Void>> futures = new ArrayList<>();
+            // Loop through candidates to produce and submit new tasks
+            List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
+            for (List<Candidate> candidates : matchingCandidateList) {
+                // Setup callable
+                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
+                // Add future, which the executor will return to the list
+                futures.add(executor.submit(PipelineContainer));
+            }
+            // Loop through futures to handle thrown exceptions
+            for (Future<Void> future : futures) {
+                try {
+                    if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
+                        throw new ForcedTerminationException("The program was terminated forcefully.");
+                    future.get();
+                    candidatesScored += 1;
+                } catch (InterruptedException | ExecutionException e) {
+                    // Handle exception
 //                    evolutionProgressConnector.putException(e);
-                        // Log exception
-                        System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
-                        if (e.getMessage() != null && e.getMessage().equals("RDKit wrapper is having issues!"))
-                            throw new ForcedTerminationException("RDKit is not working. Stopping program execution.");
-                    }
-                }
-                // Log completed scoring round
-                System.out.println("Finished all threads");
-            } else {
-                for (List<Candidate> candidates : this.population.matchingCandidateList()) {
-                    for (Candidate candidate : candidates) {
-                        // Set dummy fitness
-                        double score = candidate.getPhenotype().getExactMass();
-                        candidate.setRawScore(score);
-                        try {
-                            candidate.calculateLigandEfficiency();
-                        } catch (PluginException e) {
-                            e.printStackTrace();
-                        }
-                        candidate.calculateLigandLipophilicityEfficiency();
-                    }
+                    // Log exception
+                    System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
+                    if (e.getMessage() != null && e.getMessage().equals("RDKit wrapper is having issues!"))
+                        throw new ForcedTerminationException("RDKit is not working. Stopping program execution.");
                 }
             }
-            population.filterUnscoredCandidates();
-            if (population.size() == 0) {
-                throw new TooFewScoredCandidates(
-                        "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
+            // Log completed scoring round
+            System.out.println("Finished all threads");
+        } else {
+            for (List<Candidate> candidates : this.population.matchingCandidateList()) {
+                for (Candidate candidate : candidates) {
+                    // Set dummy fitness
+                    double score = candidate.getPhenotype().getExactMass();
+                    candidate.setRawScore(score);
+                    try {
+                        candidate.calculateLigandEfficiency();
+                    } catch (PluginException e) {
+                        e.printStackTrace();
+                    }
+                    candidate.calculateLigandLipophilicityEfficiency();
+                }
             }
+        }
+        population.filterUnscoredCandidates();
+        if (population.size() == 0) {
+            throw new TooFewScoredCandidates(
+                    "The population is empty. Increase the amount of candidates or conformers, or apply less restrictive filters");
+        }
         processRawScores();
     }
 

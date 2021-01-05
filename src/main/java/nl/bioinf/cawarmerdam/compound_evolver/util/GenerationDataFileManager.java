@@ -12,7 +12,7 @@ import java.util.List;
  * Class for outputting a file with generation data (candidate ids and positions per generation) to a txt file
  */
 public class GenerationDataFileManager {
-    private FileWriter writer;
+    private final FileWriter writer;
 
     public GenerationDataFileManager(File path) throws IOException {
         this.writer = new FileWriter(path);
@@ -35,7 +35,7 @@ public class GenerationDataFileManager {
     public void close() {
         try {
             this.writer.close();
-        }catch(Exception ignored) {
+        } catch (Exception ignored) {
 
         }
     }

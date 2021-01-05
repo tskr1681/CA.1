@@ -7,11 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiReceptorHelper {
-    private MultiReceptorHelper() {}
+    //Don't allow instantiation of the class
+    private MultiReceptorHelper() {
+    }
 
     /**
      * Gets a list of fitnesses for each candidate for multireceptor handling. Combines the scores as follows:
      * For each candidate, the fitness is e^(prod fitness) where prod is the product.
+     *
      * @param candidates A nested list of candidates to get a list of fitnesses for
      * @return a list of fitnesses, one for each candidate
      */
@@ -26,7 +29,7 @@ public class MultiReceptorHelper {
                 for (List<Candidate> candidate : candidates) {
                     fitness *= candidate.get(i).getNormFitness();
                 }
-                fitnesses.add(Math.exp(fitness-1));
+                fitnesses.add(Math.exp(fitness - 1));
             }
             return fitnesses.stream().mapToDouble(Double::doubleValue).toArray();
         }
@@ -35,6 +38,7 @@ public class MultiReceptorHelper {
     /**
      * Gets a list of fitnesses for each candidate for multireceptor handling. Combines the scores as follows:
      * For each candidate, the fitness is e^(f_1) - Sum(e^f_i) for i from 2 to the total amount of candidates.
+     *
      * @param candidates A nested list of candidates to get a list of fitnesses for
      * @return a list of fitnesses, one for each candidate
      */
@@ -61,8 +65,9 @@ public class MultiReceptorHelper {
 
     /**
      * Gets a list of candidates with the fitnesses set according to the above methods
+     *
      * @param candidates the list of candidates to assign fitnesses to
-     * @param selective should we check for selectivity or for effect on multiple receptors.
+     * @param selective  should we check for selectivity or for effect on multiple receptors.
      * @return A list of candidates with updated fitnesses
      */
     public static List<Candidate> getCandidatesWithFitness(List<List<Candidate>> candidates, boolean selective) {
@@ -73,7 +78,7 @@ public class MultiReceptorHelper {
             fitnesslist = getFitnessListSelectivity(candidates);
         }
         List<Candidate> output = new ArrayList<>();
-        for(int i = 0; i < candidates.get(0).size(); i++) {
+        for (int i = 0; i < candidates.get(0).size(); i++) {
             candidates.get(0).get(i).setNormFitness(fitnesslist[i]);
             output.add(candidates.get(0).get(i));
         }

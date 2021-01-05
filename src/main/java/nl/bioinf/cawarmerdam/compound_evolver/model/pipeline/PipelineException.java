@@ -25,7 +25,7 @@ public class PipelineException extends Exception {
      * Constructor for pipeline exception.
      *
      * @param message The exception message.
-     * @param cause The exception cause.
+     * @param cause   The exception cause.
      */
     public PipelineException(String message, Exception cause) {
         super(message, cause);

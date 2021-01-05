@@ -169,7 +169,7 @@ public class EvolverOptimizer {
         Iterator it = parameterRanges.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            List<Object> value = (List<Object>)  pair.getValue();
+            List<Object> value = (List<Object>) pair.getValue();
             parameterLists.add(new ImmutablePair<>(pair.getKey().toString(), value));
             it.remove(); // avoids a ConcurrentModificationException
         }
@@ -207,7 +207,6 @@ public class EvolverOptimizer {
     }
 
     /**
-     *
      * @param ParameterLists
      * @param parameterVectors
      * @param depth
@@ -228,16 +227,17 @@ public class EvolverOptimizer {
 
     /**
      * Sets all parameters and runs the compoundevolver
+     *
      * @param reactantLists A list containing lists of molecules. Each sublist is meant to resemble one set of reactants making one product
-     * @param reactor The reactor to run these reactants through. Specifies the reaction to perform
-     * @param receptorPath The path to the receptor protein file
-     * @param anchorPath The path to the anchor fragment file
-     * @param uploadPath The path where all files are uploaded
-     * @param parameters The parameters for the genetic algorithm
+     * @param reactor       The reactor to run these reactants through. Specifies the reaction to perform
+     * @param receptorPath  The path to the receptor protein file
+     * @param anchorPath    The path to the anchor fragment file
+     * @param uploadPath    The path where all files are uploaded
+     * @param parameters    The parameters for the genetic algorithm
      * @return A new instance of the compoundevolver, with the evolve function having been run
-     * @throws MisMatchedReactantCount when the amount of reactants does not match what the reactor expects
+     * @throws MisMatchedReactantCount  when the amount of reactants does not match what the reactor expects
      * @throws OffspringFailureOverflow when creation of new offspring has failed too many times
-     * @throws TooFewScoredCandidates when too few candidates are scored to run the next step of the algorithm
+     * @throws TooFewScoredCandidates   when too few candidates are scored to run the next step of the algorithm
      */
     private CompoundEvolver run(List<List<String>> reactantLists, Reactor reactor, Path receptorPath, Path anchorPath, Path uploadPath, GAParameters parameters) throws MisMatchedReactantCount, OffspringFailureOverflow, TooFewScoredCandidates, ForcedTerminationException {
         List<Species> species = Species.constructSpecies(Collections.singletonList(reactor), reactantLists.size());

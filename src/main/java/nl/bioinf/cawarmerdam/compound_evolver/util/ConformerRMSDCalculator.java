@@ -9,6 +9,10 @@ import chemaxon.struc.Molecule;
 
 public class ConformerRMSDCalculator {
 
+    //Don't allow instantiation of the class
+    private ConformerRMSDCalculator() {
+    }
+
     public static double getConformerRMSD(Molecule conformer) throws PluginException, AlignmentException {
         Molecule best_conformer = conformer;
         Molecule free_conformer = conformer;

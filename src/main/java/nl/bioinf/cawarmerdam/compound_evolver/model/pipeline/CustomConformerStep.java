@@ -16,7 +16,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
     private final int confs;
     private final double rmsd;
 
-    public CustomConformerStep(Path pipeline, Path wrapper, Path script, Path anchor, int confs, double rmsd){
+    public CustomConformerStep(Path pipeline, Path wrapper, Path script, Path anchor, int confs, double rmsd) {
         this.wrapper = wrapper;
         this.script = script;
         this.confs = confs;
@@ -54,7 +54,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     String.valueOf(confs),
                     candidate.getFixedConformersFile().toString(),
                     String.valueOf(rmsd)
-                    );
+            );
             Process p = builder.start();
             p.waitFor();
             if (IOUtils.toString(p.getErrorStream()).contains("ImportError") || IOUtils.toString(p.getInputStream()).contains("ImportError") || !candidate.getConformersFile().toFile().exists()) {

@@ -29,9 +29,9 @@ public class CallableValidationPipelineContainer implements Callable<List<Candid
     /**
      * Constructor of a callable pipeline container.
      *
-     * @param pipeline The pipeline that has to be executed.
+     * @param pipeline               The pipeline that has to be executed.
      * @param pipelineOutputFilePath The output where the pipeline writes to.
-     * @param candidates The candidates that this container will score.
+     * @param candidates             The candidates that this container will score.
      */
     public CallableValidationPipelineContainer(List<PipelineStep<Candidate, Candidate>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates) {
         this.pipeline = pipeline;
@@ -51,7 +51,7 @@ public class CallableValidationPipelineContainer implements Callable<List<Candid
             System.out.println("Starting candidate validation, input candidates: " + candidates);
         }
         List<Candidate> out = new ArrayList<>();
-        for(int i = 0; i < candidates.size(); i++) {
+        for (int i = 0; i < candidates.size(); i++) {
             // Create new directory
             createCandidateDirectory(candidates.get(i));
 
@@ -78,7 +78,7 @@ public class CallableValidationPipelineContainer implements Callable<List<Candid
     private void createCandidateDirectory(Candidate candidate) throws PipelineException {
         Path directory = pipelineOutputFilePath.resolve(String.valueOf(candidate.getIdentifier()));
         // Make directory if it does not exist
-        if (! directory.toFile().exists()){
+        if (!directory.toFile().exists()) {
             try {
                 Files.createDirectory(directory);
             } catch (IOException e) {

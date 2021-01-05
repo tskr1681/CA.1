@@ -30,10 +30,10 @@ public class Grid {
      *
      * @param referenceCoordinates The position of the corner of the grid with the smallest x, y and z variables
      *                             in the 3d space.
-     * @param xSize The size of the rectangular cuboid on the x axis.
-     * @param ySize The size of the rectangular cuboid on the y axis.
-     * @param zSize The size of the rectangular cuboid on the z axis.
-     * @param resolution The size of a grid cell. if 0.5 then 1 angstrom will consist of 2 grid cells (cubes)
+     * @param xSize                The size of the rectangular cuboid on the x axis.
+     * @param ySize                The size of the rectangular cuboid on the y axis.
+     * @param zSize                The size of the rectangular cuboid on the z axis.
+     * @param resolution           The size of a grid cell. if 0.5 then 1 angstrom will consist of 2 grid cells (cubes)
      */
     public Grid(DPoint3 referenceCoordinates, double xSize, double ySize, double zSize, double resolution) {
         this.referenceCoordinates = referenceCoordinates;
@@ -47,7 +47,7 @@ public class Grid {
     /**
      * the size of the axis in terms of grid cells (cubes).
      *
-     * @param size The size of the axis in angstrom.
+     * @param size       The size of the axis in angstrom.
      * @param resolution The size of a grid cell. if 0.5 then 1 angstrom will consist of 2 grid cells (cubes).
      * @return the size of the axis in terms of grid cells (cubes).
      */
@@ -59,8 +59,8 @@ public class Grid {
      * marks a sphere as occupied or not occupied in the grid with the given coordinates and radius.
      *
      * @param sphereCoordinates The coordinates of the center of the sphere to mark.
-     * @param radius The radius of the sphere to mark.
-     * @param value If the sphere should be marked as occupied or not.
+     * @param radius            The radius of the sphere to mark.
+     * @param value             If the sphere should be marked as occupied or not.
      */
     void markSphere(DPoint3 sphereCoordinates, double radius, boolean value) {
         double x = sphereCoordinates.x;
@@ -81,11 +81,11 @@ public class Grid {
     /**
      * Marks a circle as occupied or not occupied in the grid with the given coordinates and radius on the YZ plane.
      *
-     * @param x The center of the circle on the x axis.
-     * @param y The center of the circle on the y axis.
-     * @param z The center of the circle on the z axis.
+     * @param x      The center of the circle on the x axis.
+     * @param y      The center of the circle on the y axis.
+     * @param z      The center of the circle on the z axis.
      * @param radius The radius of the circle to mark.
-     * @param value If the circle should be marked as occupied or not.
+     * @param value  If the circle should be marked as occupied or not.
      */
     private void markYZCircle(double x, double y, double z, double radius, boolean value) {
         for (double d = 0; d <= radius; d += resolution) {
@@ -100,11 +100,11 @@ public class Grid {
     /**
      * Marks a chord of a circle on the z axis as occupied or not occupied.
      *
-     * @param x The center of the chord on the x axis.
-     * @param y The center of the chord on the y axis.
-     * @param z The center of the chord on the z axis.
+     * @param x      The center of the chord on the x axis.
+     * @param y      The center of the chord on the y axis.
+     * @param z      The center of the chord on the z axis.
      * @param radius the chord radius to mark.
-     * @param value If the chord should be marked as occupied or not.
+     * @param value  If the chord should be marked as occupied or not.
      */
     private void markZChord(double x, double y, double z, double radius, boolean value) {
         GridLocation start = pointToGrid(x, y, z - radius);
@@ -118,8 +118,8 @@ public class Grid {
      * Set the range in the grid as occupied or not on the z axis.
      *
      * @param start The location of the grid to start marking.
-     * @param end The location of the grid to end marking.
-     * @param b If the range should be marked as occupied or not.
+     * @param end   The location of the grid to end marking.
+     * @param b     If the range should be marked as occupied or not.
      */
     private void setRange(GridLocation start, GridLocation end, boolean b) {
         for (int i = start.getZ(); i <= end.getZ(); i++) {
@@ -178,7 +178,7 @@ public class Grid {
     /**
      * Transforms a coordinate or index in the grid to the coordinate in 3D space.
      *
-     * @param coordinate The coordinate to convert.
+     * @param coordinate          The coordinate to convert.
      * @param referenceCoordinate The reference coordinate that defines the starting point for the grid on the axis.
      * @return the coordinates of the point in 3d space.
      */
@@ -189,7 +189,7 @@ public class Grid {
     /**
      * Transforms a coordinate in 3D space to the coordinate or index in the grid.
      *
-     * @param coordinate The coordinate in 3D space that should be converted.
+     * @param coordinate          The coordinate in 3D space that should be converted.
      * @param referenceCoordinate The reference coordinate of the grid of the specific axis.
      * @return the index of the location in the grid.
      */
@@ -201,7 +201,7 @@ public class Grid {
      * Calculates the radius of a chord.
      *
      * @param radius the radius of the current object.
-     * @param d the amount to move.
+     * @param d      the amount to move.
      * @return the 'radius' of the chord.
      */
     private double chordRadius(double radius, double d) {
@@ -319,11 +319,9 @@ public class Grid {
      *
      * @param amount the amount to shrink the exclusive shape by in angstrom.
      */
-    void shrink(double amount)
-    {
+    void shrink(double amount) {
         int num = (int) Math.ceil(amount / resolution);
-        for (int i = 0; i < num; i++)
-        {
+        for (int i = 0; i < num; i++) {
             shrinkByOne();
         }
 

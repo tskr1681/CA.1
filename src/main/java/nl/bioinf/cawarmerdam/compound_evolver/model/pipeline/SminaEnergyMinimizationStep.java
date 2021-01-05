@@ -30,10 +30,10 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      * Constructor for smina energy minimization step.
      *
      * @param receptorFilePath The path of the file that holds the receptor.
-     * @param sminaExecutable The path to the executable of Smina.
+     * @param sminaExecutable  The path to the executable of Smina.
      */
     public SminaEnergyMinimizationStep(Path receptorFilePath,
-                                       String sminaExecutable)  {
+                                       String sminaExecutable) {
         this.receptorFilePath = receptorFilePath;
         this.sminaExecutable = sminaExecutable;
     }
@@ -94,13 +94,13 @@ public class SminaEnergyMinimizationStep implements PipelineStep<Candidate, Cand
     /**
      * The method responsible for running smina in a process.
      *
-     * @param inputFile The path to an sdf file that should be scored.
+     * @param inputFile  The path to an sdf file that should be scored.
      * @param outputPath The path where the minimized molecule should live.
      * @return the smina output.
      * @throws PipelineException if smina minimization failed.
      */
     private List<String> smina(Path inputFile,
-                                    Path outputPath) throws PipelineException {
+                               Path outputPath) throws PipelineException {
         // Initialize smina output list.
         List<String> sminaOutput;
 

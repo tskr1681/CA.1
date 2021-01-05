@@ -16,7 +16,7 @@ public interface EvolutionProgressConnector {
     /**
      * The status that can apply to the evolution process.
      */
-    enum Status{RUNNING, FAILED, SUCCESS, STARTING}
+    enum Status {RUNNING, FAILED, SUCCESS, STARTING}
 
     /**
      * Method that should handle a newly scored generation.

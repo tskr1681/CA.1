@@ -12,12 +12,15 @@ package nl.bioinf.cawarmerdam.compound_evolver.util;
  * @version 0.0.1
  */
 public class NumberCheckUtilities {
+    //Don't allow instantiation of the class
+    private NumberCheckUtilities() {
+    }
 
     /**
      * Method that checks if a string is an integer.
      *
      * @param string, The string that is checked.
-     * @param radix, The number of unique digits used to represent numbers in a positional numeral system.
+     * @param radix,  The number of unique digits used to represent numbers in a positional numeral system.
      * @return true if the string is an integer.
      */
     public static boolean isInteger(String string, int radix) {

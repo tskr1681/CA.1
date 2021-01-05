@@ -25,9 +25,10 @@ import java.util.concurrent.*;
  */
 public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate> {
 
-    private Molecule referenceMolecule;
-    private boolean fast;
+    private final Molecule referenceMolecule;
+    private final boolean fast;
     private static final MMPAlignmentProperties mmpAlignmentProperties = new MMPAlignmentProperties(AlignmentProperties.FlexibilityMode.KEEP_FIRST_RIGID_SECOND_FLEXIBLE_EXTRA, AlignmentAccuracyMode.FAST, 0.3d);
+
     /**
      * Constructor for the conformer alignment step.
      *
@@ -54,7 +55,8 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
             return importer.read();
 
         } catch (IOException e) {
-            throw new PipelineException("Could not read reference fragment", e);        }
+            throw new PipelineException("Could not read reference fragment", e);
+        }
     }
 
     /**
@@ -130,25 +132,25 @@ public class ConformerAlignmentStep implements PipelineStep<Candidate, Candidate
                         alignment.addMolecule(m, true, true);
 
 
-                    Callable<Void> task = () -> {
-                        alignment.align();
-                        return null;
-                    };
+                        Callable<Void> task = () -> {
+                            alignment.align();
+                            return null;
+                        };
 
-                    FutureTask<Void> future = new FutureTask<>(task);
-                    Thread t = new Thread(future);
-                    t.start();
-                    try {
-                        future.get(50, TimeUnit.SECONDS);
-                    } catch (TimeoutException | ExecutionException | InterruptedException ex) {
-                        future.cancel(true);
-                        t.stop();
-                        throw new PipelineException("Alignment took too long, ", ex);
-                    } finally {
-                        future.cancel(true);
-                        t.stop();
-                    }
-                    alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
+                        FutureTask<Void> future = new FutureTask<>(task);
+                        Thread t = new Thread(future);
+                        t.start();
+                        try {
+                            future.get(50, TimeUnit.SECONDS);
+                        } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+                            future.cancel(true);
+                            t.stop();
+                            throw new PipelineException("Alignment took too long, ", ex);
+                        } finally {
+                            future.cancel(true);
+                            t.stop();
+                        }
+                        alignedMolecules.add(alignment.getMoleculeWithAlignedCoordinates(1));
                     } catch (AlignmentException e) {
                         e.printStackTrace();
                     }

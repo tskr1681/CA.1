@@ -43,7 +43,7 @@ public class Population implements Iterable<Candidate> {
     private SpeciesDeterminationMethod speciesDeterminationMethod;
     private List<List<Candidate>> candidateList;
     private double[][][] alleleSimilarities;
-    private HashMap<Integer, HashMap<Integer, List<Double>>> allelemap = new HashMap<>();
+    private final HashMap<Integer, HashMap<Integer, List<Double>>> allelemap = new HashMap<>();
     private double mutationRate;
     private double selectionFraction;
     private double crossoverRate;
@@ -51,7 +51,7 @@ public class Population implements Iterable<Candidate> {
     private double elitismRate;
     private int populationSize;
     private int generationNumber;
-    private int tournamentSize;
+    private final int tournamentSize;
     private Double maxHydrogenBondAcceptors = null;
     private Double maxHydrogenBondDonors = null;
     private Double maxMolecularMass = null;
@@ -763,8 +763,7 @@ public class Population implements Iterable<Candidate> {
                                 System.err.println("Candidate production failed because the candidate was null.");
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was null.");
                                 nullcounter++;
-                            }
-                            else if (offspring.contains(c) && !this.duplicatesAllowed) {
+                            } else if (offspring.contains(c) && !this.duplicatesAllowed) {
                                 System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 try {
@@ -854,9 +853,10 @@ public class Population implements Iterable<Candidate> {
 
     /**
      * Creates a new population with the same parameters
+     *
      * @return a new population
      */
-    public Population newPopulation(List<List<String>> reactantLists){
+    public Population newPopulation(List<List<String>> reactantLists) {
         Population population;
         SelectionMethod method = this.getSelectionMethod();
         population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());

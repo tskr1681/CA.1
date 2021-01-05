@@ -15,7 +15,7 @@ public class ReactionFileHandlerException extends Exception {
     /**
      * Constructor of reaction file handler exception.
      *
-     * @param message The exception message.
+     * @param message  The exception message.
      * @param fileName The file name that corresponds to the exception.
      */
     ReactionFileHandlerException(String message, String fileName) {

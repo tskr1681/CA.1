@@ -28,10 +28,10 @@ public class ApplicationServlet extends javax.servlet.http.HttpServlet {
     /**
      * Method that forwards the application jsp.
      *
-     * @param request The request from which a request dispatcher can be obtained.
+     * @param request  The request from which a request dispatcher can be obtained.
      * @param response The response that can be used in forwarding the request.
      * @throws ServletException if a servlet related exception occurs.
-     * @throws IOException if an IO related exception occurs.
+     * @throws IOException      if an IO related exception occurs.
      */
     private void dispatchApp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         RequestDispatcher dispatcher = request.getRequestDispatcher("application.jsp");

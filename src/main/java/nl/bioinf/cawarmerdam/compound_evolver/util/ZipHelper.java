@@ -1,25 +1,27 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ZipHelper {
+    //Don't allow instantiation of the class
+    private ZipHelper() {
+    }
 
     public static byte[] zipDirs(List<Path> dirs) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(outputStream);
         byte[] temp;
-        for (Path path:dirs) {
+        for (Path path : dirs) {
             temp = zipDir(path);
-            zos.putNextEntry(new ZipEntry(path.getFileName().toString()+".zip"));
+            zos.putNextEntry(new ZipEntry(path.getFileName().toString() + ".zip"));
             zos.write(temp);
             zos.closeEntry();
         }
@@ -32,6 +34,7 @@ public class ZipHelper {
 
     /**
      * Zips the contents of a directory
+     *
      * @param directory the directory to zip
      * @return a bytearray representing the zipped directory
      * @throws IOException opening the directory failed
@@ -51,8 +54,8 @@ public class ZipHelper {
     /**
      * Adds a directory to a zipped archive
      *
-     * @param zipOutputStream A zip output stream that holds the archive.
-     * @param fileToZip The file object which should be added to the archive.
+     * @param zipOutputStream     A zip output stream that holds the archive.
+     * @param fileToZip           The file object which should be added to the archive.
      * @param parentDirectoryName The parent path of the file which should be added.
      */
     private static void addDirToZipArchive(ZipOutputStream zipOutputStream, File fileToZip, String parentDirectoryName) {
@@ -88,17 +91,5 @@ public class ZipHelper {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\22"));
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\23"));
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\24"));
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\25"));
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\26"));
-        paths.add(Paths.get("C:\\Users\\F100961\\Documents\\pipeline\\NMOJAnYtBEGSU8W5LUDhCg\\27"));
-        FileUtils.writeByteArrayToFile(new File("C:\\Users\\F100961\\Documents\\test.zip"), zipDirs(paths));
-
     }
 }

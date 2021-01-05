@@ -16,9 +16,9 @@ public class ReactantFileFormatException extends Exception {
     /**
      * Constructor for reactant file format exception.
      *
-     * @param message The exception message.
+     * @param message    The exception message.
      * @param lineNumber The line at which the format was not correct.
-     * @param fileName The name of the file that contains the erroneous reactant.
+     * @param fileName   The name of the file that contains the erroneous reactant.
      */
     ReactantFileFormatException(String message, int lineNumber, String fileName) {
         super(String.format("Error in file '%s', line %d: %s", fileName, lineNumber, message));

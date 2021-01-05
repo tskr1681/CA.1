@@ -162,7 +162,7 @@ public class GAParameters implements Serializable {
      */
     public Double getElitistRate() {
         if (elitistRate != null) return elitistRate;
-        // If this is not explicitly set get the remaining bit from 1.
+            // If this is not explicitly set get the remaining bit from 1.
         else return 1 - getCrossoverRate() - getRandomImmigrantRate();
     }
 
@@ -314,8 +314,8 @@ public class GAParameters implements Serializable {
     /**
      * Method that sets a specified field by using reflection.
      *
-     * @param object The parameters object to write the field value to.
-     * @param fieldName The name of the field that should be set.
+     * @param object     The parameters object to write the field value to.
+     * @param fieldName  The name of the field that should be set.
      * @param fieldValue The value of the field that should be set.
      */
     public static void set(Object object, String fieldName, Object fieldValue) {

@@ -24,14 +24,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Candidate> {
 
-    private Path receptorFilePath;
-    private String molocExecutable;
+    private final Path receptorFilePath;
+    private final String molocExecutable;
 
     /**
      * Constructor for the Moloc energy minimization step.
      *
-     * @param receptorFilePath The path of the file that holds the receptor.
-     * @param molocExecutable The path to the executable of moloc's Mol3d program.
+     * @param receptorFilePath  The path of the file that holds the receptor.
+     * @param molocExecutable   The path to the executable of moloc's Mol3d program.
      * @param esprntoExecutable The path to the executable of moloc's Esprnto program.
      * @throws PipelineException if an exception occurred when converting the receptor to the mab format.
      */
@@ -100,8 +100,8 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
     /**
      * Gets the conformer scores.
      *
-     * @param directory The directory where the output files should reside.
-     * @param ligandName The name of the ligand file without extension.
+     * @param directory    The directory where the output files should reside.
+     * @param ligandName   The name of the ligand file without extension.
      * @param receptorName The name of the receptor file without extension.
      * @return a list of scores corresponding to the conformers.
      * @throws PipelineException if the .ene scores file could not be found.
@@ -156,7 +156,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
     /**
      * Method that converts a pdb file to mab file.
      *
-     * @param receptorFile The path to the file that holds the receptor in pdb format.
+     * @param receptorFile      The path to the file that holds the receptor in pdb format.
      * @param esprntoExecutable The path to the executable of Moloc's Esprnto program.
      * @return the converted path to the file.
      * @throws PipelineException if the conversion failed.

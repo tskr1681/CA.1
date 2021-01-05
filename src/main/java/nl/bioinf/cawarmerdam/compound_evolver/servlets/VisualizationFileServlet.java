@@ -9,7 +9,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -42,11 +45,11 @@ public class VisualizationFileServlet extends HttpServlet {
             Path compound_directory = directory.resolve(String.valueOf(compoundId));
             System.out.println("compound_directory = " + compound_directory);
             System.out.println("directory = " + directory);
-            if(filetype.equals("sdf")) {
+            if (filetype.equals("sdf")) {
                 in = new FileInputStream(compound_directory.resolve("best-conformer.sdf").toFile());
             } else if (filetype.equals("pdb")) {
                 File[] temp = directory.toFile().listFiles((dir, filename) -> filename.endsWith(".pdb"));
-                if(temp != null) {
+                if (temp != null) {
                     in = new FileInputStream(temp[0]);
                 }
             }
@@ -56,7 +59,7 @@ public class VisualizationFileServlet extends HttpServlet {
 
         // Sends the response back to the user / browser. The
         // content for zip file type is "text/html".
-        if(in!=null) {
+        if (in != null) {
             ServletOutputStream sos = response.getOutputStream();
             response.setContentType("text/html;charset=UTF-8");
             IOUtils.copy(in, sos);

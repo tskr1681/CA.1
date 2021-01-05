@@ -16,7 +16,7 @@ import java.util.Map;
  * The implementation of the exclusive shape functionality is based on the
  * <a href="https://pubs.acs.org/doi/abs/10.1021/ci200097m">Pharmit</a> implementation of exclusive shape.
  * <a href="https://sourceforge.net/p/pharmit">pharmit source code</a>
- *
+ * <p>
  * Source for the Vanderwaals radii is <a href="https://github.com/openbabel/openbabel/blob/master/src/elementtable.h">OpenBabel</a>
  *
  * @author C.A. (Robert) Warmerdam
@@ -187,6 +187,7 @@ public class ExclusionShape {
 
     /**
      * Marks grid spheres based on the receptor
+     *
      * @param receptor the receptor to mark the grid from
      */
     private void fillAccessibleSurface(Molecule receptor) {
@@ -198,6 +199,7 @@ public class ExclusionShape {
 
     /**
      * Checks for collisions with the grid
+     *
      * @param other the molecule to check for collisions
      * @return are there collisions?
      */
@@ -215,6 +217,7 @@ public class ExclusionShape {
 
     /**
      * Getter for the map of VDW radii
+     *
      * @return the map of VDW radii
      */
     public static Map<Integer, Double> getElementVdwRadii() {

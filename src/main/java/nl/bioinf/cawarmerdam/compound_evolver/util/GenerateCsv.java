@@ -16,11 +16,14 @@ import java.util.stream.Collectors;
  * @version 0.0.1
  */
 public class GenerateCsv {
+    //Don't allow instantiation of the class
+    private GenerateCsv() {
+    }
 
     /**
      * Method that generates a csv from a list of lists.
      *
-     * @param data The list of lists that has to be converted to a list.
+     * @param data          The list of lists that has to be converted to a list.
      * @param lineSeparator The line separator to use.
      * @return a string of all items in the nested lists separated by ', ', which are separated by a line separator that
      * is given.

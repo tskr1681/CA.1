@@ -128,7 +128,7 @@ public class RequestParameterStorage {
         buffer.newLine();
         buffer.write("Force field: " + request.getParameter("forceField"));
         buffer.newLine();
-        buffer.write("Scoring option: " +  request.getParameter("scoringOption"));
+        buffer.write("Scoring option: " + request.getParameter("scoringOption"));
         buffer.newLine();
         buffer.write("Fitness measure: " + request.getParameter("fitnessMeasure"));
         buffer.newLine();

@@ -6,7 +6,6 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import chemaxon.formats.MolConverter;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
-import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +45,7 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
             converter.convert();
             converter.close();
             // Convert the output stream to a String
-            String smartsFileAsString = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            String smartsFileAsString = outputStream.toString(StandardCharsets.UTF_8);
             return smartsFileAsString.replace("\n", "").replace("\r", "");
         } catch (IOException e) {
             throw new PipelineException("Could not create smarts pattern", e);
@@ -67,9 +66,10 @@ public class ConformerFixationStep implements PipelineStep<Candidate, Candidate>
 
     /**
      * Execute the obfit command line program.
+     *
      * @param conformerLib The path to a reactionFiles with conformers.
-     * @param outFile The path to a reactionFiles that can function as an output reactionFiles.
-     * @param candidate The candidate that is being scored.
+     * @param outFile      The path to a reactionFiles that can function as an output reactionFiles.
+     * @param candidate    The candidate that is being scored.
      * @throws PipelineException if an error occured in executing the obfit command.
      */
     private void obFit(String conformerLib, String outFile, Candidate candidate) throws PipelineException {

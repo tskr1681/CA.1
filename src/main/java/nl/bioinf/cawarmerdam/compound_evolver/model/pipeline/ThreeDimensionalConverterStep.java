@@ -29,7 +29,7 @@ public class ThreeDimensionalConverterStep implements PipelineStep<Candidate, Ca
     /**
      * Constructor for three dimensional converter step.
      *
-     * @param filePath The path that corresponds to the location of pipeline files for the entire run
+     * @param filePath       The path that corresponds to the location of pipeline files for the entire run
      * @param conformerCount The amount of conformers that should be generated.
      */
     public ThreeDimensionalConverterStep(Path filePath, int conformerCount) {

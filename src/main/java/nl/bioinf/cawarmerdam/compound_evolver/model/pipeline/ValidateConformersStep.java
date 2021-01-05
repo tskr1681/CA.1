@@ -21,17 +21,17 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
 
     private final Path anchorFilePath;
     private final Map<Long, Integer> clashingConformerCounter;
-    private Map<Long, Integer> tooDistantConformerCounter;
-    private ExclusionShape exclusionShape;
+    private final Map<Long, Integer> tooDistantConformerCounter;
+    private final ExclusionShape exclusionShape;
     private final double maximumDistanceFromAnchor;
-    private boolean deleteInvalid;
+    private final boolean deleteInvalid;
     private boolean debug = false;
 
     public ValidateConformersStep(Path anchorFilePath,
                                   double maximumDistanceFromAnchor,
                                   Map<Long, Integer> clashingConformerCounter,
                                   Map<Long, Integer> tooDistantConformerCounter,
-                                  boolean deleteInvalid, ExclusionShape shape)  {
+                                  boolean deleteInvalid, ExclusionShape shape) {
         this.anchorFilePath = anchorFilePath;
         this.clashingConformerCounter = clashingConformerCounter;
         this.tooDistantConformerCounter = tooDistantConformerCounter;

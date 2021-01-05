@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PdbFixer {
+    //Don't allow instantiation of the class
+    private PdbFixer() {
+    }
 
     public static void runFixer(String lepro_exe, Path input) throws PipelineException {
         String line;
@@ -18,7 +21,7 @@ public class PdbFixer {
             ProcessBuilder builder = new ProcessBuilder(
                     lepro_exe,
                     String.valueOf(input)
-                    );
+            );
             // Build process with the command
             builder.directory(input.getParent().toFile());
             Process p = builder.start();

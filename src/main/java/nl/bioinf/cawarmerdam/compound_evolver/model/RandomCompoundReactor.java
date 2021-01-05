@@ -4,8 +4,6 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.struc.Molecule;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -26,8 +24,7 @@ class RandomCompoundReactor {
      *
      * @param maxSamples how many candidates have to be sampled.
      */
-    RandomCompoundReactor(int maxSamples)
-    {
+    RandomCompoundReactor(int maxSamples) {
         this.maxSamples = maxSamples;
     }
 
@@ -35,7 +32,7 @@ class RandomCompoundReactor {
      * Method that generates random candidates.
      *
      * @param reactantLists a list of lists of reactants.
-     * @param species a list with species that contain reactions and how reactants map to the reaction.
+     * @param species       a list with species that contain reactions and how reactants map to the reaction.
      * @return the list of generated candidates.
      */
     List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species) {
@@ -76,7 +73,7 @@ class RandomCompoundReactor {
     /**
      * Method that randomly picks a reactant from every list of reactants.
      *
-     * @param random An instance of the random class.
+     * @param random        An instance of the random class.
      * @param reactantLists The list of lists of reactants.
      * @return a randomly combined genome.
      */
