@@ -4,12 +4,14 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.servlets;
 
-import chemaxon.formats.MolExporter;
 import chemaxon.reaction.Reactor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver;
 import nl.bioinf.cawarmerdam.compound_evolver.io.*;
-import nl.bioinf.cawarmerdam.compound_evolver.model.*;
+import nl.bioinf.cawarmerdam.compound_evolver.model.MisMatchedReactantCount;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Population;
+import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.model.Species;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
@@ -18,7 +20,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,14 +70,14 @@ public class EvolveServlet extends HttpServlet {
      *
      * @param request The http request to handle
      * @return a compound evolver instance set according to the http request.
-     * @throws IOException If an IO related exception was thrown.
-     * @throws ServletException If a servlet exception was thrown.
-     * @throws ReactantFileHandlingException If a reactant file could not be imported.
-     * @throws ReactantFileFormatException If the reactant file could not be imported due to illegal formatting.
-     * @throws ReactionFileHandlerException If the reaction file could not be imported.
+     * @throws IOException                             If an IO related exception was thrown.
+     * @throws ServletException                        If a servlet exception was thrown.
+     * @throws ReactantFileHandlingException           If a reactant file could not be imported.
+     * @throws ReactantFileFormatException             If the reactant file could not be imported due to illegal formatting.
+     * @throws ReactionFileHandlerException            If the reaction file could not be imported.
      * @throws ServletUtils.FormFieldHandlingException If a form field could not be handled.
-     * @throws MisMatchedReactantCount If the amount of reactants supplied was not according to the reaction.
-     * @throws PipelineException If the pipeline could not be initialized.
+     * @throws MisMatchedReactantCount                 If the amount of reactants supplied was not according to the reaction.
+     * @throws PipelineException                       If the pipeline could not be initialized.
      */
     private CompoundEvolver handleRequest(HttpServletRequest request)
             throws IOException,
@@ -108,21 +113,11 @@ public class EvolveServlet extends HttpServlet {
         if (recOrder.size() == 0) {
             throw new OrderMissingException("No order was specified for receptors, aborting.");
         }
-        for(int i = 0; i < receptorParts.size(); i++) {
+        for (int i = 0; i < receptorParts.size(); i++) {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size());
-        MolExporter molExporter = new MolExporter(Paths.get(System.getenv("PL_TARGET_DIR")).resolve("pop.smiles").toString(), "smiles");
-        for (Candidate candidate :
-                initialPopulation) {
-            try {
-                molExporter.write(candidate.getPhenotype());
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        molExporter.close();
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
@@ -130,9 +125,9 @@ public class EvolveServlet extends HttpServlet {
         initialPopulation.setInterspeciesCrossoverMethod(interspeciesCrossoverMethod);
 
         // Get crossover rate and mutation rate, but only if not running an adaptive GA
-        boolean adaptive = getBooleanParameterFromRequest(request,"setAdaptive");
+        boolean adaptive = getBooleanParameterFromRequest(request, "setAdaptive");
         initialPopulation.setAdaptive(adaptive);
-        boolean adaptiveMutation = getBooleanParameterFromRequest(request,"setAdaptiveMutation");
+        boolean adaptiveMutation = getBooleanParameterFromRequest(request, "setAdaptiveMutation");
         initialPopulation.setAdaptiveMutation(adaptiveMutation);
         if (adaptive) {
             initialPopulation.setCrossoverRate(1);
@@ -174,17 +169,12 @@ public class EvolveServlet extends HttpServlet {
                 request.getParameter("mutationMethod"));
         initialPopulation.setMutationMethod(mutationMethod);
 
-//        // Compute allele similarity values if mutation method relies on these
-//        if (mutationMethod == Population.MutationMethod.DISTANCE_DEPENDENT)
-//            initialPopulation.initializeAlleleSimilaritiesMatrix();
-
         // Get selection method
         Population.SelectionMethod selectionMethod = Population.SelectionMethod.fromString(
                 request.getParameter("selectionMethod"));
         initialPopulation.setSelectionMethod(selectionMethod);
 
-        System.out.println("getBooleanParameterFromRequest(request,\"setFillGen\") = " + getBooleanParameterFromRequest(request,"setFillGen"));
-        initialPopulation.setSkipcheck(!getBooleanParameterFromRequest(request,"setFillGen"));
+        initialPopulation.setSkipcheck(!getBooleanParameterFromRequest(request, "setFillGen"));
 
         SessionEvolutionProgressConnector progressConnector = new SessionEvolutionProgressConnector();
 
@@ -195,7 +185,6 @@ public class EvolveServlet extends HttpServlet {
         evolver.setDebugPrint(debugPrint);
 
         evolver.setPrepareReceptor(getBooleanParameterFromRequest(request, "setPrepareReceptor"));
-        System.out.println("getBooleanParameterFromRequest(request, \"setPrepareReceptor\") = " + getBooleanParameterFromRequest(request, "setPrepareReceptor"));
         // Get the environment variable containing the pipeline target directory.
         Path pipelineTargetDirectory = Paths.get(System.getenv("PL_TARGET_DIR"));
 
@@ -241,12 +230,12 @@ public class EvolveServlet extends HttpServlet {
     /**
      * Sets the pipeline parameters.
      *
-     * @param request The http request.
-     * @param evolver The compound evolution instance.
+     * @param request            The http request.
+     * @param evolver            The compound evolution instance.
      * @param outputFileLocation The location of the pipeline files.
-     * @throws IOException If an IO related exception was thrown.
-     * @throws ServletException If a servlet exception was thrown.
-     * @throws PipelineException If the pipeline could not be initialized.
+     * @throws IOException                             If an IO related exception was thrown.
+     * @throws ServletException                        If a servlet exception was thrown.
+     * @throws PipelineException                       If the pipeline could not be initialized.
      * @throws ServletUtils.FormFieldHandlingException If a form field could not be handled.
      */
     private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, Path outputFileLocation)
@@ -286,7 +275,7 @@ public class EvolveServlet extends HttpServlet {
         if (anchorOrder.size() == 0) {
             throw new OrderMissingException("No order was specified for receptors, aborting.");
         }
-        for(int i = 0; i < anchorParts.size(); i++) {
+        for (int i = 0; i < anchorParts.size(); i++) {
             anchorParts.set(i, copy.get(anchorOrder.get(i)));
         }
         for (int i = 0; i < anchorParts.size(); i++) {
@@ -315,21 +304,19 @@ public class EvolveServlet extends HttpServlet {
                     exclusionShapeTolerance,
                     maxAnchorMinimizedRmsd, fastAlign);
         }
-
-        System.out.println("evolver.getPipelineOutputFilePath() = " + evolver.getPipelineOutputFilePath());
     }
 
     /**
      * Generates a session id that is not yet used.
      *
-     * @param session The http session instance.
+     * @param session                 The http session instance.
      * @param pipelineTargetDirectory The directory where the sessions are stored.
      * @return the session id.
      */
     private String getSessionId(HttpSession session, Path pipelineTargetDirectory, String name) throws PipelineException {
         String sessionID;
         // Create new session id
-        sessionID = name.replaceAll("\\s","_") + sdf.format(new Date());
+        sessionID = name.replaceAll("\\s", "_") + sdf.format(new Date());
         if (Files.exists(pipelineTargetDirectory.resolve(sessionID))) {
             throw new PipelineException("Couldn't create directory, presumably last try was less than a minute ago. Please wait a minute before submitting another request.");
         }
@@ -360,7 +347,7 @@ public class EvolveServlet extends HttpServlet {
      * Gets an ordering parameter from a request.
      *
      * @param request The request instance to get the parameters from.
-     * @param name the name of the orderign parameter
+     * @param name    the name of the orderign parameter
      * @return the file order.
      * @throws IOException if the file order could not be read.
      */
@@ -376,7 +363,7 @@ public class EvolveServlet extends HttpServlet {
     /**
      * Method that handles the values for filters by setting them in the population if they are present.
      *
-     * @param request The http request that is being handled.
+     * @param request           The http request that is being handled.
      * @param initialPopulation The population that the values are set to.
      * @throws ServletUtils.FormFieldHandlingException if the field was either null, or badly formatted.
      */
@@ -421,10 +408,10 @@ public class EvolveServlet extends HttpServlet {
     /**
      * Gets a file from a http request.
      *
-     * @param request The http request to get the file from.
+     * @param request       The http request to get the file from.
      * @param fileFieldName The name of the field to which the file was uploaded.
      * @return the file part that was found in the specified field.
-     * @throws IOException if the file could not be obtained from the request.
+     * @throws IOException      if the file could not be obtained from the request.
      * @throws ServletException if the file could not be obtained from the request.
      */
     private Part getFileFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
@@ -443,7 +430,7 @@ public class EvolveServlet extends HttpServlet {
      * Writes a file part to a path on the system.
      *
      * @param filePart The file part to write.
-     * @param path The path to write the file part to.
+     * @param path     The path to write the file part to.
      */
     private void copyFilePart(Part filePart, Path path) {
         try (OutputStream out = new FileOutputStream(path.toFile()); InputStream filecontent = filePart.getInputStream()) {
@@ -463,10 +450,10 @@ public class EvolveServlet extends HttpServlet {
     /**
      * Gets the files from the field with the given name.
      *
-     * @param request the http request.
+     * @param request       the http request.
      * @param fileFieldName the file field to get the files from.
      * @return a list of file parts that where uploaded.
-     * @throws IOException If the parts could not be obtained due to an IO exception.
+     * @throws IOException      If the parts could not be obtained due to an IO exception.
      * @throws ServletException If the parts could not be obtained due to a servlet exception.
      */
     private List<Part> getFilesFromRequest(HttpServletRequest request, String fileFieldName) throws IOException, ServletException {
@@ -476,7 +463,7 @@ public class EvolveServlet extends HttpServlet {
                 .collect(Collectors.toList());
     }
 
-    private class OrderMissingException extends Exception {
+    private static class OrderMissingException extends Exception {
         OrderMissingException(String message) {
             super(message);
         }
