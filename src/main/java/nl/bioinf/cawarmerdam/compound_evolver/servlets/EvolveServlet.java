@@ -18,10 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -211,6 +208,7 @@ public class EvolveServlet extends HttpServlet {
         if (!evolver.isDummyFitness()) {
             Path outputFileLocation = pipelineTargetDirectory.resolve(sessionID);
             setPipelineParameters(request, evolver, outputFileLocation);
+            RequestParameterStorage.storeParameters(outputFileLocation.resolve("parameters.txt").toFile(), request);
         }
 
         // Get number of numberOfGenerations
