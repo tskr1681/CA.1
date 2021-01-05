@@ -148,6 +148,24 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="progressID" class="col-sm-3 col-form-label">Progress ID</label>
+                            <div class="col-sm-9">
+                                <textarea
+                                        class="form-control"
+                                        ng-model="formModel.progressID"
+                                        id="progressID"
+                                        name="progressID"
+                                        required="required"
+                                        ng-class="{'is-valid':True}">
+                                </textarea>
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The progress ID is linked to your run of CE, and can be used to request the data back.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="reaction-files" class="col-sm-3 col-form-label">Reaction files (.mrv)</label>
                             <div class="col-sm-9">
                                 <div class="custom-file">
@@ -1263,8 +1281,8 @@
                                     Terminate
                                 </button>
                                 <button class="btn btn-primary"
-                                        ng-click="setFrequentUpdateInterval()">
-                                    Reset auto-update (use when page does not seem to update)
+                                        ng-click="onLoad()">
+                                    Load data based on identifier
                                 </button>
                             </div>
                         </div>

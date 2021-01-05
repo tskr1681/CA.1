@@ -13,7 +13,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
@@ -43,8 +42,7 @@ public class TerminateEvolutionServlet extends HttpServlet {
      * @throws UnknownProgressException if the progress connector is null.
      */
     private void handleTerminationRequest(HttpServletRequest request) throws UnknownProgressException {
-        HttpSession session = request.getSession();
-        SessionEvolutionProgressConnector progressConnector = ServletUtils.getProgressConnector(session);
+        SessionEvolutionProgressConnector progressConnector = ServletUtils.getProgressConnector(request);
         progressConnector.terminateEvolutionProgress();
     }
 }

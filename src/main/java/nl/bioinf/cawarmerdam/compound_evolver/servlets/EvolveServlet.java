@@ -23,10 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.*;
@@ -42,6 +39,8 @@ public class EvolveServlet extends HttpServlet {
 
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
+
+    public static final Map<String, SessionEvolutionProgressConnector> connections = new HashMap<>();
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         System.out.printf("Received request from %s%n", ServletUtils.getIpFromRequest(request));
@@ -201,7 +200,7 @@ public class EvolveServlet extends HttpServlet {
         Path pipelineTargetDirectory = Paths.get(System.getenv("PL_TARGET_DIR"));
 
         HttpSession session = request.getSession();
-        session.setAttribute("progress_connector", progressConnector);
+        EvolveServlet.connections.put(request.getParameter("progressID"), progressConnector);
 
         String sessionID = getSessionId(session, pipelineTargetDirectory, request.getParameter("name"));
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));

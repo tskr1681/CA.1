@@ -5,6 +5,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import nl.bioinf.cawarmerdam.compound_evolver.model.SessionEvolutionProgressConnector;
+import nl.bioinf.cawarmerdam.compound_evolver.servlets.EvolveServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -105,13 +106,12 @@ public class ServletUtils {
     /**
      * Method that gets the progress connector from a http session.
      *
-     * @param session The http session.
+     * @param request The http session.
      * @return the progress connector instance.
      * @throws UnknownProgressException if the progress connector is null.
      */
-    public static SessionEvolutionProgressConnector getProgressConnector(HttpSession session) throws UnknownProgressException {
-        SessionEvolutionProgressConnector progressConnector =
-                (SessionEvolutionProgressConnector) session.getAttribute("progress_connector");
+    public static SessionEvolutionProgressConnector getProgressConnector(HttpServletRequest request) throws UnknownProgressException {
+        SessionEvolutionProgressConnector progressConnector = EvolveServlet.connections.get(request.getParameter("progressID"));
         if (progressConnector == null) {
             // Throw exception
             throw new UnknownProgressException("progress connector is null");

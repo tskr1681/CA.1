@@ -7,6 +7,10 @@ app.run(function ($rootScope) {
 
 app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
+    const random = (length = 8) => {
+        return Math.random().toString(36).substr(2, length);
+    };
+
     // Define form model with default values
     $scope.formModel = {
         maxReactantWeight: 0,
@@ -49,7 +53,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         setPrepareReceptor: true,
         setFillGen: false,
         deleteInvalid: true,
-        debugPrint: false
+        debugPrint: false,
+        progressID: random()
     };
 
     // Define the properties of reaction files.
@@ -95,11 +100,17 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     let updatefailurecounter = 0;
 
     function getProgressUpdate(handleData) {
+        // Get form
+        let form = $('form')[0];
+
+        // Create an FormData object
+        let formData = new FormData(form);
         jQuery.ajax({
             method: 'POST',
             type: 'POST',
             url: './progress.update',
             responseType: "application/json",
+            data: {progressID: formData.get("progressID")},
             success: function (data, textStatus, jqXHR) {
                 // log data to the console so we can see
                 console.log(data);
@@ -278,7 +289,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     };
     function handleGenerationCollection(generations) {
         generations.forEach(function (generation) {
-
+            console.log(generation);
             addData(scoreDistributionChart, generation.number, [
                 generation.candidateList.map(candidate => candidate.rawScore),
                 generation.candidateList.map(candidate => candidate.ligandEfficiency * 10),
@@ -302,7 +313,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
             // log data to the console so we can see
             console.log(jsonData);
 
-            let generations = jsonData.generationBuffer;
+            let generations = scoreDistributionChart.data.datasets[0].data.length !== 0 ? jsonData.generationBuffer : jsonData.generations;
+            console.log(scoreDistributionChart.data);
             evolveStatus = jsonData.status;
 
             handleGenerationCollection(generations);
@@ -313,7 +325,12 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * Stops evolution after the current generation
      */
     $scope.terminateEvolution = function () {
-        $.post("./evolution.terminate", function () {
+        // Get form
+        let form = $('form')[0];
+
+        // Create an FormData object
+        let formData = new FormData(form);
+        $.post("./evolution.terminate", {progressId: formData.get("progressID")}, function () {
             console.log("terminating evolution");
         })
             .done(function () {
@@ -516,6 +533,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         }
     };
 
+    $scope.onLoad = function() {
+        initializeChart(false);
+        setFrequentUpdateInterval();
+    }
+
     /**
      * Get the population of the selected generation, or nothing if there is no selected generation
      * @returns {Array|*}
@@ -544,8 +566,14 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
      * @param url the url to download data from
      */
     function download(url) {
+        // Get form
+        let form = $('form')[0];
+
+        // Create an FormData object
+        let formData = new FormData(form);
+
         let iframe = document.createElement("iframe");
-        iframe.setAttribute("src", url);
+        iframe.setAttribute("src", url + "?progressID=" + formData.get("progressID"));
         iframe.setAttribute("style", "display: none");
         document.body.appendChild(iframe);
     }

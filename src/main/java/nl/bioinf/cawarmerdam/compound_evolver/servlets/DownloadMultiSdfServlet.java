@@ -13,7 +13,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,10 +26,9 @@ import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getSessio
 @WebServlet(name = "DownloadMultiSdfServlet", urlPatterns = "multi-sdf.download")
 public class DownloadMultiSdfServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession();
         // get sessions new generations
         try {
-            SessionEvolutionProgressConnector progressConnector = getProgressConnector(session);
+            SessionEvolutionProgressConnector progressConnector = getProgressConnector(request);
             String pipelineTargetDirectory = System.getenv("PL_TARGET_DIR");
             String sessionId = getSessionId(request);
             Path uploadDirectory = Paths.get(pipelineTargetDirectory, sessionId);

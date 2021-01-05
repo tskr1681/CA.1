@@ -15,7 +15,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -34,11 +33,10 @@ import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.getProgre
 @WebServlet(name = "DownloadCsvServlet", urlPatterns = "./csv.download")
 public class DownloadCsvServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession();
         // get sessions new generations
         try {
 
-            SessionEvolutionProgressConnector progressConnector = getProgressConnector(session);
+            SessionEvolutionProgressConnector progressConnector = getProgressConnector(request);
             List<List<Double>> scores = extractScoresFromGenerations(progressConnector);
             OutputStream outputStream = response.getOutputStream();
             String csvFile = GenerateCsv.generateCsvFile(scores, System.lineSeparator());

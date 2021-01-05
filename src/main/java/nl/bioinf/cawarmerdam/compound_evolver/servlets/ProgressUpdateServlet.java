@@ -20,7 +20,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -63,9 +62,8 @@ public class ProgressUpdateServlet extends HttpServlet {
      * @throws UnknownProgressException if the session is new or null.
      */
     private SessionEvolutionProgressConnector handleProgressUpdateRequest(HttpServletRequest request) throws UnknownProgressException {
-        HttpSession session = request.getSession();
         // get sessions new generations
-        return ServletUtils.getProgressConnector(session);
+        return ServletUtils.getProgressConnector(request);
     }
 }
 
