@@ -26,6 +26,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
     private final double maximumDistanceFromAnchor;
     private final boolean deleteInvalid;
     private boolean debug = false;
+    private final boolean skip_validation = false;
 
     public ValidateConformersStep(Path anchorFilePath,
                                   double maximumDistanceFromAnchor,
@@ -65,7 +66,7 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             boolean isTooDistant = calculateLeastAnchorRmsd(conformer) > maximumDistanceFromAnchor;
             boolean isInShape = exclusionShape.inShape(conformer);
 
-            if (!isInShape && !isTooDistant) {
+            if ((!isInShape && !isTooDistant) || skip_validation) {
                 validConformers.add(conformer);
                 if (scores != null) {
                     new_scores.add(scores.get(i));
