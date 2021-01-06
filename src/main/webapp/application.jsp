@@ -29,8 +29,8 @@
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
-    <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot@1.2.1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    <script src="https://unpkg.com/chartjs-chart-box-and-violin-plot@2.3.0"></script>
     <script src="<c:url value = "js/libs/angularjs-dropdown-multiselect.js"/>"></script>
     <%--load custom javascript--%>
     <script src="<c:url value = "js/app.js"/>"></script>

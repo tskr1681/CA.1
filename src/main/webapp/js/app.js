@@ -289,7 +289,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
     };
     function handleGenerationCollection(generations) {
         generations.forEach(function (generation) {
-            console.log(generation);
             addData(scoreDistributionChart, generation.number, [
                 generation.candidateList.map(candidate => candidate.rawScore),
                 generation.candidateList.map(candidate => candidate.ligandEfficiency * 10),
