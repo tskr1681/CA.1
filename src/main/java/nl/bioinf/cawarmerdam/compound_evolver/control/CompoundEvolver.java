@@ -601,6 +601,17 @@ public class CompoundEvolver {
             // Loop through candidates to produce and submit new tasks
             List<List<Candidate>> matchingCandidateList = this.population.matchingCandidateList();
             for (List<Candidate> candidates : matchingCandidateList) {
+                for (Candidate candidate : candidates) {
+                    // Get candidate output directory
+                    File candidate_dir = Paths.get(pipelineOutputFilePath.toString(),
+                            String.valueOf(candidate.getIdentifier())).toFile();
+                    try {
+                        if (candidate_dir.exists())
+                            FileUtils.cleanDirectory(candidate_dir);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 // Setup callable
                 Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
                 // Add future, which the executor will return to the list

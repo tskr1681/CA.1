@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Class that creates a random set of candidates from the given reactions and reactants
@@ -35,11 +36,13 @@ class RandomCompoundReactor {
      * @param species       a list with species that contain reactions and how reactants map to the reaction.
      * @return the list of generated candidates.
      */
-    List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species) {
+    List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species, AtomicLong currentValue) {
 
         // Amount of products generated
         int nSampled = 0;
         Random random = new Random();
+        random.setSeed(currentValue.get());
+        System.out.println("Randreact seed: " + currentValue.get());
         List<Candidate> candidates = new ArrayList<>();
 
         // Set startTime
@@ -52,7 +55,7 @@ class RandomCompoundReactor {
             List<Integer> indexGenome = selectRandomIndexGenome(random, reactantLists);
 
             // Set the reactants
-            Candidate candidate = new Candidate(indexGenome);
+            Candidate candidate = new Candidate(indexGenome, currentValue.incrementAndGet());
             // Add the product and count the product if it can be made
             boolean finish = candidate.finish(reactantLists, species);
             if (finish) {

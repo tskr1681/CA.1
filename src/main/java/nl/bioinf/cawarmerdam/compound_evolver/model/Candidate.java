@@ -77,6 +77,7 @@ public class Candidate implements Comparable<Candidate> {
         this.genomeSize = this.genotype.size();
         this.identifier = identifier;
         random.setSeed(identifier);
+        System.out.println("Candidate seed: " + identifier);
     }
 
     /**

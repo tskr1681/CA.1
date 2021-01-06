@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * @version 0.0.1
  */
 public class Population implements Iterable<Candidate> {
-    private AtomicLong currentValue = new AtomicLong(0L);
+    private AtomicLong currentValue;
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     public final List<List<String>> reactantLists;
@@ -87,6 +87,7 @@ public class Population implements Iterable<Candidate> {
             int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
         this.receptorAmount = receptorAmount;
         this.random = new Random(currentValue.get());
+        System.out.println("Population seed: " + currentValue.get());
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
@@ -103,8 +104,8 @@ public class Population implements Iterable<Candidate> {
         this.species = species;
         this.adaptive = true;
         this.selective = false;
-        initializePopulation();
         this.currentValue = currentValue;
+        initializePopulation();
     }
 
     /**
@@ -272,12 +273,12 @@ public class Population implements Iterable<Candidate> {
             for (Species species : this.species) {
                 // Create a fixed set of candidates per species.
                 tempList = new RandomCompoundReactor(individualsPerSpecies)
-                        .randReact(this.reactantLists, Collections.singletonList(species));
+                        .randReact(this.reactantLists, Collections.singletonList(species), this.currentValue);
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             // Create a set of candidates with the species that works best.
             tempList = new RandomCompoundReactor(this.populationSize)
-                    .randReact(this.reactantLists, this.species);
+                    .randReact(this.reactantLists, this.species, this.currentValue);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
@@ -507,6 +508,7 @@ public class Population implements Iterable<Candidate> {
     private Candidate copyCandidate(Candidate c) {
         Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier());
         out.finish(this.reactantLists, this.species);
+        System.out.println("Copying candidate.");
         return out;
     }
 
@@ -1022,10 +1024,10 @@ public class Population implements Iterable<Candidate> {
 
             // Try to generate a new individual or candidate with these species
             return new RandomCompoundReactor(1)
-                    .randReact(this.reactantLists, Collections.singletonList(randomSpecies)).get(0); // 1 new individual at index 0
+                    .randReact(this.reactantLists, Collections.singletonList(randomSpecies), this.currentValue).get(0); // 1 new individual at index 0
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             return new RandomCompoundReactor(1)
-                    .randReact(this.reactantLists, this.species).get(0);
+                    .randReact(this.reactantLists, this.species, this.currentValue).get(0);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
@@ -1322,7 +1324,6 @@ public class Population implements Iterable<Candidate> {
     }
 
     public List<List<Candidate>> matchingCandidateList() {
-        System.out.println("candidateList = " + candidateList);
         List<List<Candidate>> out = new ArrayList<>();
         List<Candidate> temp = new ArrayList<>();
         // Iterate over candidates, then over lists, so you can make a list of populationsize sets of candidates
