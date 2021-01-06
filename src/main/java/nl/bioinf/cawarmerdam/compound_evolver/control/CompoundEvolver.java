@@ -609,7 +609,9 @@ public class CompoundEvolver {
                         if (candidate_dir.exists())
                             FileUtils.cleanDirectory(candidate_dir);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        if (debugPrint) {
+                            System.err.println(e.getMessage());
+                        }
                     }
                 }
                 // Setup callable
