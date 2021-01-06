@@ -30,8 +30,8 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      */
     @Override
     public Void execute(Candidate candidate) throws PipelineException {
-        if (candidate == null) {
-            throw new PipelineException("Scored candidate handling step got null, validification failed?");
+        if (candidate == null || candidate.getConformerScores() == null) {
+            throw new PipelineException("Scored candidate handling step got null, validation failed?");
         }
         List<Double> conformerScores = candidate.getConformerScores();
         Path outputFilePath = candidate.getScoredConformersFile();

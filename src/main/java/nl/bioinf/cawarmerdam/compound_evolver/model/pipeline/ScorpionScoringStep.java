@@ -51,7 +51,7 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         if (candidate == null) {
-            throw new PipelineException("Scorpion got null as a candidate, validification failed?");
+            throw new PipelineException("Scorpion got null as a candidate, validation failed?");
         }
         //No need to rerun scorpion if we've already scored this compound
         if (candidate.getRawScore() != null)
