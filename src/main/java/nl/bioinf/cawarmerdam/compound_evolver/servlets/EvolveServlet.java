@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils.*;
@@ -117,7 +118,7 @@ public class EvolveServlet extends HttpServlet {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size());
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0));
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.

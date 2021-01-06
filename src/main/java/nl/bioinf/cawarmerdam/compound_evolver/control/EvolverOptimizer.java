@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Deprecated
@@ -245,7 +246,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getPopulationSize(), 1);
+                parameters.getPopulationSize(), 1, new AtomicLong(0));
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

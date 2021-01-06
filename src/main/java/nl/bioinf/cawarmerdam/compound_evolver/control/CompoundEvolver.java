@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +100,7 @@ public class CompoundEvolver {
         ArrayList<Reactor> reactions = new ArrayList<>();
         reactions.add(reactor);
         List<Species> species = Species.constructSpecies(reactions, reactantLists.size());
-        Population population = new Population(reactantLists, species, maxSamples, 1);
+        Population population = new Population(reactantLists, species, maxSamples, 1, new AtomicLong(0));
 //        population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
         population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);

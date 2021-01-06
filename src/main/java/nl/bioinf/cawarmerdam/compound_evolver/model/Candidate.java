@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,7 +36,6 @@ import java.util.stream.IntStream;
  */
 public class Candidate implements Comparable<Candidate> {
 
-    private static final AtomicLong currentValue = new AtomicLong(0L);
     private final long identifier;
     private final int genomeSize;
     private CompoundEvolver.FitnessMeasure fitnessMeasure;
@@ -74,10 +72,11 @@ public class Candidate implements Comparable<Candidate> {
      *
      * @param genotype The genotype that corresponds to the candidate.
      */
-    public Candidate(List<Integer> genotype) {
+    public Candidate(List<Integer> genotype, long identifier) {
         this.genotype = genotype;
         this.genomeSize = this.genotype.size();
-        this.identifier = currentValue.getAndIncrement();
+        this.identifier = identifier;
+        random.setSeed(identifier);
     }
 
     /**
@@ -86,8 +85,8 @@ public class Candidate implements Comparable<Candidate> {
      * @param genotype The genotype that corresponds to the candidate.
      * @param species  A list of possible species to select from
      */
-    public Candidate(List<Integer> genotype, Species species) {
-        this(genotype);
+    public Candidate(List<Integer> genotype, Species species, long identifier) {
+        this(genotype, identifier);
         this.species = species;
 
     }

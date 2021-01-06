@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
  * @version 0.0.1
  */
 public class Population implements Iterable<Candidate> {
-
+    private AtomicLong currentValue = new AtomicLong(0L);
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     public final List<List<String>> reactantLists;
@@ -83,9 +84,9 @@ public class Population implements Iterable<Candidate> {
             List<List<String>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize, int receptorAmount) {
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
         this.receptorAmount = receptorAmount;
-        this.random = new Random();
+        this.random = new Random(currentValue.get());
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
@@ -103,6 +104,7 @@ public class Population implements Iterable<Candidate> {
         this.adaptive = true;
         this.selective = false;
         initializePopulation();
+        this.currentValue = currentValue;
     }
 
     /**
@@ -116,8 +118,8 @@ public class Population implements Iterable<Candidate> {
     public Population(
             List<List<String>> reactantLists,
             List<Species> species,
-            int initialGenerationSize, int receptorAmount) {
-        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount);
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
+        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue);
     }
 
 
@@ -503,7 +505,7 @@ public class Population implements Iterable<Candidate> {
     }
 
     private Candidate copyCandidate(Candidate c) {
-        Candidate out = new Candidate(c.getGenotype(), c.getSpecies());
+        Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier());
         out.finish(this.reactantLists, this.species);
         return out;
     }
@@ -859,7 +861,7 @@ public class Population implements Iterable<Candidate> {
     public Population newPopulation(List<List<String>> reactantLists) {
         Population population;
         SelectionMethod method = this.getSelectionMethod();
-        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount());
+        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue);
         population.setSelective(this.selective);
         population.setDebugPrint(debugPrint);
 
@@ -989,7 +991,7 @@ public class Population implements Iterable<Candidate> {
      * to the offSpringRejectionMessages field.
      */
     private Candidate finalizeOffspring(List<Integer> newGenome, Species species) {
-        Candidate newCandidate = new Candidate(newGenome, species);
+        Candidate newCandidate = new Candidate(newGenome, species, this.currentValue.incrementAndGet());
         newCandidate.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
         newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
         newCandidate.setMaxMolecularMass(this.maxMolecularMass);
