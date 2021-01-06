@@ -468,7 +468,6 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
 
         $rootScope.selectedGenerationNumber = array[elementIndex]['_index'];
         $rootScope.$apply();
-        $scope.runVisualization();
     }
 
     function setFrequentUpdateInterval() {
