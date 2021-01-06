@@ -87,7 +87,6 @@ public class Population implements Iterable<Candidate> {
             int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
         this.receptorAmount = receptorAmount;
         this.random = new Random(currentValue.get());
-        System.out.println("Population seed: " + currentValue.get());
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
@@ -508,7 +507,6 @@ public class Population implements Iterable<Candidate> {
     private Candidate copyCandidate(Candidate c) {
         Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier());
         out.finish(this.reactantLists, this.species);
-        System.out.println("Copying candidate.");
         return out;
     }
 

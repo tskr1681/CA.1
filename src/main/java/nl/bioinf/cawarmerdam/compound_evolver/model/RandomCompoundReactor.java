@@ -42,7 +42,6 @@ class RandomCompoundReactor {
         int nSampled = 0;
         Random random = new Random();
         random.setSeed(currentValue.get());
-        System.out.println("Randreact seed: " + currentValue.get());
         List<Candidate> candidates = new ArrayList<>();
 
         // Set startTime
