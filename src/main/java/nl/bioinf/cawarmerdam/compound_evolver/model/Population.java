@@ -44,7 +44,7 @@ public class Population implements Iterable<Candidate> {
     private SpeciesDeterminationMethod speciesDeterminationMethod;
     private List<List<Candidate>> candidateList;
     private double[][][] alleleSimilarities;
-    private final HashMap<Integer, HashMap<Integer, List<Double>>> allelemap = new HashMap<>();
+    private final Map<Integer, HashMap<Integer, List<Double>>> allelemap = new ConcurrentHashMap<>();
     private double mutationRate;
     private double selectionFraction;
     private double crossoverRate;
