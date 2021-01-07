@@ -630,9 +630,13 @@ public class CompoundEvolver {
                     // Handle exception
 //                    evolutionProgressConnector.putException(e);
                     // Log exception
-                    System.err.println("Encountered an exception while scoring candidates: " + e.getMessage());
-                    if (e.getMessage() != null && e.getMessage().equals("RDKit wrapper is having issues!"))
-                        throw new ForcedTerminationException("RDKit is not working. Stopping program execution.");
+                    System.err.println("Encountered an exception while scoring candidates: " + e.getCause().getMessage());
+                    // Pipeline exceptions are expected, they are used to signal null candidates from validation as well
+                    if (!(e.getCause() instanceof PipelineException))
+                    {
+                        e.getCause().printStackTrace();
+                    }
+
                 }
             }
             // Log completed scoring round
