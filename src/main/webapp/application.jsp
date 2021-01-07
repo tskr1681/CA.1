@@ -156,12 +156,31 @@
                                         id="progressID"
                                         name="progressID"
                                         required="required"
-                                        ng-class="{'is-valid':True}">
+                                        ng-class="{'is-valid':true}">
                                 </textarea>
                             </div>
                             <div class="col-sm-9 offset-sm-3">
                                 <small class="form-text">
                                     The progress ID is linked to your run of CE, and can be used to request the data back.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="base-seed" class="col-sm-3 col-form-label">Base RNG Seed</label>
+                            <div class="col-sm-9">
+                                <input type="number"
+                                       class="form-control"
+                                       ng-model="formModel.baseSeed"
+                                       id="base-seed"
+                                       name="baseSeed"
+                                       required="required"
+                                       min="0"
+                                       step="1"
+                                       ng-class="{'is-valid':true}">
+                            </div>
+                            <div class="col-sm-9 offset-sm-3">
+                                <small class="form-text">
+                                    The base seed determines the random values that are used for the algorithm. Using the same parameters and the same base seed yields the same results every time.
                                 </small>
                             </div>
                         </div>

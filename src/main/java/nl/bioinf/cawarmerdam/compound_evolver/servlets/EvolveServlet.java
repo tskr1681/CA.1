@@ -117,7 +117,7 @@ public class EvolveServlet extends HttpServlet {
         for (int i = 0; i < receptorParts.size(); i++) {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
-        long baseSeed = 0; //TODO get from webpage
+        long baseSeed = getIntegerParameterFromRequest(request, "baseSeed");
 
         // Initialize population instance
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
