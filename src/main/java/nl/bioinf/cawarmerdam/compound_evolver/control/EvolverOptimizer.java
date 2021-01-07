@@ -246,7 +246,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getPopulationSize(), 1, new AtomicLong(0));
+                parameters.getPopulationSize(), 1, new AtomicLong(0), 0);
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

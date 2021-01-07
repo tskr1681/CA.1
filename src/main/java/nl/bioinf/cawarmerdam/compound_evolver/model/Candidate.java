@@ -72,11 +72,11 @@ public class Candidate implements Comparable<Candidate> {
      *
      * @param genotype The genotype that corresponds to the candidate.
      */
-    public Candidate(List<Integer> genotype, long identifier) {
+    public Candidate(List<Integer> genotype, long identifier, long baseSeed) {
         this.genotype = genotype;
         this.genomeSize = this.genotype.size();
         this.identifier = identifier;
-        random.setSeed(identifier);
+        random.setSeed(identifier + baseSeed);
     }
 
     /**
@@ -85,10 +85,9 @@ public class Candidate implements Comparable<Candidate> {
      * @param genotype The genotype that corresponds to the candidate.
      * @param species  A list of possible species to select from
      */
-    public Candidate(List<Integer> genotype, Species species, long identifier) {
-        this(genotype, identifier);
+    public Candidate(List<Integer> genotype, Species species, long identifier, long baseSeed) {
+        this(genotype, identifier, baseSeed);
         this.species = species;
-
     }
 
     /**
@@ -725,7 +724,7 @@ public class Candidate implements Comparable<Candidate> {
      * @return the path to the fixed conformers file.
      */
     public Path getFixedConformersFile() {
-        return fixedConformersFile;
+        return this.fixedConformersFile;
     }
 
     /**

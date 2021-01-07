@@ -117,8 +117,10 @@ public class EvolveServlet extends HttpServlet {
         for (int i = 0; i < receptorParts.size(); i++) {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
+        long baseSeed = 0; //TODO get from webpage
+
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0));
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.

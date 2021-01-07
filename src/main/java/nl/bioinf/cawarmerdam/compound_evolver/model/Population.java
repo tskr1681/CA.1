@@ -70,6 +70,7 @@ public class Population implements Iterable<Candidate> {
     private boolean adaptiveMutation;
     private boolean skipcheck;
     private boolean debugPrint;
+    private long baseSeed;
 
     /**
      * Constructor for population.
@@ -84,9 +85,10 @@ public class Population implements Iterable<Candidate> {
             List<List<String>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
         this.receptorAmount = receptorAmount;
-        this.random = new Random(currentValue.get());
+        this.random = new Random(currentValue.get() + baseSeed);
+        this.baseSeed = baseSeed;
         this.reactantLists = reactantLists;
         this.populationSize = initialGenerationSize;
         this.generationNumber = 0;
@@ -118,8 +120,8 @@ public class Population implements Iterable<Candidate> {
     public Population(
             List<List<String>> reactantLists,
             List<Species> species,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue) {
-        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue);
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
+        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue, baseSeed);
     }
 
 
@@ -272,12 +274,12 @@ public class Population implements Iterable<Candidate> {
             for (Species species : this.species) {
                 // Create a fixed set of candidates per species.
                 tempList = new RandomCompoundReactor(individualsPerSpecies)
-                        .randReact(this.reactantLists, Collections.singletonList(species), this.currentValue);
+                        .randReact(this.reactantLists, Collections.singletonList(species), this.currentValue, this.baseSeed);
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             // Create a set of candidates with the species that works best.
             tempList = new RandomCompoundReactor(this.populationSize)
-                    .randReact(this.reactantLists, this.species, this.currentValue);
+                    .randReact(this.reactantLists, this.species, this.currentValue, this.baseSeed);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
@@ -505,7 +507,7 @@ public class Population implements Iterable<Candidate> {
     }
 
     private Candidate copyCandidate(Candidate c) {
-        Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier());
+        Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier(), this.baseSeed);
         out.finish(this.reactantLists, this.species);
         return out;
     }
@@ -860,7 +862,7 @@ public class Population implements Iterable<Candidate> {
     public Population newPopulation(List<List<String>> reactantLists) {
         Population population;
         SelectionMethod method = this.getSelectionMethod();
-        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue);
+        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue, this.baseSeed);
         population.setSelective(this.selective);
         population.setDebugPrint(debugPrint);
 
@@ -990,7 +992,7 @@ public class Population implements Iterable<Candidate> {
      * to the offSpringRejectionMessages field.
      */
     private Candidate finalizeOffspring(List<Integer> newGenome, Species species) {
-        Candidate newCandidate = new Candidate(newGenome, species, this.currentValue.incrementAndGet());
+        Candidate newCandidate = new Candidate(newGenome, species, this.currentValue.incrementAndGet(), this.baseSeed);
         newCandidate.setMaxHydrogenBondAcceptors(this.maxHydrogenBondAcceptors);
         newCandidate.setMaxHydrogenBondDonors(this.maxHydrogenBondDonors);
         newCandidate.setMaxMolecularMass(this.maxMolecularMass);
@@ -1021,10 +1023,10 @@ public class Population implements Iterable<Candidate> {
 
             // Try to generate a new individual or candidate with these species
             return new RandomCompoundReactor(1)
-                    .randReact(this.reactantLists, Collections.singletonList(randomSpecies), this.currentValue).get(0); // 1 new individual at index 0
+                    .randReact(this.reactantLists, Collections.singletonList(randomSpecies), this.currentValue, this.baseSeed).get(0); // 1 new individual at index 0
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             return new RandomCompoundReactor(1)
-                    .randReact(this.reactantLists, this.species, this.currentValue).get(0);
+                    .randReact(this.reactantLists, this.species, this.currentValue, this.baseSeed).get(0);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
