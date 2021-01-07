@@ -36,12 +36,12 @@ class RandomCompoundReactor {
      * @param species       a list with species that contain reactions and how reactants map to the reaction.
      * @return the list of generated candidates.
      */
-    List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species, AtomicLong currentValue) {
+    List<Candidate> randReact(List<List<String>> reactantLists, List<Species> species, AtomicLong currentValue, long baseSeed) {
 
         // Amount of products generated
         int nSampled = 0;
         Random random = new Random();
-        random.setSeed(currentValue.get());
+        random.setSeed(currentValue.get() + baseSeed);
         List<Candidate> candidates = new ArrayList<>();
 
         // Set startTime
@@ -54,7 +54,7 @@ class RandomCompoundReactor {
             List<Integer> indexGenome = selectRandomIndexGenome(random, reactantLists);
 
             // Set the reactants
-            Candidate candidate = new Candidate(indexGenome, currentValue.incrementAndGet());
+            Candidate candidate = new Candidate(indexGenome, currentValue.incrementAndGet(), baseSeed);
             // Add the product and count the product if it can be made
             boolean finish = candidate.finish(reactantLists, species);
             if (finish) {
