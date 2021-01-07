@@ -50,7 +50,7 @@ public class ConformerHelper {
                 return null;
             }
             // Return the molecule
-            return m;
+            return new Molecule().equals(m) ? null : m;
         } catch (IOException e) {
             e.printStackTrace();
             throw new PipelineException("Could not import minimized file", e);
@@ -87,16 +87,8 @@ public class ConformerHelper {
         try {
             return importer.read();
         } catch (MolFormatException e) {
-            try {
-                Thread.sleep(2000);
-                return importer.read();
-            } catch (InterruptedException | MolFormatException e2) {
-                System.err.println("Error occured when loading conformer from file: ");
-                System.err.println("minimizedConformersFilePath = " + importer.getFileName());
-                e.printStackTrace();
-            }
+            return new Molecule();
         }
-        return null;
     }
 
     /**

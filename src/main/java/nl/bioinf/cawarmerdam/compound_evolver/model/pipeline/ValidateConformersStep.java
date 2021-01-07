@@ -54,13 +54,15 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
             } else {
                 conformer_count = scores.size();
             }
-        } catch (IOException ignored) {
-
+        } catch (IOException e) {
+            if (debug) {
+                e.printStackTrace();
+            }
         }
 
         for (int i = 0; i < conformer_count; i++) {
             Molecule conformer = ConformerHelper.getConformer(outputFilePath, i);
-            if (conformer == null) {
+            if (conformer == null || conformer.equals(new Molecule())) {
                 throw new PipelineException("Validation got null as conformer. Candidate: " + candidate.toString() + ". Conformer index: " + i);
             }
             removeMarker(conformer);
