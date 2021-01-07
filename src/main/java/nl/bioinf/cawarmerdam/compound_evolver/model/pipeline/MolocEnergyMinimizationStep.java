@@ -6,6 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.model.pipeline;
 
 import nl.bioinf.cawarmerdam.compound_evolver.io.EneFileParser;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
@@ -50,7 +51,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
     @Override
     public Candidate execute(Candidate candidate) throws PipelineException {
         if (candidate == null)
-            throw new PipelineException("Moloc got null as a candidate, validification failed?");
+            throw new PipelineException("Moloc got null as a candidate, validation failed?");
 
         //No need to rerun moloc if we've already scored this compound. It's clearly optimized already, otherwise it wouldn't be scored.
         if (candidate.getRawScore() != null)
@@ -71,8 +72,10 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
         // Rename the output .sd file to .sdf
         try {
+            if (newMinimizedConformersFilePath.toFile().exists()) {
+                FileUtils.forceDelete(newMinimizedConformersFilePath.toFile());
+            }
             Files.copy(minimizedConformersFile.toPath(), newMinimizedConformersFilePath);
-
         } catch (IOException e) {
             e.printStackTrace();
             throw new PipelineException(String.format("Could not rename '%s' to '%s'",
