@@ -57,10 +57,11 @@ public class ValidateConformersStep implements PipelineStep<Candidate, Candidate
         } catch (IOException ignored) {
 
         }
+
         for (int i = 0; i < conformer_count; i++) {
             Molecule conformer = ConformerHelper.getConformer(outputFilePath, i);
             if (conformer == null) {
-                throw new PipelineException("Validation got null as conformer. Candidate: " + candidate.toString());
+                throw new PipelineException("Validation got null as conformer. Candidate: " + candidate.toString() + ". Conformer index: " + i);
             }
             removeMarker(conformer);
             boolean isTooDistant = calculateLeastAnchorRmsd(conformer) > maximumDistanceFromAnchor;

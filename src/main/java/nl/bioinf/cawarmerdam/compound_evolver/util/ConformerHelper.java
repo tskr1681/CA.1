@@ -1,6 +1,7 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import chemaxon.formats.MolExporter;
+import chemaxon.formats.MolFormatException;
 import chemaxon.formats.MolImporter;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
@@ -35,10 +36,8 @@ public class ConformerHelper {
             // read the first molecule from the file
             Molecule m = importer.read();
             while (m != null && !(conformerIndex == currentConformerIndex)) {
+                m = readSafe(importer);
                 currentConformerIndex += 1;
-
-                // read the next molecule from the input file
-                m = importer.read();
             }
             importer.close();
             // The while loop should exit whenever the considered conformer index is reached. If the two indices
@@ -47,6 +46,7 @@ public class ConformerHelper {
 //                throw new PipelineException(String.format("Could not obtain conformer %d from '%s'",
 //                        conformerIndex,
 //                        minimizedConformersFilePath.getFileName()));
+                System.err.println("Conformer index not found: " + conformerIndex + ". Current index: " + currentConformerIndex);
                 return null;
             }
             // Return the molecule
@@ -73,13 +73,30 @@ public class ConformerHelper {
         // read the first molecule from the file
         Molecule m = importer.read();
         while (m != null) {
+            m = readSafe(importer);
             currentConformerIndex += 1;
 
-            // read the next molecule from the input file
-            m = importer.read();
+
         }
         importer.close();
         return currentConformerIndex;
+    }
+
+    private static Molecule readSafe(MolImporter importer) throws IOException {
+        // read the next molecule from the input file
+        try {
+            return importer.read();
+        } catch (MolFormatException e) {
+            try {
+                Thread.sleep(2000);
+                return importer.read();
+            } catch (InterruptedException | MolFormatException e2) {
+                System.err.println("Error occured when loading conformer from file: ");
+                System.err.println("minimizedConformersFilePath = " + importer.getFileName());
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     /**

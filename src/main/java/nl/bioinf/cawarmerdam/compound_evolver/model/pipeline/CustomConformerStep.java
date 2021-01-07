@@ -52,13 +52,17 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     candidate.getPhenotypeSmiles(),
                     this.anchor.toString(),
                     String.valueOf(confs),
-                    candidate.getFixedConformersFile().toString(),
+                    getConformerFileName(candidate).toString(),
                     String.valueOf(rmsd)
             );
             Process p = builder.start();
             p.waitFor();
-            if (IOUtils.toString(p.getErrorStream()).contains("ImportError") || IOUtils.toString(p.getInputStream()).contains("ImportError") || !candidate.getConformersFile().toFile().exists()) {
-                throw new PipelineException("RDKit wrapper is having issues!");
+            Thread.sleep(2000);
+            String error = IOUtils.toString(p.getErrorStream());
+            String out =  IOUtils.toString(p.getInputStream());
+            if (error.contains("ImportError") || out.contains("ImportError") || !candidate.getConformersFile().toFile().exists()) {
+                String[] error_message = error.split("\\n");
+                throw new PipelineException("RDKit custom conformer script found an issue: " + error_message[error_message.length - 2]);
             }
         } catch (IOException | InterruptedException e) {
             throw new PipelineException("Custom conformer script failed");
