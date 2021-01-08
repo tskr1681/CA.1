@@ -36,7 +36,7 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None,rmsd_th
                                        enforceChirality=True,
                                        useExpTorsionAnglePrefs=True,
                                        useBasicKnowledge=True,
-                                       randomSeed=randomization_seed
+                                       randomSeed=int(randomization_seed)
                                        )
     for element in confs:
         Chem.SanitizeMol(mol)

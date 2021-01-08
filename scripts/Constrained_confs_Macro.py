@@ -36,7 +36,7 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None, rmsd_t
     	useExpTorsionAnglePrefs=True,
     	useBasicKnowledge=True,
     	useMacrocycleTorsions=True,
-        randomSeed=randomization_seed)
+        randomSeed=int(randomization_seed))
 
 
     for element in confs:
