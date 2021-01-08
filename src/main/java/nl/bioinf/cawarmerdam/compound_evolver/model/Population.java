@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * @version 0.0.1
  */
 public class Population implements Iterable<Candidate> {
-    private AtomicLong currentValue;
+    private final AtomicLong currentValue;
     private final List<String> offspringRejectionMessages = new ArrayList<>();
     private final Map<ReproductionMethod, Double> reproductionMethodWeighting = new HashMap<>();
     public final List<List<String>> reactantLists;
@@ -70,7 +70,7 @@ public class Population implements Iterable<Candidate> {
     private boolean adaptiveMutation;
     private boolean skipcheck;
     private boolean debugPrint;
-    private long baseSeed;
+    private final long baseSeed;
 
     /**
      * Constructor for population.
