@@ -30,7 +30,12 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      */
     @Override
     public Void execute(Candidate candidate) throws PipelineException {
+        if (candidate != null && candidate.isScored())
+        {
+            return null;
+        }
         if (candidate == null || candidate.getConformerScores() == null) {
+            // No need to handle an already scored candidate again
             throw new PipelineException("Scored candidate handling step got null, validation failed?");
         }
         List<Double> conformerScores = candidate.getConformerScores();
