@@ -49,6 +49,8 @@ public class RequestParameterStorage {
     private static void writeBuildingBlocks(BufferedWriter buffer, HttpServletRequest request) throws IOException, ServletException {
         buffer.write("Name: " + request.getParameter("name"));
         buffer.newLine();
+        buffer.write("Randomization seed: " + request.getParameter("baseSeed"));
+        buffer.newLine();
         buffer.write("Reaction Filenames: ");
         buffer.newLine();
         writeList(getFileNamesFromRequest(request, "reactionFiles"), buffer);
