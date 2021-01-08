@@ -66,6 +66,7 @@ public class Candidate implements Comparable<Candidate> {
     private Molecule[] reactants;
     private Map<MolAtom, AtomIdentifier> atommap;
     private boolean canBeDeleted = true;
+    private final long baseSeed;
 
     /**
      * Constructor for candidate instance.
@@ -76,6 +77,7 @@ public class Candidate implements Comparable<Candidate> {
         this.genotype = genotype;
         this.genomeSize = this.genotype.size();
         this.identifier = identifier;
+        this.baseSeed = baseSeed;
         random.setSeed(identifier + baseSeed);
     }
 
@@ -213,6 +215,22 @@ public class Candidate implements Comparable<Candidate> {
         return IntStream.range(0, reactantLists.size())
                 .mapToObj(i -> reactantLists.get(i).get(this.genotype.get(i)))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Getter for the randomization base seed
+     * @return the base seed
+     */
+    public long getBaseSeed() {
+        return baseSeed;
+    }
+
+    /**
+     * Getter for the randomization seed
+     * @return the randomization seed used by this candidate
+     */
+    public long getRNGSeed() {
+        return baseSeed + identifier;
     }
 
     /**

@@ -3,7 +3,7 @@ from rdkit.Chem import rdFMCS, AllChem, rdMolAlign
 import sys
 
 
-def get_conformers(smiles=None, anchor=None, num_confs=None, output=None, rmsd_threshold=1):
+def get_conformers(smiles=None, anchor=None, num_confs=None, output=None, rmsd_threshold=1,randomization_seed=0):
     mol = Chem.MolFromSmiles(smiles,sanitize=True)
     AllChem.EmbedMolecule(mol)
 
@@ -35,7 +35,8 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None, rmsd_t
     	pruneRmsThresh=0.75,
     	useExpTorsionAnglePrefs=True,
     	useBasicKnowledge=True,
-    	useMacrocycleTorsions=True)
+    	useMacrocycleTorsions=True,
+        randomSeed=randomization_seed)
 
 
     for element in confs:
@@ -49,10 +50,10 @@ def get_conformers(smiles=None, anchor=None, num_confs=None, output=None, rmsd_t
 
 def main():
     print('''
-        USAGE: python Constrained_confs.py smiles_code anchor.sdf num_confs output.sdf anchor_rmsd_threshold_value
+        USAGE: python Constrained_confs.py smiles_code anchor.sdf num_confs output.sdf anchor_rmsd_threshold_value randomization_seed
         ''')
 
-    get_conformers(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],sys.argv[5])
+    get_conformers(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],sys.argv[5],sys.argv[6])
 
 
 if __name__ == '__main__':

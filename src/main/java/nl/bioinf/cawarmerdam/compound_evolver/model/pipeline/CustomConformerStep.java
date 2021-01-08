@@ -53,7 +53,8 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                     this.anchor.toString(),
                     String.valueOf(confs),
                     getConformerFileName(candidate).toString(),
-                    String.valueOf(rmsd)
+                    String.valueOf(rmsd),
+                    String.valueOf(candidate.getRNGSeed())
             );
             Process p = builder.start();
             p.waitFor();
