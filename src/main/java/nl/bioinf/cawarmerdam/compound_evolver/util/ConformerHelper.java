@@ -29,6 +29,7 @@ public class ConformerHelper {
         try {
             // Create importer for file
             MolImporter importer = new MolImporter(minimizedConformersFilePath.toFile());
+            importer.setThreadCount(1);
 
             // Current conformer index
             int currentConformerIndex = 0;
@@ -66,6 +67,7 @@ public class ConformerHelper {
      */
     public static int getConformerCount(Path conformerPath) throws IOException {
         MolImporter importer = new MolImporter(conformerPath.toFile());
+        importer.setThreadCount(1);
 
         // Current conformer index
         int currentConformerIndex = 0;
