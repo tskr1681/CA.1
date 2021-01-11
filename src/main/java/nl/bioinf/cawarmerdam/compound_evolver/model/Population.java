@@ -636,6 +636,9 @@ public class Population implements Iterable<Candidate> {
             tempmap.put(alleleIndex, DoubleStream.of(temp).boxed().collect(Collectors.toList()));
             allelemap.put(reactantsListIndex, tempmap);
         }
+        if (debugPrint) {
+            System.out.println(allelemap.get(reactantsListIndex));
+        }
         return allelemap.get(reactantsListIndex).get(alleleIndex).stream().mapToDouble(i -> i > mutation_similarity ? i : 0.0d).toArray();
     }
 
@@ -681,7 +684,7 @@ public class Population implements Iterable<Candidate> {
         List<Candidate> offspring = elitism();
 
         // Shuffle parents
-        Collections.shuffle(fitnessCandidateList);
+        Collections.shuffle(fitnessCandidateList, this.random);
         // Select parents
         selectParents();
 
@@ -1151,7 +1154,7 @@ public class Population implements Iterable<Candidate> {
         while (selectedParents.size() < selectionSize) {
             // Get the best candidate in the tournament
             selectedParents.add(Collections.max(fitnessCandidateList.subList(0, localTournamentSize)));
-            Collections.shuffle(fitnessCandidateList);
+            Collections.shuffle(fitnessCandidateList, this.random);
         }
         return selectedParents;
     }
