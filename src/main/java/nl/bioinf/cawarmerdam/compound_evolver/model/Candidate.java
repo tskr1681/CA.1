@@ -152,7 +152,7 @@ public class Candidate implements Comparable<Candidate> {
             List<Molecule> phenotypes;
             phenotypes = react(reaction, reactants);
             if (phenotypes != null && phenotypes.size() != 0) {
-                this.phenotype = phenotypes.get((int) (Math.random() * phenotypes.size()));
+                this.phenotype = phenotypes.get((int) (this.random.nextDouble() * phenotypes.size()));
                 if (this.isValid()) {
                     this.reactants = reactants;
                     return true;
