@@ -684,7 +684,7 @@ public class Population implements Iterable<Candidate> {
         List<Candidate> offspring = elitism();
 
         // Shuffle parents
-        Collections.shuffle(fitnessCandidateList, this.random);
+        Collections.shuffle(fitnessCandidateList, new Random(this.baseSeed));
         // Select parents
         selectParents();
 
@@ -962,18 +962,18 @@ public class Population implements Iterable<Candidate> {
             }
             // Mutate the recombined genome
             List<Integer> reactantGenome = newGenome.right;
-            mutate(reactantGenome, mutation_similarity);
+            mutate(reactantGenome, mutation_similarity, i);
             return finalizeOffspring(reactantGenome, newGenome.left);
         } else if (offspringChoice == ReproductionMethod.ELITISM) {
             // Get the recombined genome by crossing over
             Candidate elitist = this.fitnessCandidateList.get(i % this.fitnessCandidateList.size());
             List<Integer> newGenome = elitist.getGenotype();
             // Mutate the recombined genome
-            mutate(newGenome, mutation_similarity);
+            mutate(newGenome, mutation_similarity, i);
             return finalizeOffspring(newGenome, elitist.getSpecies());
         } else if (offspringChoice == ReproductionMethod.RANDOM_IMMIGRANT) {
             // Introduce a random immigrant
-            Candidate immigrant = introduceRandomImmigrant();
+            Candidate immigrant = introduceRandomImmigrant(i);
             if (immigrant == null) {
                 System.err.println("Invalid immigrant was produced");
                 this.offspringRejectionMessages.add("Invalid immigrant was produced");
@@ -1019,10 +1019,10 @@ public class Population implements Iterable<Candidate> {
      *
      * @return a new individual (random immigrant).
      */
-    private Candidate introduceRandomImmigrant() {
+    private Candidate introduceRandomImmigrant(int i) {
         if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
             // Get one of the species to create an individual from
-            Species randomSpecies = this.species.get(random.nextInt(this.species.size()));
+            Species randomSpecies = this.species.get(new Random(i + baseSeed).nextInt(this.species.size()));
 
             // Try to generate a new individual or candidate with these species
             return new RandomCompoundReactor(1)
@@ -1095,7 +1095,6 @@ public class Population implements Iterable<Candidate> {
                 }
             }
         }
-        System.out.println("booleans = " + booleans);
         for (int i = 0; i < candidateList.size(); i++) {
             candidateList.set(i, filterList(candidateList.get(i), booleans));
         }
@@ -1154,7 +1153,7 @@ public class Population implements Iterable<Candidate> {
         while (selectedParents.size() < selectionSize) {
             // Get the best candidate in the tournament
             selectedParents.add(Collections.max(fitnessCandidateList.subList(0, localTournamentSize)));
-            Collections.shuffle(fitnessCandidateList, this.random);
+            Collections.shuffle(fitnessCandidateList, new Random(this.baseSeed));
         }
         return selectedParents;
     }
@@ -1183,6 +1182,27 @@ public class Population implements Iterable<Candidate> {
         double weightsSum = DoubleStream.of(weights).sum();
         // get a random value.
         double value = this.random.nextDouble() * weightsSum;
+        // locate the random value based on the weights
+        for (int i = 0; i < weights.length; i++) {
+            value -= weights[i];
+            if (value < 0) return i;
+        }
+        // when rounding errors occur, we return the last item's index
+        return weights.length - 1;
+    }
+
+    /**
+     * Chooses an item in a array of weights.
+     *
+     * @param weights the weights to choose from.
+     * @param j a mutation seed
+     * @return the index of the item in the array that was chosen.
+     */
+    private int makeWeightedChoice(double[] weights, int j) {
+        // Get sum of fitness scores.
+        double weightsSum = DoubleStream.of(weights).sum();
+        // get a random value.
+        double value = new Random(this.baseSeed + j).nextDouble() * weightsSum;
         // locate the random value based on the weights
         for (int i = 0; i < weights.length; i++) {
             value -= weights[i];
@@ -1226,13 +1246,13 @@ public class Population implements Iterable<Candidate> {
      *
      * @param genome to introduce mutations in.
      */
-    private void mutate(List<Integer> genome, double mutation_similarity) {
+    private void mutate(List<Integer> genome, double mutation_similarity, int j) {
         // Loop through each gene and get a mutation substitute
         // This can be either the current one (i) or a new one
         // The change that i is chosen is equal to 1 - mutation rate
         for (int i = 0; i < genome.size(); i++) {
             int allele = genome.get(i);
-            int reactantIndex = getMutationSubstitute(i, allele, mutation_similarity);
+            int reactantIndex = getMutationSubstitute(i, allele, mutation_similarity, j);
             genome.set(i, reactantIndex);
         }
     }
@@ -1265,7 +1285,7 @@ public class Population implements Iterable<Candidate> {
 //            throw new RuntimeException("Mutation method not set!");
 //        }
 //    }
-    private int getMutationSubstitute(int reactantsListIndex, int allele, double mutation_similarity) {
+    private int getMutationSubstitute(int reactantsListIndex, int allele, double mutation_similarity, int j) {
         if (this.mutationMethod == MutationMethod.DISTANCE_DEPENDENT) {
             // Check if similarity matrix was calculated.
 //            System.out.println("this.alleleSimilarities = " + Arrays.deepToString(this.alleleSimilarities));
@@ -1273,7 +1293,7 @@ public class Population implements Iterable<Candidate> {
             // If the similarities for this allele with other alleles has not yet been calculated, calculate these now
             double[] weighted_list = computeSpecificAlleleSimilarities(reactantsListIndex, allele, mutation_similarity);
             // Return allele substitute index
-            return makeWeightedChoice(weighted_list);
+            return makeWeightedChoice(weighted_list, j);
         } else if (this.mutationMethod == MutationMethod.DISTANCE_INDEPENDENT) {
             return makeChoice(reactantLists.get(reactantsListIndex).size(), allele);
         } else {
