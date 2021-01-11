@@ -61,7 +61,7 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
             Thread.sleep(2000);
             String error = IOUtils.toString(p.getErrorStream());
             String out =  IOUtils.toString(p.getInputStream());
-            if (error.contains("ImportError") || out.contains("ImportError") || !candidate.getConformersFile().toFile().exists()) {
+            if (!error.equals("") || !candidate.getConformersFile().toFile().exists()) {
                 String[] error_message = error.split("\\n");
                 throw new PipelineException("RDKit custom conformer script found an issue: " + error_message[error_message.length - 2]);
             }
