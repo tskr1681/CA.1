@@ -694,7 +694,6 @@ public class Population implements Iterable<Candidate> {
         ReproductionMethod offspringChoice;
         // Count the number of times one offspring could not be created. (Reset when an offspring could be created)
         int failureCounter = 0;
-        List<Future<Candidate>> futures = new ArrayList<>();
         // Loop to fill offspring list to offspring size
         int i = 0;
         double[] fitnesslist = fitnessCandidateList.stream().mapToDouble(Candidate::getNormFitness).toArray();
@@ -702,38 +701,29 @@ public class Population implements Iterable<Candidate> {
             System.out.println("Creating new candidates, current offspring size: " + offspring.size());
             List<Candidate> newOffspring = new ArrayList<>();
             // Try to produce offspring
-            for (int j = i; j < i + pool_size; j++) {
-                double mutation_similarity = 0;
-                // Get some genomes by crossing over according to crossover probability
-                if (this.adaptive) {
-                    ImmutablePair<Candidate, Candidate> parents = getParents(j);
+            double mutation_similarity = 0;
+            // Get some genomes by crossing over according to crossover probability
+            if (this.adaptive) {
+                ImmutablePair<Candidate, Candidate> parents = getParents(i);
 
-                    double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
-                    double f_avg = Arrays.stream(fitnesslist).sum() / fitnessCandidateList.size();
-                    this.setCrossoverRate(Math.min((1 - f_high) / (1 - f_avg), 1));
-                    double f = fitnesslist[j % fitnesslist.length];
-                    this.setMutationRate(Math.min(0.5 * (1 - f) / (1 - f_avg), 0.5));
-                }
-                if (this.adaptiveMutation) {
-                    mutation_similarity = 0.9f * (float) generationNumber / totalGenerations;
-                }
-                offspringChoice = makeWeightedReproductionChoice();
-                Callable<Candidate> candidateCallable = new OffSpringProducer(offspringChoice, j, mutation_similarity);
-                // Add future, which the executor will return to the list
-                futures.add(executor.submit(candidateCallable));
+                double f_high = Math.max(parents.left.getNormFitness(), parents.right.getNormFitness());
+                double f_avg = Arrays.stream(fitnesslist).sum() / fitnessCandidateList.size();
+                this.setCrossoverRate(Math.min((1 - f_high) / (1 - f_avg), 1));
+                double f = fitnesslist[i % fitnesslist.length];
+                this.setMutationRate(Math.min(0.5 * (1 - f) / (1 - f_avg), 0.5));
             }
-            i += pool_size;
+            if (this.adaptiveMutation) {
+                mutation_similarity = 0.9f * (float) generationNumber / totalGenerations;
+            }
+            offspringChoice = makeWeightedReproductionChoice();
+            Candidate offspringIndividual = ProduceOffspringIndividual(offspringChoice, i, mutation_similarity);
+
+            i++;
             // Loop through futures to handle thrown exceptions
-            for (Future<Candidate> future : futures) {
-                try {
-                    if (this.outputLocation.resolve("terminate").toFile().exists())
-                        throw new ForcedTerminationException("The program was terminated forcefully.");
-                    newOffspring.add(future.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    // Log exception
-                    e.printStackTrace();
-                }
-            }
+            if (this.outputLocation.resolve("terminate").toFile().exists())
+                throw new ForcedTerminationException("The program was terminated forcefully.");
+            newOffspring.add(offspringIndividual);
+
             int invalidCounter = 0;
             int duplicatecounter = 0;
             int nullcounter = 0;
@@ -769,7 +759,7 @@ public class Population implements Iterable<Candidate> {
                             if (c == null) {
                                 System.err.println("Candidate production failed because the candidate was null.");
                                 nullcounter++;
-                            } else if (offspring.contains(c) && !this.duplicatesAllowed) {
+                            } else if (offspring.contains(c)) {
                                 System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 try {
@@ -1195,7 +1185,7 @@ public class Population implements Iterable<Candidate> {
      * Chooses an item in a array of weights.
      *
      * @param weights the weights to choose from.
-     * @param j a mutation seed
+     * @param j       a mutation seed
      * @return the index of the item in the array that was chosen.
      */
     private int makeWeightedChoice(double[] weights, int j) {
