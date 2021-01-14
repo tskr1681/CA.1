@@ -265,6 +265,8 @@ public class Population implements Iterable<Candidate> {
         int individualsPerSpecies = this.populationSize / this.species.size();
         this.candidateList = new ArrayList<>();
         List<Candidate> tempList = new ArrayList<>();
+        List<List<String>> reactants = SimilarityHelper.getVariedCompounds(this.reactantLists,
+                SimilarityHelper.VariationMethod.RANDOM, 10, this.baseSeed);
 
         // initialize population according to the species determination method
         if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
@@ -272,12 +274,12 @@ public class Population implements Iterable<Candidate> {
             for (Species species : this.species) {
                 // Create a fixed set of candidates per species.
                 tempList = new RandomCompoundReactor(individualsPerSpecies)
-                        .randReact(this.reactantLists, Collections.singletonList(species), this.currentValue, this.baseSeed);
+                        .randReact(reactants, Collections.singletonList(species), this.currentValue, this.baseSeed);
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             // Create a set of candidates with the species that works best.
             tempList = new RandomCompoundReactor(this.populationSize)
-                    .randReact(this.reactantLists, this.species, this.currentValue, this.baseSeed);
+                    .randReact(reactants, this.species, this.currentValue, this.baseSeed);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +

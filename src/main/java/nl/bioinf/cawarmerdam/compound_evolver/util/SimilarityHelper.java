@@ -59,7 +59,7 @@ public class SimilarityHelper {
         return similarities;
     }
 
-    public List<List<String>> getVariedCompounds(List<List<String>> reactants, VariationMethod method, int selectionsize, int seed) {
+    public static List<List<String>> getVariedCompounds(List<List<String>> reactants, VariationMethod method, int selectionsize, long seed) {
         switch (method) {
             case RANDOM:
                 return reactants;
@@ -73,12 +73,12 @@ public class SimilarityHelper {
 
     }
 
-    private List<List<String>> runHCL(List<List<String>> reactants, int selectionsize, int seed) {
+    private static List<List<String>> runHCL(List<List<String>> reactants, int selectionsize, long seed) {
         //TODO Implement HCL
         return reactants;
     }
 
-    private List<List<String>> runtSNE(List<List<String>> reactants, int selectionsize, int seed) {
+    private static List<List<String>> runtSNE(List<List<String>> reactants, int selectionsize, long seed) {
         //TODO Implement tSNE
         return reactants;
     }
