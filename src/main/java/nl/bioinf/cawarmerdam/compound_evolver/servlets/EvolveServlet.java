@@ -15,6 +15,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Species;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
+import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -120,7 +121,8 @@ public class EvolveServlet extends HttpServlet {
         long baseSeed = getIntegerParameterFromRequest(request, "baseSeed");
 
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
+        //TODO implement variation method selection from website
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed, SimilarityHelper.VariationMethod.RANDOM);
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.

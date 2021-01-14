@@ -69,6 +69,7 @@ public class Population implements Iterable<Candidate> {
     private boolean skipcheck;
     private boolean debugPrint;
     private final long baseSeed;
+    private final SimilarityHelper.VariationMethod variationMethod;
 
     /**
      * Constructor for population.
@@ -83,7 +84,8 @@ public class Population implements Iterable<Candidate> {
             List<List<String>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed,
+            SimilarityHelper.VariationMethod method) {
         this.receptorAmount = receptorAmount;
         this.random = new Random(currentValue.get() + baseSeed);
         this.baseSeed = baseSeed;
@@ -104,6 +106,7 @@ public class Population implements Iterable<Candidate> {
         this.adaptive = true;
         this.selective = false;
         this.currentValue = currentValue;
+        this.variationMethod = method;
         initializePopulation();
     }
 
@@ -118,8 +121,8 @@ public class Population implements Iterable<Candidate> {
     public Population(
             List<List<String>> reactantLists,
             List<Species> species,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
-        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue, baseSeed);
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed, SimilarityHelper.VariationMethod method) {
+        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue, baseSeed, method);
     }
 
 
@@ -266,7 +269,7 @@ public class Population implements Iterable<Candidate> {
         this.candidateList = new ArrayList<>();
         List<Candidate> tempList = new ArrayList<>();
         List<List<String>> reactants = SimilarityHelper.getVariedCompounds(this.reactantLists,
-                SimilarityHelper.VariationMethod.RANDOM, 10, this.baseSeed);
+                this.variationMethod, 10, this.baseSeed);
 
         // initialize population according to the species determination method
         if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
@@ -804,7 +807,7 @@ public class Population implements Iterable<Candidate> {
     public Population newPopulation(List<List<String>> reactantLists) {
         Population population;
         SelectionMethod method = this.getSelectionMethod();
-        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue, this.baseSeed);
+        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue, this.baseSeed, this.variationMethod);
         population.setSelective(this.selective);
         population.setDebugPrint(debugPrint);
 
