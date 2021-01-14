@@ -1,12 +1,11 @@
 package nl.bioinf.cawarmerdam.compound_evolver.util;
 
-import chemaxon.struc.Molecule;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.List;
 
 public class SimilarityHelper {
 
@@ -60,12 +59,37 @@ public class SimilarityHelper {
         return similarities;
     }
 
-    public static double similarity(Molecule m1, Molecule m2) {
-        //TODO make this an actual similarity function
-        return 1 - (m1.getMass() - m2.getMass()) / (m1.getMass() + m2.getMass());
+    public List<List<String>> getVariedCompounds(List<List<String>> reactants, VariationMethod method, int selectionsize, int seed) {
+        switch (method) {
+            case RANDOM:
+                return reactants;
+            case TSNE:
+                return runtSNE(reactants, selectionsize, seed);
+            case HCL:
+                return runHCL(reactants, selectionsize, seed);
+            default:
+                return reactants;
+        }
+
+    }
+
+    private List<List<String>> runHCL(List<List<String>> reactants, int selectionsize, int seed) {
+        //TODO Implement HCL
+        return reactants;
+    }
+
+    private List<List<String>> runtSNE(List<List<String>> reactants, int selectionsize, int seed) {
+        //TODO Implement tSNE
+        return reactants;
     }
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public enum VariationMethod {
+        RANDOM,
+        TSNE,
+        HCL;
     }
 }

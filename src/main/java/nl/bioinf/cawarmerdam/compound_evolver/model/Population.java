@@ -4,8 +4,6 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
-import chemaxon.formats.MolFormatException;
-import chemaxon.formats.MolImporter;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.CallableValidationPipelineContainer;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineStep;
 import nl.bioinf.cawarmerdam.compound_evolver.util.MultiReceptorHelper;
@@ -510,57 +508,6 @@ public class Population implements Iterable<Candidate> {
         Candidate out = new Candidate(c.getGenotype(), c.getSpecies(), c.getIdentifier(), this.baseSeed);
         out.finish(this.reactantLists, this.species);
         return out;
-    }
-
-    /**
-     * Computes allele similarities by using the Tanimoto dissimilarity functionality provided by the Chemaxon API
-     * <a href="https://docs.chemaxon.com/display/docs/Similarity+search">Similarity search</a>.
-     * The similarity of a compound to itself is set so its fraction of the total similarities for the compound to.
-     * other compounds and itself is equal to the mutation rate. Like so:
-     * <p>
-     * <p>
-     * Mutation rate | 0,1 |      |
-     * --------------|-----|------|------
-     * |     |      |
-     * Similarities  |   1 |  0,2 |  0,3
-     * Compensated   | 4,5 |  0,2 |  0,3
-     * Fraction      | 0,9 | 0,04 | 0,06
-     */
-    @Deprecated
-    public void computeAlleleSimilarities() {
-        this.alleleSimilarities = new double[reactantLists.size()][][];
-
-        // Loop through every reactant list (Acids, Amines, etc...)
-        for (int i1 = 0; i1 < reactantLists.size(); i1++) {
-            List<String> reactants = reactantLists.get(i1);
-            // Create a 2d matrix for the current reactant list
-            alleleSimilarities[i1] = new double[reactants.size()][reactants.size()];
-
-            // Loop through every reactant in the reactant list
-            for (int i = 0; i < reactants.size(); i++) {
-                // Loop nested through reactants in the reactant list until the j is equal to i
-                // This means that the diagonal in the matrix was encountered.
-                // We stop here because the similarity values at the diagonal (location i,i) should always be 1
-                for (int j = 0; j < i; j++) {
-                    // Assign and set the similarity score by deducting the tanimoto dissimilarity from 1
-                    double tanimoto = 0;
-                    try {
-                        tanimoto = SimilarityHelper.similarity(MolImporter.importMol(reactants.get(i)), MolImporter.importMol(reactants.get(j)));
-                    } catch (MolFormatException e) {
-                        e.printStackTrace();
-                    }
-                    alleleSimilarities[i1][i][j] = tanimoto;
-                    alleleSimilarities[i1][j][i] = tanimoto;
-                }
-
-                // Set values at the diagonal
-                // Get the sum of all similarity values for the current reactant
-                // excluding the i,i location (because this is set to zero (0))
-                double weightsSum = DoubleStream.of(alleleSimilarities[i1][i]).sum();
-                // Take the mutation rate into account with the following calculation
-                alleleSimilarities[i1][i][i] = weightsSum / mutationRate - weightsSum;
-            }
-        }
     }
 
     /**
