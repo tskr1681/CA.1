@@ -55,7 +55,8 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         deleteInvalid: true,
         debugPrint: false,
         progressID: random(),
-        baseSeed: 0
+        baseSeed: 0,
+        getVariedReactants: true
     };
 
     // Define the properties of reaction files.

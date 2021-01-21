@@ -253,6 +253,23 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="set-select-reactants" class="col-sm-3 col-form-label">Reactant Variation
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           ng-model="formModel.getVariedReactants"
+                                           id="set-select-reactants"
+                                           name="getVariedReactants"
+                                           value="getVariedReactants">
+                                    <label class="form-check-label" for="set-prepare-receptor">
+                                        Get varied reactants by similarity analysis and clustering.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="max-reactant-weight" class="col-sm-3 col-form-label">Maximum reactant weight (0 for no limit)</label>
                             <div class="col-sm-9">
                                 <input type="number"
