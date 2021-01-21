@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GAParameters;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
-import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -247,7 +246,7 @@ public class EvolverOptimizer {
                 reactantLists,
                 species,
                 parameters.getSpeciesDeterminationMethod(),
-                parameters.getPopulationSize(), 1, new AtomicLong(0), 0, SimilarityHelper.VariationMethod.RANDOM);
+                parameters.getPopulationSize(), 1, new AtomicLong(0), 0);
 
         population.initializeAlleleSimilaritiesMatrix();
         population.setMutationMethod(parameters.getMutationMethod());

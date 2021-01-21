@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.List;
 
 public class SimilarityHelper {
 
@@ -59,37 +58,7 @@ public class SimilarityHelper {
         return similarities;
     }
 
-    public static List<List<String>> getVariedCompounds(List<List<String>> reactants, VariationMethod method, int selectionsize, long seed) {
-        switch (method) {
-            case RANDOM:
-                return reactants;
-            case TSNE:
-                return runtSNE(reactants, selectionsize, seed);
-            case HCL:
-                return runHCL(reactants, selectionsize, seed);
-            default:
-                return reactants;
-        }
-
-    }
-
-    private static List<List<String>> runHCL(List<List<String>> reactants, int selectionsize, long seed) {
-        //TODO Implement HCL
-        return reactants;
-    }
-
-    private static List<List<String>> runtSNE(List<List<String>> reactants, int selectionsize, long seed) {
-        //TODO Implement tSNE
-        return reactants;
-    }
-
     public void setDebug(boolean debug) {
         this.debug = debug;
-    }
-
-    public enum VariationMethod {
-        RANDOM,
-        TSNE,
-        HCL;
     }
 }

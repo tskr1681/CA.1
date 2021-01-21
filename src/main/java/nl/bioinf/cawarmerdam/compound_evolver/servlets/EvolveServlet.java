@@ -15,7 +15,7 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Species;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.PipelineException;
 import nl.bioinf.cawarmerdam.compound_evolver.util.GenerateCsv;
 import nl.bioinf.cawarmerdam.compound_evolver.util.ServletUtils;
-import nl.bioinf.cawarmerdam.compound_evolver.util.SimilarityHelper;
+import nl.bioinf.cawarmerdam.compound_evolver.util.SimilaritySelector;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -91,6 +91,19 @@ public class EvolveServlet extends HttpServlet {
             MisMatchedReactantCount,
             PipelineException, OrderMissingException {
 
+        // Get the environment variable containing the pipeline target directory.
+        Path pipelineTargetDirectory = Paths.get(System.getenv("PL_TARGET_DIR"));
+
+        HttpSession session = request.getSession();
+        String sessionID = getSessionId(session, pipelineTargetDirectory, request.getParameter("name"));
+        Path outputFileLocation = pipelineTargetDirectory.resolve(sessionID);
+
+        // Check if the location already exists
+        if (!outputFileLocation.toFile().exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            outputFileLocation.toFile().mkdir();
+        }
+
         // Get generation size
         int generationSize = getIntegerParameterFromRequest(request, "generationSize");
 
@@ -101,6 +114,7 @@ public class EvolveServlet extends HttpServlet {
         String[] smartsFiltering = request.getParameter("smartsFiltering").split("\\R");
         // Get reactants
         List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
+        reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\scripts\\similarity_selector.py"), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation);
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
 
@@ -122,7 +136,7 @@ public class EvolveServlet extends HttpServlet {
 
         // Initialize population instance
         //TODO implement variation method selection from website
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed, SimilarityHelper.VariationMethod.RANDOM);
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
@@ -190,16 +204,11 @@ public class EvolveServlet extends HttpServlet {
         evolver.setDebugPrint(debugPrint);
 
         evolver.setPrepareReceptor(getBooleanParameterFromRequest(request, "setPrepareReceptor"));
-        // Get the environment variable containing the pipeline target directory.
-        Path pipelineTargetDirectory = Paths.get(System.getenv("PL_TARGET_DIR"));
-
-        HttpSession session = request.getSession();
         EvolveServlet.connections.put(request.getParameter("progressID"), progressConnector);
 
-        String sessionID = getSessionId(session, pipelineTargetDirectory, request.getParameter("name"));
+
         evolver.setDummyFitness(getInitParameter("dummy.fitness").equals("1"));
         if (!evolver.isDummyFitness()) {
-            Path outputFileLocation = pipelineTargetDirectory.resolve(sessionID);
             setPipelineParameters(request, evolver, outputFileLocation);
             RequestParameterStorage.storeParameters(outputFileLocation.resolve("parameters.txt").toFile(), request);
         }
@@ -245,11 +254,6 @@ public class EvolveServlet extends HttpServlet {
      */
     private void setPipelineParameters(HttpServletRequest request, CompoundEvolver evolver, Path outputFileLocation)
             throws IOException, ServletException, PipelineException, ServletUtils.FormFieldHandlingException, OrderMissingException {
-        // Check if the location already exists
-        if (!outputFileLocation.toFile().exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            outputFileLocation.toFile().mkdir();
-        }
 
         // Get and set force field that should be used
         evolver.setConformerOption(CompoundEvolver.ConformerOption.fromString(
