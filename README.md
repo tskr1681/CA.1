@@ -97,4 +97,8 @@ It also needs some environment variables to be set, being the following:
 
 `CONFORMER_SCRIPT`: The location of the bundled Constrained_confs.py script
 
+`MACROCYCLE_SCRIPT`: The location of the bundled Constained_confs_Macro.py script
+
 `SIMILARITY_HELPER`: The location of the bundled similarity_helper.py script
+
+`SIMILARITY_SELECTOR`: The location of the bundled similarity_selector.py script

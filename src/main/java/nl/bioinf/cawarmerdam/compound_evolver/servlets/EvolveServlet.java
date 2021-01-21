@@ -116,7 +116,7 @@ public class EvolveServlet extends HttpServlet {
         List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
 
         if (getBooleanParameterFromRequest(request, "getVariedReactants")) {
-            reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\scripts\\similarity_selector.py"), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation);
+            reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get(System.getenv("SIMILARITY_SELECTOR")), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation);
         }
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
