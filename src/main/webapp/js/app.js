@@ -29,7 +29,7 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         nonImprovingGenerationQuantity: 0.3,
         conformerCount: 50,
         fitnessMeasure: 'ligandEfficiency',
-        conformerOption: "ChemAxon",
+        conformerOption: "Custom",
         forceField: 'mab',
         scoringOption: 'scorpion',
         maxAnchorMinimizedRmsd: 1,
