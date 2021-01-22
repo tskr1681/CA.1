@@ -13,7 +13,6 @@ import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +21,9 @@ public class ReactantScoreHelper {
     public static logPPlugin logPPlugin = new logPPlugin();
 
     public static List<Double> getReactantScores(Candidate candidate, CompoundEvolver.FitnessMeasure measure) throws IOException {
-        System.out.println("Scored file = " + candidate.getScoredConformersFile());
+        if (candidate.getScoredConformersFile() == null) {
+            return null;
+        }
         List<Double> reactantscores = new ArrayList<>();
         Map<MolAtom, AtomIdentifier> atommap = candidate.getAtommap();
         Molecule[] reactants = candidate.getReactants();
@@ -87,9 +88,7 @@ public class ReactantScoreHelper {
         Molecule best_mol = null;
         for (MoleculeIterator it = importer.getMoleculeIterator(); it.hasNext(); ) {
             Molecule m = it.next();
-            System.out.println("m.properties().getKeys() = " + Arrays.toString(m.properties().getKeys()));
             if (m.properties().get("TOTAL") != null) {
-                System.out.println("m.properties().get(\"TOTAL\").getPropValue() = " + m.properties().get("TOTAL").getPropValue());
                 double score = Double.parseDouble(m.properties().get("TOTAL").getPropValue().toString());
                 if (score > best) {
                     best = score;
@@ -110,31 +109,4 @@ public class ReactantScoreHelper {
         }
         return best_mol;
     }
-
-//    public static void main(String[] args) {
-//        try {
-//            Reactor reactor = new Reactor();
-//            Molecule reaction = new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\SarsUgi4CR.mrv").read();
-//            reactor.setReaction(reaction);
-//            List<Molecule> reactants = new ArrayList<>();
-//            new MolImporter("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\reactants.smiles").getMoleculeIterator().forEachRemaining(reactants::add);
-//            Molecule[] reactantarray = new Molecule[reactants.size()];
-//            reactantarray = reactants.toArray(reactantarray);
-//            reactor.setReactants(reactantarray);
-//
-//
-//            Candidate candidate = new Candidate(new ArrayList<>());
-//            candidate.phenotype = reactor.react()[0];
-//            candidate.atommap = reactor.getReactionMap();
-//            candidate.reactants = reactantarray;
-//            candidate.setScoredConformersFile(Paths.get("D:\\Hanze\\Stage\\CompoundEvolver\\compound-evolver\\test\\smina_scorp.sdf"));
-//            System.out.println(getReactantScores(candidate));
-//            for (Molecule reactant : candidate.reactants) {
-//                System.out.println(reactant.toFormat("smiles"));
-//            }
-//        } catch (IOException | ReactionException exception) {
-//            exception.printStackTrace();
-//        }
-//
-//    }
 }

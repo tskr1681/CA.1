@@ -479,7 +479,7 @@ public class CompoundEvolver {
                 deleteEmpty();
             }
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1 && !this.isBoosting) {
-//                runBooster();
+                runBooster();
             }
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
@@ -509,30 +509,24 @@ public class CompoundEvolver {
                 List<Double> scores = ReactantScoreHelper.getReactantScores(c, this.fitnessMeasure);
                 if (scores != null) {
                     for (int j = 0; j < scores.size(); j++) {
-                        while (best_reactants.size() < i) {
+                        while (best_reactants.size() <= i) {
                             best_reactants.add(new ArrayList<>());
                         }
-                        try {
-                            best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
-                        } catch (IndexOutOfBoundsException ex) {
-                            System.out.println("i = " + i);
-                            System.out.println("j = " + j);
-                            System.out.println("best_reactants.size() = " + best_reactants.size());
-                            System.out.println("scores.size() = " + scores.size());
-                        }
+                        best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        best_reactants = best_reactants.stream().filter(s -> s.size() > 0).collect(Collectors.toList());
         List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 10), population.reactantLists);
-
         this.population = population.newPopulation(reactants);
 
         this.setTerminationCondition(TerminationCondition.FIXED_GENERATION_NUMBER);
         this.setMaxNumberOfGenerations(this.population.getGenerationNumber() + 3);
         this.isBoosting = true;
+        scoreCandidates();
         mainEvolution();
     }
 
@@ -632,8 +626,7 @@ public class CompoundEvolver {
                     // Log exception
                     System.err.println("Encountered an exception while scoring candidates: " + e.getCause().getMessage());
                     // Pipeline exceptions are expected, they are used to signal null candidates from validation as well
-                    if (!(e.getCause() instanceof PipelineException))
-                    {
+                    if (!(e.getCause() instanceof PipelineException)) {
                         e.getCause().printStackTrace();
                     }
 

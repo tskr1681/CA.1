@@ -30,7 +30,7 @@ public class ScoredCandidateHandlingStep implements PipelineStep<Candidate, Void
      */
     @Override
     public Void execute(Candidate candidate) throws PipelineException {
-        if (candidate != null && candidate.isScored())
+        if (candidate != null && candidate.getScoredConformersFile() != null && candidate.isScored())
         {
             return null;
         }
