@@ -38,11 +38,11 @@ def get_optimal_dbscan_dist(TSNE_sim):
     return min(result, key=lambda x: x[1])[0]
 
 
-def get_compounds(table):
+def get_compounds(table, seed):
     cluster_labels = set(table['COLOR'])
     if -1 in cluster_labels:
         cluster_labels.remove(-1)
-    random.seed(0)
+    random.seed(seed)
     compounds = []
     for c in cluster_labels:
         cluster_smiles = list(table[table['COLOR'] == c]['SMILES'])
@@ -50,7 +50,12 @@ def get_compounds(table):
     return compounds
 
 
-def main(input_file, output_file):
+def get_optimal_perlexity(data_size):
+    optimal = 50 if data_size >= 1000 else (30 if data_size >= 200 else 5)
+    return optimal
+
+
+def main(input_file, output_file, seed):
     table = pd.DataFrame()
     i = 0
     with open(input_file) as file:
@@ -61,8 +66,16 @@ def main(input_file, output_file):
 
     smiles = table['SMILES']
     distance_matrix = get_distance_matrix(smiles)
+    if np.mean(distance_matrix) > 0.75:
+        print("Compound similarity is too high for clustering, aborting and writing input file to output",
+              file=sys.stderr)
+        with open(output_file, "w") as file:
+            for compound in smiles:
+                file.write(compound + "\n")
+        return
 
-    TSNE_sim = TSNE(n_components=2, init='pca', random_state=60, angle=0.5, perplexity=50).fit_transform(
+    optimal_perplexity = get_optimal_perlexity(len(smiles))
+    TSNE_sim = TSNE(n_components=2, init='pca', random_state=60, angle=0.5, perplexity=optimal_perplexity).fit_transform(
         distance_matrix)
 
     optimal_eps = get_optimal_dbscan_dist(TSNE_sim)
@@ -74,7 +87,7 @@ def main(input_file, output_file):
     table['TC2'] = tsne_result['TC2']
     table['COLOR'] = dbscan_result.labels_
 
-    compounds = get_compounds(table)
+    compounds = get_compounds(table, seed)
 
     with open(output_file, "w") as file:
         for compound in compounds:
@@ -82,4 +95,4 @@ def main(input_file, output_file):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], sys.argv[3])
