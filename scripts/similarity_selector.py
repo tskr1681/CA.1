@@ -75,7 +75,7 @@ def main(input_file, output_file, seed):
         return
 
     optimal_perplexity = get_optimal_perlexity(len(smiles))
-    TSNE_sim = TSNE(n_components=2, init='pca', random_state=60, angle=0.5, perplexity=optimal_perplexity).fit_transform(
+    TSNE_sim = TSNE(n_components=2, init='pca', random_state=seed, angle=0.5, perplexity=optimal_perplexity).fit_transform(
         distance_matrix)
 
     optimal_eps = get_optimal_dbscan_dist(TSNE_sim)

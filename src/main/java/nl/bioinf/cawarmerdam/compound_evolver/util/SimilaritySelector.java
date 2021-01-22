@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SimilaritySelector {
-    public static List<List<String>> getVariedReactants(List<List<String>> reactants, Path variation_executable, Path rdkit_wrapper, Path pipeline_location) throws IOException {
+    public static List<List<String>> getVariedReactants(List<List<String>> reactants, Path variation_executable, Path rdkit_wrapper, Path pipeline_location, long seed) throws IOException {
         List<List<String>> out = new ArrayList<>();
         for (int i = 0; i < reactants.size(); i++) {
             File in_file = pipeline_location.resolve(i + ".smiles").toFile();
@@ -26,7 +26,8 @@ public class SimilaritySelector {
                     "python",
                     variation_executable.toString(),
                     in_file.getAbsolutePath(),
-                    out_file.getAbsolutePath()
+                    out_file.getAbsolutePath(),
+                    String.valueOf(seed)
             );
             builder.inheritIO();
             Process p = builder.start();

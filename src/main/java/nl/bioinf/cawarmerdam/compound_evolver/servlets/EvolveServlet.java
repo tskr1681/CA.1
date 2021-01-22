@@ -97,6 +97,7 @@ public class EvolveServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String sessionID = getSessionId(session, pipelineTargetDirectory, request.getParameter("name"));
         Path outputFileLocation = pipelineTargetDirectory.resolve(sessionID);
+        long baseSeed = getIntegerParameterFromRequest(request, "baseSeed");
 
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
@@ -116,7 +117,7 @@ public class EvolveServlet extends HttpServlet {
         List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
 
         if (getBooleanParameterFromRequest(request, "getVariedReactants")) {
-            reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get(System.getenv("SIMILARITY_SELECTOR")), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation);
+            reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get(System.getenv("SIMILARITY_SELECTOR")), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation, baseSeed);
         }
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
@@ -135,10 +136,8 @@ public class EvolveServlet extends HttpServlet {
         for (int i = 0; i < receptorParts.size(); i++) {
             receptorParts.set(i, copy.get(recOrder.get(i)));
         }
-        long baseSeed = getIntegerParameterFromRequest(request, "baseSeed");
 
         // Initialize population instance
-        //TODO implement variation method selection from website
         Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
 
         // Get interspecies crossover method
