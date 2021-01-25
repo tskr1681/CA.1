@@ -71,12 +71,12 @@ public class ScorpionScoringStep implements PipelineStep<Candidate, Candidate> {
         String output_str = fixedconformers.toString().replaceAll(".sdf", "") + "_scorp";
         Path output_sdf = fixedconformers.resolveSibling(output_str + ".sdf");
 
-        candidate.setScoredConformersFile(output_sdf);
-
         List<Double> scores = getConformerScores(output_sdf);
         if (Collections.min(scores) == Double.POSITIVE_INFINITY) {
             throw new PipelineException("Scorpion did not produce any valid scores");
         }
+
+        candidate.setScoredConformersFile(output_sdf);
         candidate.setConformerScores(scores);
 
         return candidate;
