@@ -51,6 +51,8 @@ public class RequestParameterStorage {
         buffer.newLine();
         buffer.write("Randomization seed: " + request.getParameter("baseSeed"));
         buffer.newLine();
+        buffer.write("Progress ID: " + request.getParameter("progressID"));
+        buffer.newLine();
         buffer.write("Reaction Filenames: ");
         buffer.newLine();
         writeList(getFileNamesFromRequest(request, "reactionFiles"), buffer);
