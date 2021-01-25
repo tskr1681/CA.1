@@ -783,6 +783,13 @@ public class Candidate implements Comparable<Candidate> {
     }
 
     /**
+     * Setter for if this candidate is scored.
+     */
+    public void setScored(boolean scored) {
+        this.isScored = scored;
+    }
+
+    /**
      * Getter for the species this candidate currently belongs to.
      *
      * @return the species this candidate currently belongs to.

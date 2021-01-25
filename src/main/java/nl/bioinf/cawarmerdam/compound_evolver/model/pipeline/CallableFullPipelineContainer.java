@@ -67,6 +67,7 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 candidates.get(i).setFixedConformersFile(null);
                 candidates.get(i).setConformersFile(null);
                 candidates.get(i).setConformerScores(null);
+                candidates.get(i).setScored(false);
 
                 // Execute pipeline
                 MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.resolve("reactants.smiles").toFile()), "smiles");
