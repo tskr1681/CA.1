@@ -12,7 +12,6 @@ public class SimilaritySelector {
         for (int i = 0; i < reactants.size(); i++) {
             File in_file = pipeline_location.resolve(i + ".smiles").toFile();
             File out_file = in_file.toPath().resolveSibling(i + "_out.smiles").toFile();
-            System.out.println("in_file = " + in_file);
             in_file.createNewFile();
             FileWriter writer = new FileWriter(in_file);
             BufferedWriter buffer = new BufferedWriter(writer);
