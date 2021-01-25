@@ -66,8 +66,8 @@ def main(input_file, output_file, seed):
 
     smiles = table['SMILES']
     distance_matrix = get_distance_matrix(smiles)
-    if np.mean(distance_matrix) > 0.75:
-        print("Compound similarity is too high for clustering, aborting and writing input file to output",
+    if np.mean(distance_matrix) > 0.75 or len(smiles) < 100:
+        print("Compound similarity is too high or the library is too small for clustering, aborting and writing input file to output",
               file=sys.stderr)
         with open(output_file, "w") as file:
             for compound in smiles:
