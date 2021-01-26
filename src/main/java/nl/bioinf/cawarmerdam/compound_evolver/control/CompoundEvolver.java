@@ -58,6 +58,7 @@ public class CompoundEvolver {
     private boolean deleteInvalid;
     private boolean debugPrint;
     private boolean isBoosting = false;
+    private BoosterApplication boosterApplication = BoosterApplication.NONE;
 
     /**
      * The constructor for a compound evolver.
@@ -74,6 +75,11 @@ public class CompoundEvolver {
         this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         this.conformerOption = ConformerOption.CHEMAXON;
+    }
+
+
+    public void setBoosterApplication(BoosterApplication boosterApplication) {
+        this.boosterApplication = boosterApplication;
     }
 
     public boolean isDebugPrint() {
@@ -443,10 +449,12 @@ public class CompoundEvolver {
                 System.out.println("Deleting empty folders!");
                 deleteEmpty();
             }
-            if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1 && !this.isBoosting) {
+            if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1
+                    && !this.isBoosting && this.boosterApplication == BoosterApplication.SCORPION_BOOSTER) {
                 runBooster();
+            } else if (this.boosterApplication == BoosterApplication.COMBINATORIAL) {
+                getBestCombinations();
             }
-            getBestCombinations();
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
@@ -1098,6 +1106,25 @@ public class CompoundEvolver {
                 }
             }
             throw new IllegalArgumentException("No constant with text " + text + " found");
+        }
+    }
+
+    public enum BoosterApplication {
+        SCORPION_BOOSTER("scorpion"),
+        COMBINATORIAL("combinatorial"),
+        NONE("none");
+        private final String text;
+
+        BoosterApplication(String text) {
+            this.text = text;
+        }
+        public static BoosterApplication fromString(String text) {
+            for (BoosterApplication condition : BoosterApplication.values()) {
+                if (condition.text.equalsIgnoreCase(text)) {
+                    return condition;
+                }
+            }
+            return NONE;
         }
     }
 }

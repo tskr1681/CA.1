@@ -517,6 +517,20 @@
                             The wrong settings might cause convergence to a local optimum or a randomized search.
                         </p>
                         <div class="form-group row">
+                            <label for="booster-option" class="col-sm-3 col-form-label">Booster Application</label>
+                            <div class="col-sm-9">
+                                <select class="form-control"
+                                        id="booster-option"
+                                        ng-model="formModel.boosterOption"
+                                        name="boosterOption"
+                                        required="required">
+                                    <option value="none">None</option>
+                                    <option value="scorpion">Scorpion-based reactant selection</option>
+                                    <option value="combinatorial">Best candidate based reactant combination</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="generation-size" class="col-sm-3 col-form-label">Population size</label>
                             <div class="col-sm-9">
                                 <input type="number"

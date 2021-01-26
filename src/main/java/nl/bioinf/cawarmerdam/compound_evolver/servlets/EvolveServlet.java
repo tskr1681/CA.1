@@ -211,6 +211,10 @@ public class EvolveServlet extends HttpServlet {
         CompoundEvolver evolver = new CompoundEvolver(
                 initialPopulation, progressConnector);
 
+        evolver.setBoosterApplication(
+                CompoundEvolver.BoosterApplication.fromString(request.getParameter("boosterOption"))
+        );
+
         boolean debugPrint = getBooleanParameterFromRequest(request, "debugPrint");
         evolver.setDebugPrint(debugPrint);
 
