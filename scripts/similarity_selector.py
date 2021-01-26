@@ -46,7 +46,8 @@ def get_compounds(table, seed):
     compounds = []
     for c in cluster_labels:
         cluster_smiles = list(table[table['COLOR'] == c]['SMILES'])
-        compounds.extend(random.sample(cluster_smiles, int(len(cluster_smiles) * 0.3)))
+        compound_count = min(int(len(cluster_smiles)*0.5), int(100/len(cluster_labels)))
+        compounds.extend(random.sample(cluster_smiles, compound_count))
     return compounds
 
 
