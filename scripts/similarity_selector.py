@@ -45,7 +45,7 @@ def get_compounds(table, seed):
     random.seed(seed)
     compounds = []
     for c in cluster_labels:
-        cluster_smiles = list(table[table['COLOR'] == c]['SMILES'])
+        cluster_smiles = list(table[table['COLOR'] == c]['SMILES'].index)
         compound_count = min(int(len(cluster_smiles)*0.5), int(100/len(cluster_labels)))
         compounds.extend(random.sample(cluster_smiles, compound_count))
     return compounds
@@ -68,11 +68,11 @@ def main(input_file, output_file, seed):
     smiles = table['SMILES']
     distance_matrix = get_distance_matrix(smiles)
     if np.mean(distance_matrix) > 0.75 or len(smiles) < 100:
-        print("Compound similarity is too high or the library is too small for clustering, aborting and writing input file to output",
+        print("Compound similarity is too high or the library is too small for clustering, aborting and writing input indices to output",
               file=sys.stderr)
         with open(output_file, "w") as file:
-            for compound in smiles:
-                file.write(compound + "\n")
+            for i, _ in enumerate(smiles):
+                file.write(str(i) + "\n")
         return
 
     optimal_perplexity = get_optimal_perlexity(len(smiles))
@@ -92,7 +92,7 @@ def main(input_file, output_file, seed):
 
     with open(output_file, "w") as file:
         for compound in compounds:
-            file.write(compound + "\n")
+            file.write(str(compound) + "\n")
 
 
 if __name__ == '__main__':

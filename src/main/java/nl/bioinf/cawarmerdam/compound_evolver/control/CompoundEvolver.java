@@ -6,10 +6,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.control;
 
 import chemaxon.formats.MolImporter;
 import chemaxon.marvin.plugin.PluginException;
-import chemaxon.reaction.Reactor;
 import chemaxon.struc.Molecule;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactantFileHandler;
-import nl.bioinf.cawarmerdam.compound_evolver.io.ReactionFileHandler;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.*;
@@ -23,7 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -77,39 +73,6 @@ public class CompoundEvolver {
         this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         this.conformerOption = ConformerOption.CHEMAXON;
-    }
-
-    /**
-     * main for cli
-     *
-     * @param args An array of strings being the command line input
-     */
-    public static void main(String[] args) throws Exception {
-        // Load reactor from argument
-        Reactor reactor = ReactionFileHandler.loadReaction(args[0]);
-        // Get maximum amount of product
-        int maxSamples = Integer.parseInt(args[args.length - 1]);
-        // Load molecules
-        String[] reactantFiles = Arrays.copyOfRange(args, 1, args.length - 4);
-        List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(reactantFiles, 0);
-        // Load anchor and receptor molecules
-        Path pipelineLocation = Paths.get(args[args.length - 2]);
-        Path receptor = Paths.get(args[args.length - 4]);
-        Path anchor = Paths.get(args[args.length - 3]);
-        // Construct the initial population
-        ArrayList<Reactor> reactions = new ArrayList<>();
-        reactions.add(reactor);
-        List<Species> species = Species.constructSpecies(reactions, reactantLists.size());
-        Population population = new Population(reactantLists, species, maxSamples, 1, new AtomicLong(0), 0);
-//        population.initializeAlleleSimilaritiesMatrix();
-        population.setMutationMethod(Population.MutationMethod.DISTANCE_DEPENDENT);
-        population.setSelectionMethod(Population.SelectionMethod.TRUNCATED_SELECTION);
-        // Create new CompoundEvolver
-        CompoundEvolver compoundEvolver = new CompoundEvolver(population, new CommandLineEvolutionProgressConnector());
-        compoundEvolver.setupPipeline(pipelineLocation, receptor, anchor);
-        compoundEvolver.setDummyFitness(false);
-        // Evolve compounds
-        compoundEvolver.evolve();
     }
 
     public boolean isDebugPrint() {
@@ -432,7 +395,8 @@ public class CompoundEvolver {
         while (validCandidates.size() < population.getPopulationSize() && !evolutionProgressConnector.isTerminationRequired()) {
             if (this.pipelineOutputFilePath.resolve("terminate").toFile().exists())
                 throw new ForcedTerminationException("The program was terminated forcefully.");
-            population = population.newPopulation();
+            // Initial population needs to use the pre-filtered reactant lists
+            population = population.newPopulation(true);
             candidates = getInitialCandidates();
             validCandidates.addAll(filterCandidates(candidates));
             System.out.println("Current candidates: " + candidates);
@@ -521,7 +485,14 @@ public class CompoundEvolver {
         }
         best_reactants = best_reactants.stream().filter(s -> s.size() > 0).collect(Collectors.toList());
         List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 10), population.reactantLists);
-        this.population = population.newPopulation(reactants);
+        List<List<Integer>> reactantSelection = new ArrayList<>();
+        for (int i = 0; i < reactants.size(); i++) {
+            reactantSelection.add(new ArrayList<>());
+            for (int j = 0; j < reactants.get(i).size(); j++) {
+                reactantSelection.get(i).add(j);
+            }
+        }
+        this.population = population.newPopulation(reactants, reactantSelection);
 
         this.setTerminationCondition(TerminationCondition.FIXED_GENERATION_NUMBER);
         this.setMaxNumberOfGenerations(this.population.getGenerationNumber() + 3);

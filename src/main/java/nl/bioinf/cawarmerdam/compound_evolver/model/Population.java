@@ -60,6 +60,7 @@ public class Population implements Iterable<Candidate> {
     private double minBBB;
     private boolean adaptive;
     private int receptorAmount;
+    private final List<List<Integer>> reactantSelection;
     private List<Candidate> fitnessCandidateList;
     private boolean selective;
     private List<PipelineStep<Candidate, Candidate>> validatepipe;
@@ -83,8 +84,10 @@ public class Population implements Iterable<Candidate> {
             List<List<String>> reactantLists,
             List<Species> species,
             SpeciesDeterminationMethod speciesDeterminationMethod,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed,
+            List<List<Integer>> reactantSelection) {
         this.receptorAmount = receptorAmount;
+        this.reactantSelection = reactantSelection;
         this.random = new Random(currentValue.get() + baseSeed);
         this.baseSeed = baseSeed;
         this.reactantLists = reactantLists;
@@ -118,8 +121,9 @@ public class Population implements Iterable<Candidate> {
     public Population(
             List<List<String>> reactantLists,
             List<Species> species,
-            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed) {
-        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue, baseSeed);
+            int initialGenerationSize, int receptorAmount, AtomicLong currentValue, long baseSeed,
+            List<List<Integer>> reactantSelection) {
+        this(reactantLists, species, SpeciesDeterminationMethod.DYNAMIC, initialGenerationSize, receptorAmount, currentValue, baseSeed, reactantSelection);
     }
 
 
@@ -265,19 +269,27 @@ public class Population implements Iterable<Candidate> {
         int individualsPerSpecies = this.populationSize / this.species.size();
         this.candidateList = new ArrayList<>();
         List<Candidate> tempList = new ArrayList<>();
-
+        List<List<String>> filteredReactants = new ArrayList<>();
+        for (int i = 0; i < reactantLists.size(); i++) {
+            int finalI = i;
+            filteredReactants.add(
+                    this.reactantSelection.get(i).stream()
+                            .map(selection -> reactantLists.get(finalI).get(selection))
+                            .collect(Collectors.toList())
+            );
+        }
         // initialize population according to the species determination method
         if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.FIXED) {
             // Set
             for (Species species : this.species) {
                 // Create a fixed set of candidates per species.
                 tempList = new RandomCompoundReactor(individualsPerSpecies)
-                        .randReact(this.reactantLists, Collections.singletonList(species), this.currentValue, this.baseSeed);
+                        .randReact(filteredReactants, Collections.singletonList(species), this.currentValue, this.baseSeed);
             }
         } else if (this.speciesDeterminationMethod == SpeciesDeterminationMethod.DYNAMIC) {
             // Create a set of candidates with the species that works best.
             tempList = new RandomCompoundReactor(this.populationSize)
-                    .randReact(this.reactantLists, this.species, this.currentValue, this.baseSeed);
+                    .randReact(filteredReactants, this.species, this.currentValue, this.baseSeed);
         } else {
             // Throw exception when another determination method is selected.
             throw new RuntimeException("Species determination method '" + speciesDeterminationMethod.toString() +
@@ -790,8 +802,18 @@ public class Population implements Iterable<Candidate> {
         this.minBBB = minBBB;
     }
 
-    public Population newPopulation() {
-        return this.newPopulation(this.reactantLists);
+    public Population newPopulation(boolean useReactantSelection) {
+        if (useReactantSelection) {
+            return this.newPopulation(this.reactantLists, this.reactantSelection);
+        }
+        List<List<Integer>> reactantSelection = new ArrayList<>();
+        for (int i = 0; i < reactantLists.size(); i++) {
+            reactantSelection.add(new ArrayList<>());
+            for (int j = 0; j < reactantLists.get(i).size(); j++) {
+                reactantSelection.get(i).add(j);
+            }
+        }
+        return this.newPopulation(this.reactantLists, reactantSelection);
     }
 
     /**
@@ -799,10 +821,13 @@ public class Population implements Iterable<Candidate> {
      *
      * @return a new population
      */
-    public Population newPopulation(List<List<String>> reactantLists) {
+    public Population newPopulation(List<List<String>> reactantLists, List<List<Integer>> reactantSelection) {
         Population population;
         SelectionMethod method = this.getSelectionMethod();
-        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(), this.getPopulationSize(), this.getReceptorAmount(), this.currentValue, this.baseSeed);
+        // Any new populations should be allowed to use all reactants
+        population = new Population(reactantLists, this.species, this.getSpeciesDeterminationMethod(),
+                this.getPopulationSize(), this.getReceptorAmount(), this.currentValue, this.baseSeed,
+                reactantSelection);
         population.setSelective(this.selective);
         population.setDebugPrint(debugPrint);
 

@@ -115,9 +115,16 @@ public class EvolveServlet extends HttpServlet {
         String[] smartsFiltering = request.getParameter("smartsFiltering").split("\\R");
         // Get reactants
         List<List<String>> reactantLists = ReactantFileHandler.loadMolecules(getFilesFromRequest(request, "reactantFiles"), maxWeight, smartsFiltering);
-
+        List<List<Integer>> reactantSelection = new ArrayList<>();
         if (getBooleanParameterFromRequest(request, "getVariedReactants")) {
-            reactantLists = SimilaritySelector.getVariedReactants(reactantLists, Paths.get(System.getenv("SIMILARITY_SELECTOR")), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation, baseSeed);
+            reactantSelection = SimilaritySelector.getVariedReactants(reactantLists, Paths.get(System.getenv("SIMILARITY_SELECTOR")), Paths.get(System.getenv("RDKIT_WRAPPER")), outputFileLocation, baseSeed);
+        } else {
+            for (int i = 0; i < reactantLists.size(); i++) {
+                reactantSelection.add(new ArrayList<>());
+                for (int j = 0; j < reactantLists.get(i).size(); j++) {
+                    reactantSelection.get(i).add(j);
+                }
+            }
         }
         List<List<Integer>> reactantsFileOrder = getFileOrderParameterFromRequest(request);
         List<Species> species = Species.constructSpecies(reactionList, reactantsFileOrder);
@@ -138,7 +145,9 @@ public class EvolveServlet extends HttpServlet {
         }
 
         // Initialize population instance
-        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize, receptorParts.size(), new AtomicLong(0), baseSeed);
+        Population initialPopulation = new Population(reactantLists, species, speciesDeterminationMethod, generationSize,
+                receptorParts.size(), new AtomicLong(0), baseSeed,
+                reactantSelection);
 
         // Get interspecies crossover method
         Population.InterspeciesCrossoverMethod interspeciesCrossoverMethod = Population.InterspeciesCrossoverMethod.
