@@ -262,6 +262,14 @@ public class Population implements Iterable<Candidate> {
         this.skipcheck = skipcheck;
     }
 
+    public AtomicLong getCurrentValue() {
+        return currentValue;
+    }
+
+    public long getBaseSeed() {
+        return baseSeed;
+    }
+
     /**
      * Initializes a population from the reactant lists and the reactions.
      */

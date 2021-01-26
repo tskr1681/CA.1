@@ -7,6 +7,7 @@ package nl.bioinf.cawarmerdam.compound_evolver.control;
 import chemaxon.formats.MolImporter;
 import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
+import com.google.common.collect.Lists;
 import nl.bioinf.cawarmerdam.compound_evolver.model.*;
 import nl.bioinf.cawarmerdam.compound_evolver.model.pipeline.*;
 import nl.bioinf.cawarmerdam.compound_evolver.util.*;
@@ -445,6 +446,7 @@ public class CompoundEvolver {
             if (this.scoringOption == ScoringOption.SCORPION && this.population.species.size() == 1 && !this.isBoosting) {
                 runBooster();
             }
+            getBestCombinations();
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.SUCCESS);
         } catch (OffspringFailureOverflow | TooFewScoredCandidates e) {
             evolutionProgressConnector.setStatus(EvolutionProgressConnector.Status.FAILED);
@@ -462,6 +464,33 @@ public class CompoundEvolver {
         System.out.println("population.tooDistantConformerCounter = " + tooDistantConformerCounter.values().stream().mapToInt(i -> i).sum());
         System.out.println("clashingConformerCounter = " + clashingConformerCounter.values().stream().mapToInt(i -> i).sum());
         this.manager.close();
+    }
+
+    private void getBestCombinations() throws ForcedTerminationException, TooFewScoredCandidates {
+        List<Candidate> bestCandidates = this.population.stream().sorted().collect(Collectors.toList()).subList((int) (0.9*population.size()), population.size());
+        List<List<Integer>> bestReactants = new ArrayList<>();
+        for (int i = 0; i < bestCandidates.get(0).getGenotype().size(); i++) {
+            bestReactants.add(new ArrayList<>());
+        }
+        for (Candidate bestCandidate : bestCandidates) {
+            for (int i = 0; i < bestCandidate.getGenotype().size(); i++) {
+                bestReactants.get(i).add(bestCandidate.getGenotype().get(i));
+            }
+        }
+        List<List<Integer>> allCombinations = Lists.cartesianProduct(bestReactants);
+        List<Candidate> out = new ArrayList<>();
+        for (List<Integer> combination : allCombinations) {
+            Candidate c = new Candidate(combination, this.population.getCurrentValue().incrementAndGet(), population.getBaseSeed());
+            c.finish(this.population.reactantLists, this.population.species);
+            out.add(c);
+        }
+        this.population.setCandidateList(out);
+        scoreCandidates();
+        try {
+            manager.writeGeneration(population);
+        } catch (Exception ignored) {
+        }
+        evolutionProgressConnector.handleNewGeneration(population.getCurrentGeneration());
     }
 
     private void runBooster() throws ForcedTerminationException, TooFewScoredCandidates, OffspringFailureOverflow {

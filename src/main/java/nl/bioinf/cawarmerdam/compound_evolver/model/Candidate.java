@@ -120,7 +120,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param species       The list of species to try.
      * @return true if this candidate was viable and valid, false if not.
      */
-    boolean finish(List<List<String>> reactantLists, List<Species> species) {
+    public boolean finish(List<List<String>> reactantLists, List<Species> species) {
         for (Species singleSpecies : species) {
             boolean isFinished = finish(reactantLists, singleSpecies);
             if (isFinished) {
