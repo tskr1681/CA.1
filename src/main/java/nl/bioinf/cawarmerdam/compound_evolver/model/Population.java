@@ -1055,7 +1055,7 @@ public class Population implements Iterable<Candidate> {
         // When the candidate is scored, keep it.
         for (List<Candidate> candidates : candidateList) {
             templist = candidates.stream()
-                    .map(Candidate::isScored)
+                    .map(c -> c.isScored() && c.getScoredConformersFile().toFile().exists())
                     .collect(Collectors.toList());
             if (booleans.size() == 0) {
                 booleans = templist;
