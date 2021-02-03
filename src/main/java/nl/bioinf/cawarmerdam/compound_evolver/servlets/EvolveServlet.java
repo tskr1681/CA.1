@@ -98,6 +98,7 @@ public class EvolveServlet extends HttpServlet {
         String sessionID = getSessionId(session, pipelineTargetDirectory, request.getParameter("name"));
         Path outputFileLocation = pipelineTargetDirectory.resolve(sessionID);
         long baseSeed = getIntegerParameterFromRequest(request, "baseSeed");
+        baseSeed = baseSeed == 0 ? new Random().nextInt(100) : baseSeed;
 
         // Check if the location already exists
         if (!outputFileLocation.toFile().exists()) {
