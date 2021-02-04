@@ -546,6 +546,7 @@ public class CompoundEvolver {
                 scored_reactant_subset.add(scored.get(j).get(i));
             }
             scored_reactant_subset.sort(Comparator.comparingDouble(ImmutablePair::getLeft));
+            Collections.reverse(scored_reactant_subset);
             List<String> out_subset = new ArrayList<>();
             for (int j = 0; j < amount; j++) {
                 out_subset.add(reactants.get(i).get(scored_reactant_subset.get(i).getRight()));
