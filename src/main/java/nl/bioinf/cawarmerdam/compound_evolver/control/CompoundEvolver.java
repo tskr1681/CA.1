@@ -520,6 +520,7 @@ public class CompoundEvolver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         best_reactants = best_reactants.stream().filter(s -> s.size() > 0).collect(Collectors.toList());
         List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 10), population.reactantLists);
         List<List<Integer>> reactantSelection = new ArrayList<>();
@@ -547,9 +548,10 @@ public class CompoundEvolver {
             }
             scored_reactant_subset.sort(Comparator.comparingDouble(ImmutablePair::getLeft));
             Collections.reverse(scored_reactant_subset);
+            scored_reactant_subset = scored_reactant_subset.stream().distinct().collect(Collectors.toList());
             List<String> out_subset = new ArrayList<>();
             for (int j = 0; j < amount; j++) {
-                out_subset.add(reactants.get(i).get(scored_reactant_subset.get(i).getRight()));
+                out_subset.add(reactants.get(i).get(scored_reactant_subset.get(j).getRight()));
             }
             out.add(out_subset);
         }
