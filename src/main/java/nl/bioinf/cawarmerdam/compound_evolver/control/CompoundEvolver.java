@@ -502,27 +502,30 @@ public class CompoundEvolver {
     }
 
     private void runBooster() throws ForcedTerminationException, TooFewScoredCandidates, OffspringFailureOverflow {
-        int candidate_count = this.population.matchingCandidateList().size();
         List<List<ImmutablePair<Double, Integer>>> best_reactants = new ArrayList<>();
-        try {
-            for (int i = 0; i < candidate_count; i++) {
-                Candidate c = this.population.matchingCandidateList().get(i).get(0);
-                List<Double> scores = ReactantScoreHelper.getReactantScores(c, this.fitnessMeasure);
-                if (scores != null) {
-                    for (int j = 0; j < scores.size(); j++) {
-                        while (best_reactants.size() <= i) {
-                            best_reactants.add(new ArrayList<>());
+        for (Generation generation : this.evolutionProgressConnector.getGenerations()) {
+
+            int candidate_count = generation.getCandidateList().size();
+            int startIndex = best_reactants.size();
+            try {
+                for (int i = startIndex; i < startIndex + candidate_count; i++) {
+                    Candidate c = generation.getCandidateList().get(i-startIndex);
+                    List<Double> scores = ReactantScoreHelper.getReactantScores(c, this.fitnessMeasure);
+                    if (scores != null) {
+                        for (int j = 0; j < scores.size(); j++) {
+                            while (best_reactants.size() <= i) {
+                                best_reactants.add(new ArrayList<>());
+                            }
+                            best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
                         }
-                        best_reactants.get(i).add(new ImmutablePair<>(scores.get(j), c.getGenotype().get(j)));
                     }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
         best_reactants = best_reactants.stream().filter(s -> s.size() > 0).collect(Collectors.toList());
-        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(candidate_count, 10), population.reactantLists);
+        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(best_reactants.get(0).size(), 10), population.reactantLists);
         List<List<Integer>> reactantSelection = new ArrayList<>();
         for (int i = 0; i < reactants.size(); i++) {
             reactantSelection.add(new ArrayList<>());
@@ -550,7 +553,7 @@ public class CompoundEvolver {
             Collections.reverse(scored_reactant_subset);
             scored_reactant_subset = scored_reactant_subset.stream().distinct().collect(Collectors.toList());
             List<String> out_subset = new ArrayList<>();
-            for (int j = 0; j < amount; j++) {
+            for (int j = 0; j < amount && j < scored_reactant_subset.size(); j++) {
                 out_subset.add(reactants.get(i).get(scored_reactant_subset.get(j).getRight()));
             }
             out.add(out_subset);

@@ -4,6 +4,8 @@
  */
 package nl.bioinf.cawarmerdam.compound_evolver.model;
 
+import java.util.List;
+
 /**
  * Interface that specifies how the compound evolver can push data.
  *
@@ -17,6 +19,14 @@ public interface EvolutionProgressConnector {
      * The status that can apply to the evolution process.
      */
     enum Status {RUNNING, FAILED, SUCCESS, STARTING}
+
+
+    /**
+     * Getter for the list of generations that are stored.
+     *
+     * @return the list of previously made generations not in the generations buffer.
+     */
+    List<Generation> getGenerations();
 
     /**
      * Method that should handle a newly scored generation.
