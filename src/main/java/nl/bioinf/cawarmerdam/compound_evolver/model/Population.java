@@ -730,8 +730,10 @@ public class Population implements Iterable<Candidate> {
                                 System.err.println("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 this.offspringRejectionMessages.add("Candidate production failed because the candidate was a duplicate. Duplicate genotype: " + c.getGenotype());
                                 try {
-                                    FileUtils.deleteDirectory(Paths.get(outputLocation.toString(),
-                                            String.valueOf(c.getIdentifier())).toAbsolutePath().toFile());
+                                    if (c.canBeDeleted()) {
+                                        FileUtils.deleteDirectory(Paths.get(outputLocation.toString(),
+                                                String.valueOf(c.getIdentifier())).toAbsolutePath().toFile());
+                                    }
                                 } catch (IOException exception) {
                                     System.err.println(exception.getMessage());
                                 }
