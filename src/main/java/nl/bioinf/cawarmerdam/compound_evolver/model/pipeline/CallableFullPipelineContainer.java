@@ -9,7 +9,6 @@ import chemaxon.marvin.plugin.PluginException;
 import chemaxon.struc.Molecule;
 import nl.bioinf.cawarmerdam.compound_evolver.model.Candidate;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +27,6 @@ public class CallableFullPipelineContainer implements Callable<Void> {
     private final List<PipelineStep<Candidate, Void>> pipeline;
     private final Path pipelineOutputFilePath;
     private final List<Candidate> candidates;
-    private final boolean cleanupFiles;
 
     /**
      * Constructor of a callable pipeline container.
@@ -36,13 +34,11 @@ public class CallableFullPipelineContainer implements Callable<Void> {
      * @param pipeline               The pipeline that has to be executed.
      * @param pipelineOutputFilePath The output where the pipeline writes to.
      * @param candidates             The candidates that this container will score.
-     * @param cleanupFiles           If this should remove temporary files.
      */
-    public CallableFullPipelineContainer(List<PipelineStep<Candidate, Void>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates, boolean cleanupFiles) {
+    public CallableFullPipelineContainer(List<PipelineStep<Candidate, Void>> pipeline, Path pipelineOutputFilePath, List<Candidate> candidates) {
         this.pipeline = pipeline;
         this.pipelineOutputFilePath = pipelineOutputFilePath;
         this.candidates = candidates;
-        this.cleanupFiles = cleanupFiles;
     }
 
     /**
@@ -78,9 +74,6 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 this.pipeline.get(i).execute(candidates.get(i));
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                // Remove the pipeline files.
-                if (candidateDirectory != null && cleanupFiles) this.removeCandidatePipelineFiles(candidateDirectory);
             }
             if (candidates.get(i).isScored()) {
                 candidates.get(i).calculateLigandEfficiency();
@@ -113,24 +106,5 @@ public class CallableFullPipelineContainer implements Callable<Void> {
             }
         }
         return directory;
-    }
-
-    /**
-     * Remove candidate specific files from the directory, excluding the log file.
-     *
-     * @param candidateDirectory The candidate specific directory.
-     */
-    private void removeCandidatePipelineFiles(Path candidateDirectory) {
-        // Collect specific files.
-        final File[] files = candidateDirectory.toFile().listFiles(
-                (dir, name) -> !name.matches("^pipeline\\.log$"));
-        // Remove all files
-        if (files != null) {
-            for (final File file : files) {
-                if (!file.delete()) {
-                    System.err.println("Can't remove " + file.getAbsolutePath());
-                }
-            }
-        }
     }
 }

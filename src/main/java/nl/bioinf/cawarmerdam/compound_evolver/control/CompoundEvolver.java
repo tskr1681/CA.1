@@ -49,7 +49,6 @@ public class CompoundEvolver {
     private int maxNumberOfGenerations;
     private double nonImprovingGenerationAmountFactor;
     private boolean dummyFitness;
-    private boolean cleanupFiles;
     private int targetCandidateCount;
     private int candidatesScored;
     private GenerationDataFileManager manager;
@@ -72,7 +71,6 @@ public class CompoundEvolver {
         this.maxNumberOfGenerations = 25;
         this.maximumAllowedDuration = 600000;
         this.forceField = ForceField.MAB;
-        this.setCleanupFiles(false);
         this.terminationCondition = TerminationCondition.FIXED_GENERATION_NUMBER;
         this.conformerOption = ConformerOption.CHEMAXON;
     }
@@ -623,7 +621,7 @@ public class CompoundEvolver {
                     }
                 }
                 // Setup callable
-                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates, cleanupFiles);
+                Callable<Void> PipelineContainer = new CallableFullPipelineContainer(pipe, pipelineOutputFilePath, candidates);
                 // Add future, which the executor will return to the list
                 futures.add(executor.submit(PipelineContainer));
             }
@@ -982,15 +980,6 @@ public class CompoundEvolver {
             throw new RuntimeException(String.format("Environment variable '%s' was null", variableName));
         }
         return sminaExecutable;
-    }
-
-    /**
-     * Setter for the clearing and cleaning of pipeline files.
-     *
-     * @param cleanupFiles True if pipeline files have to be cleared.
-     */
-    void setCleanupFiles(boolean cleanupFiles) {
-        this.cleanupFiles = cleanupFiles;
     }
 
     /**
