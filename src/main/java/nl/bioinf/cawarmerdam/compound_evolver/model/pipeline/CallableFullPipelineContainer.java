@@ -54,6 +54,8 @@ public class CallableFullPipelineContainer implements Callable<Void> {
         for (int i = 0; i < candidates.size(); i++) {
             Path candidateDirectory = null;
             try {
+                if (candidates.get(i).isScored())
+                    return null;
                 // Create new directory
                 candidateDirectory = createCandidateDirectory(candidates.get(i));
 
@@ -63,7 +65,6 @@ public class CallableFullPipelineContainer implements Callable<Void> {
                 candidates.get(i).setFixedConformersFile(null);
                 candidates.get(i).setConformersFile(null);
                 candidates.get(i).setConformerScores(null);
-                candidates.get(i).setScored(false);
 
                 // Execute pipeline
                 MolExporter m = new MolExporter(new FileOutputStream(candidateDirectory.resolve("reactants.smiles").toFile()), "smiles");
