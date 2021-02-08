@@ -612,7 +612,7 @@ public class CompoundEvolver {
                     File candidate_dir = Paths.get(pipelineOutputFilePath.toString(),
                             String.valueOf(candidate.getIdentifier())).toFile();
                     try {
-                        if (candidate_dir.exists())
+                        if (candidate_dir.exists() && candidate.canBeDeleted())
                             FileUtils.cleanDirectory(candidate_dir);
                     } catch (IOException e) {
                         if (debugPrint) {

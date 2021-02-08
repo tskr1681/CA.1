@@ -346,6 +346,7 @@ public class Candidate implements Comparable<Candidate> {
      * @param rawScore the rawScore of this candidate
      */
     public void setRawScore(double rawScore) {
+        this.canBeDeleted = false;
         this.rawScore = rawScore;
         this.isScored = true;
     }
