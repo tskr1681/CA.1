@@ -27,6 +27,7 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
     private final Path receptorFilePath;
     private final String molocExecutable;
+    private boolean score;
 
     /**
      * Constructor for the Moloc energy minimization step.
@@ -36,7 +37,8 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
      * @param esprntoExecutable The path to the executable of moloc's Esprnto program.
      * @throws PipelineException if an exception occurred when converting the receptor to the mab format.
      */
-    public MolocEnergyMinimizationStep(Path receptorFilePath, String molocExecutable, String esprntoExecutable) throws PipelineException {
+    public MolocEnergyMinimizationStep(Path receptorFilePath, String molocExecutable, String esprntoExecutable, boolean score) throws PipelineException {
+        this.score = score;
         this.receptorFilePath = convertToMabFile(receptorFilePath, esprntoExecutable);
         this.molocExecutable = molocExecutable;
     }
@@ -89,9 +91,11 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
 
         // Throw an exception if the file was not renamed.
         // Set scores.
-        candidate.setConformerScores(getConformerScores(inputFile.getParent(), ligandName, receptorName));
+        if (score) {
+            candidate.setConformerScores(getConformerScores(inputFile.getParent(), ligandName, receptorName));
+            candidate.setScoredConformersFile(newMinimizedConformersFilePath);
+        }
         candidate.setMinimizationOutputFilePath(newMinimizedConformersFilePath);
-        candidate.setScoredConformersFile(newMinimizedConformersFilePath);
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {

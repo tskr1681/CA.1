@@ -887,7 +887,7 @@ public class CompoundEvolver {
                 step = new MolocEnergyMinimizationStep(
                         receptorFile,
                         mol3dExecutable,
-                        esprntoExecutable).pipe(validateConformersStep);
+                        esprntoExecutable, false).pipe(validateConformersStep);
                 break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");
@@ -912,7 +912,7 @@ public class CompoundEvolver {
                         return step.pipe(new MolocEnergyMinimizationStep(
                                 receptorFile,
                                 mol3dExecutable,
-                                esprntoExecutable).pipe(new ValidateConformersStep(anchorFilePath, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape)));
+                                esprntoExecutable, true).pipe(new ValidateConformersStep(anchorFilePath, maximumAnchorDistance, clashingConformerCounter, tooDistantConformerCounter, deleteInvalid, shape)));
                     }
                 case SMINA:
                     if (this.forceField == ForceField.SMINA) {
