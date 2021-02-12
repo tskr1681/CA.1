@@ -887,7 +887,8 @@ public class CompoundEvolver {
                 step = new MolocEnergyMinimizationStep(
                         receptorFile,
                         mol3dExecutable,
-                        esprntoExecutable, false).pipe(validateConformersStep);
+                        // Optimize and score at the same time if the scoring to use is the same as the force field we are using
+                        esprntoExecutable, this.scoringOption==ScoringOption.MAB).pipe(validateConformersStep);
                 break;
             case SMINA:
                 String sminaExecutable = getEnvironmentVariable("SMINA_EXE");

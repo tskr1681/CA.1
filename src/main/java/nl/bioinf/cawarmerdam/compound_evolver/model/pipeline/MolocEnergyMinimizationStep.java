@@ -55,10 +55,6 @@ public class MolocEnergyMinimizationStep implements PipelineStep<Candidate, Cand
         if (candidate == null)
             throw new PipelineException("Moloc got null as a candidate, validation failed?");
 
-        //No need to rerun moloc if we've already scored this compound. It's clearly optimized already, otherwise it wouldn't be scored.
-        if (candidate.getRawScore() != null)
-            return candidate;
-
         // Get the file names from the input
         // If we've already minimized, used the minimized versions as input, otherwise use the fixed conformers
         Path inputFile = candidate.getMinimizationOutputFilePath() != null ? candidate.getMinimizationOutputFilePath() : candidate.getFixedConformersFile();
