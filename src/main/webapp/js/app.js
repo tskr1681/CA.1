@@ -574,7 +574,11 @@ app.controller('FormInputCtrl', function ($scope, $rootScope) {
         let formData = new FormData(form);
 
         let iframe = document.createElement("iframe");
-        iframe.setAttribute("src", url + "?progressID=" + formData.get("progressID"));
+        let symbol = "?";
+        if (url.toString().includes("?")) {
+            symbol = "&";
+        }
+        iframe.setAttribute("src", url + symbol + "progressID=" + formData.get("progressID"));
         iframe.setAttribute("style", "display: none");
         document.body.appendChild(iframe);
     }
