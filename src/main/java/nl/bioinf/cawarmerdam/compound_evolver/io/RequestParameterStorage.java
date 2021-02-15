@@ -101,7 +101,7 @@ public class RequestParameterStorage {
         buffer.newLine();
         buffer.write("Adaptive mutation: " + (request.getParameter("setAdaptiveMutation") != null));
         buffer.newLine();
-        if (request.getParameter("setAdaptive") != null) {
+        if (request.getParameter("setAdaptive") == null) {
             buffer.write("Crossover rate: " + request.getParameter("crossoverRate"));
             buffer.newLine();
             buffer.write("Mutation rate: " + request.getParameter("mutationRate"));
