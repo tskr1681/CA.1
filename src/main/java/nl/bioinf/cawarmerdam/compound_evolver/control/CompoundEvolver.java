@@ -523,7 +523,7 @@ public class CompoundEvolver {
             }
         }
         best_reactants = best_reactants.stream().filter(s -> s.size() > 0).collect(Collectors.toList());
-        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(best_reactants.get(0).size(), 10), population.reactantLists);
+        List<List<String>> reactants = getBestReactants(best_reactants, Math.min(best_reactants.size(), 10), population.reactantLists);
         List<List<Integer>> reactantSelection = new ArrayList<>();
         for (int i = 0; i < reactants.size(); i++) {
             reactantSelection.add(new ArrayList<>());
