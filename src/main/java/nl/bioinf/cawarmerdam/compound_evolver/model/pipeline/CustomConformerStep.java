@@ -65,6 +65,10 @@ public class CustomConformerStep implements PipelineStep<Candidate, Candidate> {
                 String[] error_message = error.split("\\n");
                 throw new PipelineException("RDKit custom conformer script found an issue: " + error_message[error_message.length - 2]);
             }
+            if (candidate.getConformersFile().toFile().length() == 0) {
+                System.out.println("Custom conformer script output: " + out);
+                throw new PipelineException("RDKit custom conformer script found an unknown issue, please check the logs for more information.");
+            }
         } catch (IOException | InterruptedException e) {
             throw new PipelineException("Custom conformer script failed");
         }
