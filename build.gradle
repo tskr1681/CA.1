@@ -16,8 +16,8 @@ repositories {
     maven {
         url 'https://hub.chemaxon.com/artifactory/libs-release'
         credentials {
-            username = email@email.com
-            password = API-key
+            username = 'email@email.com'
+            password = 'API-key'
         }
     }
     flatDir {
