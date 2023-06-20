@@ -14,10 +14,10 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
     maven {
-        url artifactory_contextUrl
+        url https://hub.chemaxon.com/artifactory/libs-release
         credentials {
-            username = artifactory_user
-            password = artifactory_password
+            username = email@email.com
+            password = API-key
         }
     }
     flatDir {
