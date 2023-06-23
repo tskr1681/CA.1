@@ -13,7 +13,7 @@ sourceCompatibility = 1.8
 
 repositories {
     maven { url "https://repo.maven.apache.org/maven2" }
-   maven {
+    maven {
         url "${chemaxonRepositoryUrl}/libs-release"
         credentials {
             username = chemaxonRepositoryUser
@@ -68,3 +68,7 @@ task install(type: Copy) {
     from configurations.runtime
     into "${project.projectDir}/build/libs/lib"
 }
+
+// Task required by Heroku for deployment
+task stage(dependsOn: ['clean', 'install'])
+
