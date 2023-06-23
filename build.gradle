@@ -12,7 +12,7 @@ mainClassName = 'nl.bioinf.cawarmerdam.compound_evolver.control.CompoundEvolver'
 sourceCompatibility = 1.8
 
 repositories {
-    mavenCentral()
+    maven { url "https://repo.maven.apache.org/maven2" }
     maven {
         url 'https://hub.chemaxon.com/artifactory/libs-release'
         credentials {
