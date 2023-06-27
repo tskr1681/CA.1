@@ -1,4 +1,3 @@
-[7:43 AM, 6/27/2023] Aniket: package nl.bioinf.cawarmerdam.compound_evolver.util;
 
 import chemaxon.formats.MolImporter;
 import chemaxon.marvin.calculations.logPPlugin;
@@ -143,7 +142,8 @@ public class ReactantScoreHelper {
         return best_mol;
     }
 }
-[7:44 AM, 6/27/2023] Aniket: /*
+
+
  * Copyright (c) 2018 C.A. (Robert) Warmerdam [c.a.warmerdam@st.hanze.nl].
  * All rights reserved.
  */
