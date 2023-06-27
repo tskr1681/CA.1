@@ -64,11 +64,44 @@ public class ReactantScoreHelper {
                     molAtom.getProperty("score") == null ? 0.0D : ((double) molAtom.getProperty("score") / normalizationfactor)
             ).sum();
 
-            score = measure == CompoundEvolver.FitnessMeasure.LIGAND_LIPOPHILICITY_EFFICIENCY ? calculateLigandLipophilicityEfficiency(reactant, score) : score;
+            // Calculate QED
+            double qed = calculateQED(reactant);
+
+            // Calculate BBB score
+            double bbbScore = calculateBBBScore(reactant);
+
+            // Combine the scores based on your requirements
+            double combinedScore = calculateCombinedScore(score, qed, bbbScore);
+
             // Sum all the scores for each reactant
-            reactantscores.add(score);
+            reactantscores.add(combinedScore);
         }
         return reactantscores;
+    }
+
+    public static double calculateQED(Molecule reactant) {
+        // exp(w1 * logP - w2 * ro5Violation - w3 * logS - w4 * hba - w5 * hbd) / Z
+        try {
+            qedPlugin.setMolecule(reactant);
+            qedPlugin.run();
+            return qedPlugin.getQEDValue();
+        } catch (PluginException e) {
+            e.printStackTrace();
+        }
+        return 0.0D;
+    }
+
+    public static double calculateBBBScore(Molecule reactant) {
+        // A * arom + B * HA + C * MWHBN + D * TPSA + E * pKa
+        // Implement the BBB score calculation based on your specific criteria
+        // Use properties, descriptors, or rules to evaluate BBB permeability of the molecule
+        return 0.0D;
+    }
+
+    public static double calculateCombinedScore(double score, double qed, double bbbScore) {
+        // Define your own formula to combine the individual scores (score, qed, bbbScore) into a single score
+        // You can assign weights or apply mathematical operations based on your requirements
+        return score + (0.5 * qed) - (0.2 * bbbScore);
     }
 
     public static double calculateLigandLipophilicityEfficiency(Molecule reactant, double score) {
